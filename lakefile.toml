@@ -1,0 +1,17 @@
+name = "lean-convex-geometry"
+version = "0.1.0"
+keywords = ["math", "convex-geometry", "euclidean-geometry", "spherical-geometry", "lean4"]
+defaultTargets = ["ConvexGeom"]
+
+[leanOptions]
+pp.unicode.fun = true
+autoImplicit = false
+relaxedAutoImplicit = false
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4.git"
+rev = "v4.36.0"
+
+[[lean_lib]]
+name = "ConvexGeom"
