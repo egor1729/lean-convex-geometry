@@ -20,7 +20,7 @@ This file defines the support function `supportFn K u = sSup {⟪x, u⟫ | x ∈
 - `supportFn_add_le`: subadditivity `supportFn K (u + v) ≤ supportFn K u + supportFn K v`.
 -/
 
-open scoped RealInnerProductSpace
+open scoped RealInnerProductSpace Pointwise
 
 namespace ConvexGeom
 
@@ -105,6 +105,63 @@ theorem supportFn_add_le (K : ConvexBody E) (u v : E) :
   intro x hx
   rw [inner_add_right]
   exact add_le_add (inner_le_supportFn hx u) (inner_le_supportFn hx v)
+
+/-- Sublinearity on nonnegative combinations:
+`h_K(a • u + b • v) ≤ a * h_K(u) + b * h_K(v)` for `a, b ≥ 0`. -/
+theorem supportFn_convex_comb (K : ConvexBody E) (u v : E)
+    {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) :
+    supportFn K (a • u + b • v) ≤ a * supportFn K u + b * supportFn K v := by
+  calc
+    supportFn K (a • u + b • v)
+      ≤ supportFn K (a • u) + supportFn K (b • v) := supportFn_add_le K (a • u) (b • v)
+    _ = a * supportFn K u + b * supportFn K v := by
+      rw [supportFn_smul K ha u, supportFn_smul K hb v]
+
+/-- The support function of a convex body is convex on the entire space `E`. -/
+theorem supportFn_convexOn (K : ConvexBody E) :
+    ConvexOn ℝ Set.univ (supportFn K) := by
+  refine ⟨convex_univ, ?_⟩
+  intro u _ v _ a b ha hb _
+  simpa [smul_eq_mul] using supportFn_convex_comb K u v ha hb
+
+/-- Minkowski additivity: `h_{K + L}(u) = h_K(u) + h_L(u)`. -/
+theorem supportFn_minkowski_add (K L : ConvexBody E) (u : E) :
+    supportFn (K + L) u = supportFn K u + supportFn L u := by
+  apply le_antisymm
+  · rw [supportFn_le_iff]
+    intro x hx
+    rw [← SetLike.mem_coe, ConvexBody.coe_add] at hx
+    rcases Set.mem_add.mp hx with ⟨y, hy, z, hz, rfl⟩
+    rw [inner_add_left]
+    exact add_le_add (inner_le_supportFn hy u) (inner_le_supportFn hz u)
+  · obtain ⟨y, hy, hyu⟩ := exists_mem_supportFn_eq K u
+    obtain ⟨z, hz, hzu⟩ := exists_mem_supportFn_eq L u
+    have hyz : y + z ∈ K + L := by
+      rw [← SetLike.mem_coe, ConvexBody.coe_add]
+      exact Set.add_mem_add hy hz
+    calc
+      supportFn K u + supportFn L u = ⟪y, u⟫ + ⟪z, u⟫ := by rw [hyu, hzu]
+      _ = ⟪y + z, u⟫ := by rw [inner_add_left]
+      _ ≤ supportFn (K + L) u := inner_le_supportFn hyz u
+
+/-- Scaling of the convex body: `h_{c • K}(u) = c * h_K(u)` for `0 ≤ c`. -/
+theorem supportFn_body_smul (K : ConvexBody E) {c : ℝ} (hc : 0 ≤ c) (u : E) :
+    supportFn (c • K) u = c * supportFn K u := by
+  apply le_antisymm
+  · rw [supportFn_le_iff]
+    intro x hx
+    rw [← SetLike.mem_coe, ConvexBody.coe_smul] at hx
+    rcases Set.mem_smul_set.mp hx with ⟨y, hy, rfl⟩
+    rw [inner_smul_left]
+    simpa using mul_le_mul_of_nonneg_left (inner_le_supportFn hy u) hc
+  · obtain ⟨y, hy, hyu⟩ := exists_mem_supportFn_eq K u
+    have hcy : c • y ∈ c • K := by
+      rw [← SetLike.mem_coe, ConvexBody.coe_smul]
+      exact Set.smul_mem_smul_set hy
+    calc
+      c * supportFn K u = c * ⟪y, u⟫ := by rw [hyu]
+      _ = ⟪c • y, u⟫ := by simp [inner_smul_left]
+      _ ≤ supportFn (c • K) u := inner_le_supportFn hcy u
 
 end
 
