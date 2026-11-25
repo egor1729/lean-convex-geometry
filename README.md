@@ -8,10 +8,10 @@ It provides reusable analytic and geometric foundations complementing algebraic 
 
 ## Highlights
 
-- **Support Functions & Metric Convexity:** Support calculus, Hörmander's isometric embedding, Minkowski's representation theorem, completeness of `ConvexBody E`, and the Blaschke Selection Theorem.
-- **Polarity & Polytopes:** One-sided polar bodies, Bipolar Theorem, gauge–support duality, and inscribed polytope approximation.
-- **Volume & Covering:** $d$-simplex volume $|\det|/d!$, half-ball bounds, Hausdorff continuity of volume, and volumetric covering/packing bounds for arbitrary norms.
-- **Inequalities & Symmetrization:** $d$-dimensional Prékopa–Leindler, Brunn–Minkowski, Bieberbach's isodiametric inequality, log-concave marginals, and Minkowski / central / Steiner symmetrization.
+- **Metric, Boundary & Duality:** Support calculus, Hörmander's isometry, Minkowski's representation theorem, Blaschke Selection Theorem, metric projection / outer normal cones / supporting hyperplanes, polar bodies, Bipolar Theorem, and gauge–support duality.
+- **Polytopes, Volume & Covering:** Inscribed and general-position (simplicial) polytope approximation, $d$-simplex volume $|\det|/d!$, half-ball bounds, Hausdorff continuity of volume, and volumetric covering/packing bounds for arbitrary norms.
+- **Brunn–Minkowski & Isoperimetry:** $d$-dimensional Prékopa–Leindler, Brunn–Minkowski, Brunn's concavity principle, log-concave convolutions, Bieberbach's isodiametric inequality, Rogers–Shephard, Minkowski's first inequality, Euclidean isoperimetry, and Minkowski / central / Steiner symmetrization.
+- **Spherical & Affine-Invariant Geometry:** Uniform spherical probability measure, polar-coordinate volume formula, mean width calculus, Dual Urysohn inequality, ellipsoids, $\mathrm{GL}(E)$-invariance of Mahler volume, and polarity-invariant Banach–Mazur distance.
 
 See [`MODULES.md`](MODULES.md) for the full repository layout, dependency graph, and module-by-module theorem index.
 
