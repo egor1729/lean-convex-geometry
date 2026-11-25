@@ -5,48 +5,47 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
-  lean-build:
-    name: Lean 4 Build & Axiom Audit
-    runs-on: ubuntu-latest
+  lean-verify:
+    name: Lean 4 Build, Tests & Exhaustive Audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - name: Install elan
-        run: |
-          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Fetch Mathlib cache
-        run: lake exe cache get
-      - name: Build ConvexGeom (fail on warnings)
-        run: lake build ConvexGeom --wfail
-      - name: Run Axiom Audit
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install pinned elan (SHA-256 verified)
         run: |
           set -euo pipefail
-          out="$(lake env lean ConvexGeom/Verification/AxiomAudit.lean 2>&1)"
-          echo "$out"
-          python3 - "$out" <<'PY'
-          import re, sys
-          text = sys.argv[1]
-          forbidden = ("sorryAx", "Lean.ofReduceBool", "Lean.trustCompiler")
-          for tok in forbidden:
-              if tok in text:
-                  print(f"ERROR: Forbidden axiom detected: {tok}")
-                  sys.exit(1)
-          entries = re.findall(r"'([^']+)' depends on axioms: \[([^\]]*)\]", text, re.S)
-          if not entries:
-              print("ERROR: AxiomAudit produced no axiom reports!")
-              sys.exit(1)
-          allowed = {"propext", "Classical.choice", "Quot.sound"}
-          bad = []
-          for name, axs in entries:
-              parsed = [a.strip() for a in axs.split(",") if a.strip()]
-              unexpected = [a for a in parsed if a not in allowed]
-              if unexpected:
-                  bad.append((name, unexpected))
-          if bad:
-              print("ERROR: Unexpected axiom(s) detected:")
-              for name, unexpected in bad:
-                  print(f"  {name}: {unexpected}")
-              sys.exit(1)
-          print(f"Axiom audit passed ({len(entries)} theorems verified).")
-          PY
+          ELAN_VERSION="v4.4.0"
+          ELAN_SHA256="0e8250aa2be86c7af929ade68db617af9edc8b9ccf6eaf5ece228250d0d032e2"
+          curl -sSfL "https://github.com/leanprover/elan/releases/download/${ELAN_VERSION}/elan-x86_64-unknown-linux-gnu.tar.gz" \
+            -o /tmp/elan.tar.gz
+          echo "${ELAN_SHA256}  /tmp/elan.tar.gz" | sha256sum -c -
+          mkdir -p /tmp/elan-unpack
+          tar -xzf /tmp/elan.tar.gz -C /tmp/elan-unpack
+          /tmp/elan-unpack/elan-init -y --default-toolchain none
+          rm -rf /tmp/elan.tar.gz /tmp/elan-unpack
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch pinned Mathlib cache
+        run: lake exe cache get
+
+      - name: Run full verification pipeline
+        run: bash scripts/verify.sh audit-report.json
+
+      - name: Upload audit report artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: convexgeom-audit-report
+          path: audit-report.json
+          if-no-files-found: warn
+          retention-days: 30
