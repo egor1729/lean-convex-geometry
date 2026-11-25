@@ -169,6 +169,7 @@ theorem metricProj_mem_frontier_of_not_mem {K : ConvexBody E} {x : E} (hx : x �
 `0 ∈ normalCone S y` even if `y ∉ S`). All geometric normal-cone theorems in this file take
 `hy : y ∈ S` explicitly; for the Rockafellar convention returning `∅` outside `S`, see
 `strictNormalCone`. -/
+@[expose]
 def normalCone (S : Set E) (y : E) : Set E :=
   {u : E | ∀ z ∈ S, ⟪z - y, u⟫ ≤ 0}
 

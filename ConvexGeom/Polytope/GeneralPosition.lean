@@ -60,6 +60,7 @@ Note: `[FiniteDimensional ℝ E]` is required explicitly so `Module.finrank ℝ 
 vector-space dimension (rather than defaulting to `0` in infinite dimensions). In dimension `0`,
 `finrank ℝ E + 1 = 1` and every family satisfies `InGeneralPosition` (since singletons are
 affinely independent). -/
+@[expose]
 def InGeneralPosition [FiniteDimensional ℝ E] {ι : Type*} (v : ι → E) : Prop :=
   ∀ s : Finset ι, s.card ≤ Module.finrank ℝ E + 1 →
     AffineIndepOn ℝ v (s : Set ι)

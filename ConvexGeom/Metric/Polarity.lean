@@ -48,6 +48,7 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- The geometric (one-sided) polar body of a set `S ⊆ E`:
 `polarBody S = {y | ∀ x ∈ S, ⟪x, y⟫ ≤ 1}`. -/
+@[expose]
 def polarBody (S : Set E) : Set E :=
   {y | ∀ x ∈ S, ⟪x, y⟫ ≤ 1}
 

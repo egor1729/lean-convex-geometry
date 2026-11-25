@@ -238,17 +238,20 @@ section SteinerSymm
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
 /-- The vertical fiber of `K ⊆ ℝ × E` over `y : E`: `{t : ℝ | (t, y) ∈ K}`. -/
+@[expose]
 def steinerFiber (K : Set (ℝ × E)) (y : E) : Set ℝ :=
   {t : ℝ | (t, y) ∈ K}
 
 /-- Upper endpoint `b(y) = sSup {t | (t, y) ∈ K}` of the vertical fiber over `y`.
 By `Real.sSup_empty`/`Real.sSup_of_not_bddAbove`, this defaults to `0` on empty or
 unbounded-above fibers; intended for compact sets `K`. -/
+@[expose]
 noncomputable def steinerUpper (K : Set (ℝ × E)) (y : E) : ℝ :=
   sSup (steinerFiber K y)
 
 /-- Lower endpoint `a(y) = sInf {t | (t, y) ∈ K}` of the vertical fiber over `y`.
 Defaults to `0` on empty or unbounded-below fibers; intended for compact sets `K`. -/
+@[expose]
 noncomputable def steinerLower (K : Set (ℝ × E)) (y : E) : ℝ :=
   sInf (steinerFiber K y)
 
@@ -260,6 +263,7 @@ On compact convex sets every nonempty fiber is already the closed interval `[a(y
 (`steinerFiber_eq_Icc`), so this agrees with measure-theoretic Steiner symmetrization.
 On disconnected sets it replaces each fiber by the symmetrization of its interval hull
 (filling gaps). For the bundled `ConvexBody (ℝ × E)` operator, see `bodySteinerSymm`. -/
+@[expose]
 def steinerSymm (K : Set (ℝ × E)) : Set (ℝ × E) :=
   {p : ℝ × E | (steinerFiber K p.2).Nonempty ∧
     |p.1| ≤ (steinerUpper K p.2 - steinerLower K p.2) / 2}

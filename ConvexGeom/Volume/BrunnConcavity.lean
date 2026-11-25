@@ -53,6 +53,7 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
 
 /-- The parallel slice `{y : E | (t, y) ∈ K}` of `K ⊆ ℝ × E` at height `t : ℝ`. -/
+@[expose]
 def slice (K : Set (ℝ × E)) (t : ℝ) : Set E :=
   {y : E | (t, y) ∈ K}
 
@@ -267,6 +268,7 @@ variable {E : Type*} [AddCommGroup E] [MeasurableSpace E]
 
 /-- The **covariogram** of `K ⊆ E` with respect to a measure `μ`:
 `covariogram μ K x := μ {y : E | y ∈ K ∧ y - x ∈ K} = μ (K ∩ (x + K))`. -/
+@[expose]
 noncomputable def covariogram (μ : Measure E) (K : Set E) (x : E) : ℝ≥0∞ :=
   μ {y : E | y ∈ K ∧ y - x ∈ K}
 

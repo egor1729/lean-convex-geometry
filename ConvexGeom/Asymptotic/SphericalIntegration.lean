@@ -98,6 +98,7 @@ and `sphereProb μ = 0`).
 On a Euclidean inner product space this coincides with normalized `(d - 1)`-dimensional surface
 measure on `S^{d-1}`, and is independent of the choice of additive Haar measure `μ`
 (`sphereProb_eq_of_isAddHaarMeasure`). -/
+@[expose]
 noncomputable def sphereProb (μ : Measure E) : Measure (sphere (0 : E) 1) :=
   (μ.toSphere Set.univ)⁻¹ • μ.toSphere
 
@@ -486,6 +487,7 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- **Mean width** (half mean breadth) of a convex body `K : ConvexBody E`:
 `meanWidth K = ∫ u ∈ S^{d-1}, supportFn K u dσ(u)`, normalized so `meanWidth B(c, r) = r`. -/
+@[expose]
 noncomputable def meanWidth (K : ConvexBody E) : ℝ :=
   ∫ u : sphere (0 : E) 1, supportFn K u.1 ∂(sphereProb (volume : Measure E))
 

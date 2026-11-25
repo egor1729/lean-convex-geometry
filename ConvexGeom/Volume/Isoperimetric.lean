@@ -137,12 +137,14 @@ theorem minkowski_first_diff_ge [Nontrivial E]
 
 /-- Directional lower outer Minkowski first variation of `K` with respect to `L`:
 `liminf_{t → 0⁺} (volume (K + t • L) - volume K) / t`. -/
+@[expose]
 noncomputable def minkowskiFirstDiff (K L : Set E) : ℝ≥0∞ :=
   Filter.liminf (fun t : ℝ => (volume (K + t • L) - volume K) / ENNReal.ofReal t)
     (𝓝[>] (0 : ℝ))
 
 /-- Lower outer Minkowski content (outer Minkowski surface area) of `K ⊆ E`:
 `minkowskiSurfaceArea K = liminf_{t → 0⁺} (volume (K + t • B₁) - volume K) / t`. -/
+@[expose]
 noncomputable def minkowskiSurfaceArea (K : Set E) : ℝ≥0∞ :=
   minkowskiFirstDiff K (Metric.closedBall (0 : E) 1)
 

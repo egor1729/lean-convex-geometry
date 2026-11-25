@@ -146,6 +146,7 @@ lemma coe_bodyClosedBall [ProperSpace E] (c : E) {r : ℝ} (hr : 0 ≤ r) :
 
 /-- The support function of a convex body `K` in direction `u`:
 `h_K(u) = sup { ⟪x, u⟫ | x ∈ K }`. -/
+@[expose]
 noncomputable def supportFn (K : ConvexBody E) (u : E) : ℝ :=
   sSup ((fun x : E => ⟪x, u⟫) '' (K : Set E))
 
@@ -482,6 +483,7 @@ theorem continuous_supportFn (K : ConvexBody E) : Continuous (supportFn K) := by
 
 /-- Directional width of a convex body `K` in direction `u`:
 `width K u = h_K(u) + h_K(-u) = h_{K - K}(u)`. -/
+@[expose]
 noncomputable def width (K : ConvexBody E) (u : E) : ℝ :=
   supportFn K u + supportFn K (-u)
 

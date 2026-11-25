@@ -51,16 +51,19 @@ public section
 
 /-- The solid standard $d$-simplex in `Fin d → ℝ`:
 `{y | (∀ i, 0 ≤ y i) ∧ ∑ i, y i ≤ 1}`. -/
+@[expose]
 def solidSimplex (d : ℕ) : Set (Fin d → ℝ) :=
   {y | (∀ i, 0 ≤ y i) ∧ ∑ i, y i ≤ 1}
 
 /-- The standard order simplex in `[0, 1]^d`:
 `{x | 0 ≤ x ≤ 1 ∧ Monotone x}`, i.e. `0 ≤ x 0 ≤ x 1 ≤ … ≤ x (d-1) ≤ 1`. -/
+@[expose]
 def orderSimplex (d : ℕ) : Set (Fin d → ℝ) :=
   {x | x ∈ Icc (0 : Fin d → ℝ) 1 ∧ Monotone x}
 
 /-- The order simplex permuted by `σ : Equiv.Perm (Fin d)`:
 `0 ≤ x (σ 0) ≤ x (σ 1) ≤ … ≤ x (σ (d-1)) ≤ 1`. -/
+@[expose]
 def permSimplex (d : ℕ) (σ : Equiv.Perm (Fin d)) : Set (Fin d → ℝ) :=
   {x | x ∈ Icc (0 : Fin d → ℝ) 1 ∧ Monotone (x ∘ σ)}
 
@@ -382,6 +385,7 @@ lemma simplexEdgeMap_apply {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)) (y : 
   rfl
 
 /-- The `d × d` edge matrix whose `j`-th column is `v j.succ - v 0`. -/
+@[expose]
 def simplexEdgeMatrix {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)) : Matrix (Fin d) (Fin d) ℝ :=
   Matrix.of fun i j => v j.succ i - v 0 i
 

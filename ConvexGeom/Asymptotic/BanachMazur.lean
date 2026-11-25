@@ -66,6 +66,7 @@ section OriginSymmetricBasic
 variable {E : Type*} [NormedAddCommGroup E]
 
 /-- A set `S ⊆ E` is **origin-symmetric** if `x ∈ S → -x ∈ S`. -/
+@[expose]
 def IsOriginSymmetric (S : Set E) : Prop :=
   ∀ x ∈ S, -x ∈ S
 
@@ -321,6 +322,7 @@ section EllipsoidAndMahler
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- A centered ellipsoid in `E`: the image of the closed unit ball under `T : E ≃ₗ[ℝ] E`. -/
+@[expose]
 def ellipsoid (T : E ≃ₗ[ℝ] E) : Set E :=
   T '' closedBall (0 : E) 1
 
@@ -363,6 +365,7 @@ theorem addHaar_ellipsoid [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSp
 Note: `mahlerVolume` is `GL(E)`-invariant (`mahlerVolume_linearEquiv`) but depends on the choice
 of origin (e.g., on `[-1, ε] ⊂ ℝ` with `0 < ε < 1`, `mahlerVolume volume [-1, ε] > 4`). For the
 translation- and affine-invariant volume product over interior centers, see `santaloMahlerVolume`. -/
+@[expose]
 noncomputable def mahlerVolume [MeasurableSpace E] (μ : Measure E) (S : Set E) : ℝ≥0∞ :=
   μ S * μ (polarBody S)
 
@@ -424,6 +427,7 @@ private lemma affineEquiv_sub (A : E ≃ᵃ[ℝ] E) (x z : E) :
 
 /-- The **Mahler volume of `S` centered at `z`**:
 `mahlerVolumeAt μ S z := mahlerVolume μ ((· - z) '' S)`. -/
+@[expose]
 noncomputable def mahlerVolumeAt [MeasurableSpace E] (μ : Measure E) (S : Set E) (z : E) : ℝ≥0∞ :=
   mahlerVolume μ ((fun x : E => x - z) '' S)
 
@@ -462,6 +466,7 @@ theorem mahlerVolumeAt_affineEquiv [FiniteDimensional ℝ E] [MeasurableSpace E]
 /-- The **Santaló Mahler volume** (affine-invariant volume product) of `S ⊆ E`:
 $$\mathcal{P}^*_\mu(S) := \inf_{z \in \mathrm{int}(S)} \mu(S - z)\,\mu((S - z)^\circ).$$
 Note: if `interior S = ∅`, this infimum over an empty subtype is `⊤`. -/
+@[expose]
 noncomputable def santaloMahlerVolume [MeasurableSpace E] (μ : Measure E) (S : Set E) : ℝ≥0∞ :=
   ⨅ z : interior S, mahlerVolumeAt μ S z.1
 
@@ -530,6 +535,7 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- The set of multiplicative distortion factors `r ≥ 1` admitting an invertible linear map
 `T : E ≃ₗ[ℝ] E` with `K ⊆ T '' L ⊆ r • K`. -/
+@[expose]
 def banachMazurSet (K L : Set E) : Set ℝ :=
   {r : ℝ | 1 ≤ r ∧ ∃ T : E ≃ₗ[ℝ] E, K ⊆ T '' L ∧ T '' L ⊆ r • K}
 
@@ -540,6 +546,7 @@ This matches the classical Banach–Mazur distance for origin-symmetric bodies. 
 (when `banachMazurSet K L = ∅`), `Real.sInf_empty` returns `0`; use `banachMazurEDist` for
 `ℝ≥0∞`-valued semantics returning `⊤`. For general (non-symmetric) bodies requiring recentering,
 use `affineBanachMazurDist` / `affineBanachMazurEDist`. -/
+@[expose]
 noncomputable def banachMazurDist (K L : Set E) : ℝ :=
   sInf (banachMazurSet K L)
 
@@ -828,6 +835,7 @@ theorem mahlerVolume_le_banachMazurDist_ball_pow_mul [FiniteDimensional ℝ E]
 equals `ENNReal.ofReal (banachMazurDist K L)` when `banachMazurSet K L` is nonempty, and `⊤`
 when no invertible linear map embeds `K ⊆ T(L) ⊆ r K` (avoiding the `Real.sInf_empty = 0`
 totalization artifact). -/
+@[expose]
 noncomputable def banachMazurEDist (K L : Set E) : ℝ≥0∞ :=
   sInf (ENNReal.ofReal '' banachMazurSet K L)
 
@@ -911,6 +919,7 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 /-- The set of affine Banach–Mazur distortion factors `r ≥ 1`:
 there exist `T ∈ GL(E)` and centers `x, y ∈ E` such that
 `K - x ⊆ T(L - y) ⊆ r • (K - x)`. -/
+@[expose]
 def affineBanachMazurSet (K L : Set E) : Set ℝ :=
   {r : ℝ | 1 ≤ r ∧ ∃ (T : E ≃ₗ[ℝ] E) (x y : E),
     (fun z => z - x) '' K ⊆ T '' ((fun z => z - y) '' L) ∧
@@ -921,10 +930,12 @@ $$d_{\mathrm{BM}}^{\mathrm{aff}}(K, L) := \inf \{ r \ge 1 \mid \exists T \in \ma
 This is the standard Banach–Mazur distance for general (non-symmetric) convex bodies, where
 Fritz John's theorem gives `d_BM^aff(K, B₂^d) ≤ d`. On infeasible pairs, `Real.sInf_empty`
 returns `0`; use `affineBanachMazurEDist` for `ℝ≥0∞`-valued semantics returning `⊤`. -/
+@[expose]
 noncomputable def affineBanachMazurDist (K L : Set E) : ℝ :=
   sInf (affineBanachMazurSet K L)
 
 /-- Extended (`ℝ≥0∞`-valued) affine Banach–Mazur distance (equals `⊤` on infeasible pairs). -/
+@[expose]
 noncomputable def affineBanachMazurEDist (K L : Set E) : ℝ≥0∞ :=
   sInf (ENNReal.ofReal '' affineBanachMazurSet K L)
 
