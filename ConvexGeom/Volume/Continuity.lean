@@ -5,6 +5,7 @@ public import ConvexGeom.Polytope.Basic
 public import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 
 import Mathlib.Analysis.Convex.Measure
+import Mathlib.Analysis.LocallyConvex.Separation
 import Mathlib.MeasureTheory.Measure.Continuity
 
 /-!
@@ -12,11 +13,15 @@ import Mathlib.MeasureTheory.Measure.Continuity
 
 This file proves metric-measure foundations for `ConvexBody E` in a finite-dimensional real
 inner product space `E` equipped with an additive Haar measure `μ` (in particular, Lebesgue
-`volume`):
+`volume`; see Schneider, *Convex Bodies*, §1.8):
 
-1. **Half-ball volume identity (`addHaar_halfBall`, `addHaar_le_half_ball`):**
-   For any nonzero vector `u : E`, the half-ball `closedBall 0 r ∩ {x | 0 ≤ ⟪x, u⟫}` has
-   exactly half the volume of `closedBall 0 r`.
+1. **Volume-Root Scaling & Half-Ball Identities (`addHaar_smul_rpow_inv_finrank`,
+   `addHaar_halfBall`, `addHaar_le_half_ball`,
+   `addHaar_le_half_closedBall_of_zero_not_mem_interior`):**
+   - `μ (c • A) ^ (1 / d) = ENNReal.ofReal c * μ A ^ (1 / d)` for `c ≥ 0` in dimension `d ≥ 1`.
+   - For any nonzero vector `u : E`, the half-ball `closedBall 0 r ∩ {x | 0 ≤ ⟪x, u⟫}` has
+     exactly half the volume of `closedBall 0 r`.
+   - Any convex set `K ⊆ closedBall 0 r` with `0 ∉ interior K` has `μ K ≤ μ (closedBall 0 r) / 2`.
 2. **Hausdorff Continuity of Volume (`continuous_addHaar_convexBody`,
    `continuous_addHaarReal_convexBody`):**
    `K ↦ μ (K : Set E)` (and `K ↦ (μ (K : Set E)).toReal`) is **continuous** on `ConvexBody E`
@@ -25,10 +30,12 @@ inner product space `E` equipped with an additive Haar measure `μ` (in particul
      `⋂ n, K + closedBall 0 (1 / (n + 1)) = K`.
    - *Lower semicontinuity* is proved cleanly via support functions: if `closedBall x₀ r ⊆ K`,
      then `dist L K < (1 - t) * r` implies `x₀ + t • (K - x₀) ⊆ L` in three lines via
-     `supportFn_le_iff_subset`!
-3. **Continuity of Polytope Hull Volume (`continuous_addHaar_convexHull_range`):**
+     `supportFn_le_iff_subset`.
+3. **Continuity and Compactness of Polytope Hull Volume (`continuous_addHaar_convexHull_range`,
+   `exists_max_addHaar_convexHull_of_isCompact`):**
    For finite point configurations `v : ι → E`, `v ↦ μ (convexHull ℝ (Set.range v))` is
-   continuous.
+   continuous, hence attains its maximum over any compact nonempty vertex domain `S ⊆ E`
+   (in particular `sphere 0 r` and `closedBall 0 r`).
 -/
 
 open MeasureTheory Set Filter
@@ -41,7 +48,38 @@ public section
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
   [MeasurableSpace E] [BorelSpace E]
 
-/-! ### 1. Half-Ball Volume Identity -/
+/-! ### 1. Volume-Root Scaling and Half-Ball Volume Identities -/
+
+/-- **Volume-root homogeneity (`ℝ≥0∞` form):**
+for any additive Haar measure `μ` in dimension `d = finrank ℝ E ≥ 1`, any `c ≥ 0`, and any set
+`A ⊆ E`, `μ (c • A) ^ (1 / d) = ENNReal.ofReal c * μ A ^ (1 / d)`. -/
+theorem addHaar_smul_rpow_inv_finrank [Nontrivial E] (μ : Measure E) [μ.IsAddHaarMeasure]
+    {c : ℝ} (hc : 0 ≤ c) (A : Set E) :
+    μ (c • A) ^ (1 / (Module.finrank ℝ E : ℝ)) =
+      ENNReal.ofReal c * μ A ^ (1 / (Module.finrank ℝ E : ℝ)) := by
+  set d := Module.finrank ℝ E
+  have hd_pos : (0 : ℝ) < d := Nat.cast_pos.mpr Module.finrank_pos
+  have hinv_pos : (0 : ℝ) < 1 / (d : ℝ) := one_div_pos.mpr hd_pos
+  rcases hc.eq_or_lt with rfl | hc_pos
+  · have hsub : (0 : ℝ) • A ⊆ ({0} : Set E) := by
+      rintro _ ⟨x, _, rfl⟩; simp
+    have hzero : μ ((0 : ℝ) • A) = 0 := measure_mono_null hsub (measure_singleton 0)
+    rw [hzero, ENNReal.zero_rpow_of_pos hinv_pos, ENNReal.ofReal_zero, zero_mul]
+  · rw [Measure.addHaar_smul, abs_of_nonneg (pow_nonneg hc _),
+      ENNReal.mul_rpow_of_nonneg _ _ hinv_pos.le,
+      ENNReal.ofReal_rpow_of_pos (pow_pos hc_pos d), ← Real.rpow_natCast,
+      ← Real.rpow_mul hc, mul_one_div_cancel hd_pos.ne', Real.rpow_one]
+
+/-- **Volume-root homogeneity (`ℝ` form):**
+`(μ.real (c • A)) ^ (1 / d) = c * (μ.real A) ^ (1 / d)` for `c ≥ 0` in dimension `d ≥ 1`. -/
+theorem addHaar_real_smul_rpow_inv_finrank [Nontrivial E] (μ : Measure E) [μ.IsAddHaarMeasure]
+    {c : ℝ} (hc : 0 ≤ c) (A : Set E) :
+    (μ.real (c • A)) ^ (1 / (Module.finrank ℝ E : ℝ)) =
+      c * (μ.real A) ^ (1 / (Module.finrank ℝ E : ℝ)) := by
+  have h := congrArg ENNReal.toReal (addHaar_smul_rpow_inv_finrank μ hc A)
+  rw [← ENNReal.toReal_rpow, ENNReal.toReal_mul, ENNReal.toReal_ofReal hc,
+    ← ENNReal.toReal_rpow] at h
+  exact h
 
 /-- The hyperplane `{x | ⟪x, u⟫ = 0}` for `u ≠ 0` has Haar measure `0`. -/
 lemma addHaar_hyperplane_eq_zero (μ : Measure E) [μ.IsAddHaarMeasure] {u : E} (hu : u ≠ 0) :
@@ -116,6 +154,46 @@ theorem addHaar_le_half_ball (μ : Measure E) [μ.IsAddHaarMeasure] {S : Set E} 
     μ S ≤ μ (Metric.closedBall (0 : E) r) / 2 := by
   rw [← addHaar_halfBall μ hu r]
   exact measure_mono fun x hx => ⟨hSball hx, hShalf x hx⟩
+
+/-- **Half-ball origin-in-interior criterion (general dimension):**
+if a convex set `K ⊆ closedBall 0 r` does not contain `0` in its interior, then
+`μ K ≤ μ (closedBall 0 r) / 2`. Equivalently, any convex subset of `closedBall 0 r` with
+volume strictly exceeding half the ball must contain `0` in its interior. -/
+theorem addHaar_le_half_closedBall_of_zero_not_mem_interior (μ : Measure E) [μ.IsAddHaarMeasure]
+    {K : Set E} (hKconv : Convex ℝ K) {r : ℝ} (hKball : K ⊆ Metric.closedBall (0 : E) r)
+    (h0 : (0 : E) ∉ interior K) :
+    μ K ≤ μ (Metric.closedBall (0 : E) r) / 2 := by
+  by_cases hint : (interior K).Nonempty
+  · obtain ⟨f, hf⟩ := geometric_hahn_banach_point_open hKconv.interior isOpen_interior h0
+    let u : E := (InnerProductSpace.toDual ℝ E).symm f
+    have hf_eq : ∀ x : E, f x = ⟪u, x⟫ := fun x => by
+      simp [u, InnerProductSpace.toDual_symm_apply]
+    have hu_ne : u ≠ 0 := by
+      intro hu0
+      obtain ⟨b, hb⟩ := hint
+      have hlt := hf b hb
+      rw [hf_eq 0, hf_eq b, hu0, inner_zero_left, inner_zero_left] at hlt
+      exact lt_irrefl 0 hlt
+    have h_int : ∀ x ∈ interior K, 0 ≤ ⟪x, u⟫ := by
+      intro x hx
+      have hlt := hf x hx
+      rw [hf_eq 0, hf_eq x, inner_zero_right, real_inner_comm] at hlt
+      exact hlt.le
+    have hK_sub : K ⊆ closure (interior K) :=
+      subset_closure.trans_eq (hKconv.closure_interior_eq_closure_of_nonempty_interior hint).symm
+    have h_half : ∀ x ∈ K, 0 ≤ ⟪x, u⟫ := by
+      intro x hx
+      have hclosed : IsClosed {y : E | 0 ≤ ⟪y, u⟫} :=
+        isClosed_le continuous_const (continuous_id.inner continuous_const)
+      exact hclosed.closure_subset_iff.mpr h_int (hK_sub hx)
+    exact addHaar_le_half_ball μ hu_ne hKball h_half
+  · rw [Set.not_nonempty_iff_eq_empty] at hint
+    have hKsub : K ⊆ frontier K := by
+      rw [frontier, hint, sdiff_empty]
+      exact subset_closure
+    have hK0 : μ K = 0 := measure_mono_null hKsub (hKconv.addHaar_frontier μ)
+    rw [hK0]
+    exact zero_le
 
 /-! ### 2. Continuity of Volume on `ConvexBody E` -/
 
@@ -323,6 +401,78 @@ theorem continuous_addHaar_convexHull_range (μ : Measure E) [μ.IsAddHaarMeasur
     ext v; simp [hcoe]
   rw [heq]
   exact (continuous_addHaar_convexBody μ).comp hlip.continuous
+
+/-- Real-valued continuity of finite convex-hull volume:
+`v ↦ μ.real (convexHull ℝ (Set.range v))` is continuous on `ι → E`. -/
+theorem continuous_addHaarReal_convexHull_range (μ : Measure E) [μ.IsAddHaarMeasure]
+    {ι : Type*} [Fintype ι] [Nonempty ι] :
+    Continuous (fun v : ι → E => μ.real (convexHull ℝ (Set.range v))) := by
+  classical
+  rw [continuous_iff_continuousAt]
+  intro v
+  have hc : IsCompact (convexHull ℝ (Set.range v)) := by
+    have hcoe : (bodyConvexHull (Finset.univ.image v) (Finset.univ_nonempty.image v) : Set E) =
+        convexHull ℝ (Set.range v) := by simp [Finset.coe_image]
+    rw [← hcoe]
+    exact (bodyConvexHull _ _).isCompact
+  exact (ENNReal.continuousAt_toReal hc.measure_lt_top.ne).comp
+    (f := fun w : ι → E => μ (convexHull ℝ (Set.range w)))
+    (continuous_addHaar_convexHull_range μ).continuousAt
+
+/-- **Existence of a maximal-volume polytope over any compact nonempty vertex domain (`ℝ≥0∞`):**
+for any compact nonempty `S ⊆ E` and nonempty finite index type `ι`, there exists `v : ι → E`
+with vertices in `S` maximizing `μ (convexHull ℝ (Set.range v))`. -/
+theorem exists_max_addHaar_convexHull_of_isCompact (μ : Measure E) [μ.IsAddHaarMeasure]
+    {ι : Type*} [Fintype ι] [Nonempty ι] {S : Set E} (hSc : IsCompact S) (hSne : S.Nonempty) :
+    ∃ v : ι → E, (∀ i, v i ∈ S) ∧
+      ∀ w : ι → E, (∀ i, w i ∈ S) →
+        μ (convexHull ℝ (Set.range w)) ≤ μ (convexHull ℝ (Set.range v)) := by
+  let D : Set (ι → E) := Set.univ.pi (fun _ => S)
+  have hDc : IsCompact D := isCompact_univ_pi fun _ => hSc
+  obtain ⟨x₀, hx₀⟩ := hSne
+  have hDne : D.Nonempty := ⟨fun _ => x₀, fun _ _ => hx₀⟩
+  obtain ⟨v, hv_mem, hv_max⟩ :=
+    hDc.exists_isMaxOn hDne (continuous_addHaar_convexHull_range μ).continuousOn
+  exact ⟨v, fun i => hv_mem i (Set.mem_univ i), fun w hw => hv_max (fun i _ => hw i)⟩
+
+/-- Real-valued version of `exists_max_addHaar_convexHull_of_isCompact`. -/
+theorem exists_max_addHaarReal_convexHull_of_isCompact (μ : Measure E) [μ.IsAddHaarMeasure]
+    {ι : Type*} [Fintype ι] [Nonempty ι] {S : Set E} (hSc : IsCompact S) (hSne : S.Nonempty) :
+    ∃ v : ι → E, (∀ i, v i ∈ S) ∧
+      ∀ w : ι → E, (∀ i, w i ∈ S) →
+        μ.real (convexHull ℝ (Set.range w)) ≤ μ.real (convexHull ℝ (Set.range v)) := by
+  classical
+  obtain ⟨v, hv_mem, hv_max⟩ := exists_max_addHaar_convexHull_of_isCompact μ (ι := ι) hSc hSne
+  have hc : IsCompact (convexHull ℝ (Set.range v)) := by
+    have hcoe : (bodyConvexHull (Finset.univ.image v) (Finset.univ_nonempty.image v) : Set E) =
+        convexHull ℝ (Set.range v) := by simp [Finset.coe_image]
+    rw [← hcoe]
+    exact (bodyConvexHull _ _).isCompact
+  exact ⟨v, hv_mem, fun w hw => ENNReal.toReal_mono hc.measure_lt_top.ne (hv_max w hw)⟩
+
+/-- Existence of a maximal-volume polytope with vertices on `Metric.sphere 0 r` (`r ≥ 0`)
+in any nontrivial finite-dimensional real inner product space. -/
+theorem exists_max_addHaar_convexHull_sphere [Nontrivial E] (μ : Measure E) [μ.IsAddHaarMeasure]
+    {ι : Type*} [Fintype ι] [Nonempty ι] {r : ℝ} (hr : 0 ≤ r) :
+    ∃ v : ι → E, (∀ i, v i ∈ Metric.sphere (0 : E) r) ∧
+      ∀ w : ι → E, (∀ i, w i ∈ Metric.sphere (0 : E) r) →
+        μ (convexHull ℝ (Set.range w)) ≤ μ (convexHull ℝ (Set.range v)) := by
+  obtain ⟨x, hx⟩ := exists_ne (0 : E)
+  have hne : (Metric.sphere (0 : E) r).Nonempty := by
+    refine ⟨r • (‖x‖⁻¹ • x), ?_⟩
+    rw [Metric.mem_sphere, dist_zero_right, norm_smul, norm_smul, Real.norm_eq_abs,
+      Real.norm_eq_abs, abs_of_nonneg hr, abs_of_nonneg (inv_nonneg.mpr (norm_nonneg x)),
+      inv_mul_cancel₀ (norm_ne_zero_iff.mpr hx), mul_one]
+  exact exists_max_addHaar_convexHull_of_isCompact μ (isCompact_sphere (0 : E) r) hne
+
+/-- Existence of a maximal-volume polytope with vertices in `Metric.closedBall 0 r` (`r ≥ 0`). -/
+theorem exists_max_addHaar_convexHull_closedBall (μ : Measure E) [μ.IsAddHaarMeasure]
+    {ι : Type*} [Fintype ι] [Nonempty ι] {r : ℝ} (hr : 0 ≤ r) :
+    ∃ v : ι → E, (∀ i, v i ∈ Metric.closedBall (0 : E) r) ∧
+      ∀ w : ι → E, (∀ i, w i ∈ Metric.closedBall (0 : E) r) →
+        μ (convexHull ℝ (Set.range w)) ≤ μ (convexHull ℝ (Set.range v)) :=
+  exists_max_addHaar_convexHull_of_isCompact μ (isCompact_closedBall (0 : E) r)
+    ⟨0, Metric.mem_closedBall_self hr⟩
 
 end
 

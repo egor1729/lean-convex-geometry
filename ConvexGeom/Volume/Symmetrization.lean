@@ -26,14 +26,20 @@ This file implements:
   - `supportFn_centralSymm`, `volume_le_volume_centralSymm`.
 
 ## 2. Steiner Symmetrization (on `ℝ × E` along the first coordinate)
-- `steinerSymm K`: replaces every nonempty line fiber `K ∩ (ℝ × {y}) = [a(y), b(y)] × {y}`
-  by the centered interval `[-(b(y)-a(y))/2, (b(y)-a(y))/2] × {y}`.
-- `steinerSymm_symm`, `steinerSymm_mono`
-- `convex_steinerSymm`: preserves convexity
-- `isCompact_steinerSymm`: preserves compactness
-- `volume_steinerSymm`: **exact volume preservation** `volume (steinerSymm K) = volume K` (via Fubini)
-- `steinerSymm_dist_le_diam`: **diameter non-increase** in the Euclidean product metric:
-  `(t₁ - t₂)² + ‖y₁ - y₂‖² ≤ (p.1 - q.1)² + ‖p.2 - q.2‖²` for some `p, q ∈ K`.
+- `steinerSymm K`: **interval-hull Steiner symmetrization** — replaces every nonempty line fiber
+  `steinerFiber K y = {t | (t, y) ∈ K}` by the centered interval
+  `[-(b(y) - a(y)) / 2, (b(y) - a(y)) / 2] × {y}`, where `a(y) = sInf`, `b(y) = sSup`.
+  On compact convex sets every nonempty fiber is an interval `[a(y), b(y)]`, so this coincides
+  with classical measure-theoretic Steiner symmetrization; on disconnected sets it fills gaps
+  between `a(y)` and `b(y)` (e.g. `{-1, 1} × {0}` maps to `[-1, 1] × {0}`).
+- `bodySteinerSymm`: the induced map `ConvexBody (ℝ × E) → ConvexBody (ℝ × E)`.
+- `steinerSymm_symm`, `steinerSymm_mono`, `convex_steinerSymm`, `isCompact_steinerSymm`,
+  `volume_steinerSymm`, `volume_bodySteinerSymm`, `steinerSymm_dist_le_diam`.
+
+**Metric convention on `ℝ × E`:** Mathlib equips `ℝ × E` with the product max-norm
+`‖(t, y)‖ = max |t| ‖y‖` (used for compactness/topology), whereas `steinerSymm_dist_le_diam`
+states diameter non-increase explicitly for the Euclidean product squared distance
+`(t₁ - t₂)² + ‖y₁ - y₂‖²`.
 -/
 
 open MeasureTheory Set
@@ -101,17 +107,15 @@ lemma inner_reflectHyperplane {u : E} (hu : ‖u‖ = 1) (x y : E) :
   have h := (reflectHyperplane hu).inner_map_map x (reflectHyperplane hu y)
   rwa [reflectHyperplane_involutive] at h
 
-/-- Image of a convex body `K` under hyperplane reflection `reflectHyperplane hu`. -/
-noncomputable def reflectBody {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) : ConvexBody E where
-  carrier := reflectHyperplane hu '' (K : Set E)
-  convex' := K.convex.linear_image (reflectHyperplane hu).toLinearMap
-  isCompact' := K.isCompact.image (reflectHyperplane hu).continuous
-  nonempty' := K.nonempty.image _
+/-- Image of a convex body `K` under hyperplane reflection `reflectHyperplane hu`,
+defined via generic linear transport `mapLinear`. -/
+noncomputable def reflectBody {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) : ConvexBody E :=
+  mapLinear (reflectHyperplane hu).toLinearIsometry.toContinuousLinearMap K
 
 @[simp]
 lemma coe_reflectBody {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) :
     (reflectBody hu K : Set E) = reflectHyperplane hu '' (K : Set E) := by
-  simp [reflectBody, ConvexBody.coe_mk]
+  simp [reflectBody]
 
 lemma reflectBody_involutive {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) :
     reflectBody hu (reflectBody hu K) = K := by
@@ -122,21 +126,7 @@ lemma reflectBody_involutive {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) :
 
 theorem supportFn_reflectBody {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) (v : E) :
     supportFn (reflectBody hu K) v = supportFn K (reflectHyperplane hu v) := by
-  apply le_antisymm
-  · rw [supportFn_le_iff]
-    intro x hx
-    rw [← SetLike.mem_coe, coe_reflectBody] at hx
-    rcases hx with ⟨y, hy, rfl⟩
-    rw [inner_reflectHyperplane]
-    exact inner_le_supportFn hy _
-  · obtain ⟨y, hy, hyv⟩ := exists_mem_supportFn_eq K (reflectHyperplane hu v)
-    have hmem : reflectHyperplane hu y ∈ reflectBody hu K := by
-      rw [← SetLike.mem_coe, coe_reflectBody]
-      exact ⟨y, hy, rfl⟩
-    calc
-      supportFn K (reflectHyperplane hu v) = ⟪y, reflectHyperplane hu v⟫ := hyv.symm
-      _ = ⟪reflectHyperplane hu y, v⟫ := (inner_reflectHyperplane hu y v).symm
-      _ ≤ supportFn (reflectBody hu K) v := inner_le_supportFn hmem v
+  rw [reflectBody, supportFn_mapLinearIsometry, reflectHyperplane_symm]
 
 /-- **Minkowski symmetrization** of `K : ConvexBody E` across the hyperplane `u⊥`:
 `minkowskiSymm hu K = (1 / 2) • (K + reflectBody hu K)`. -/
@@ -251,16 +241,25 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 def steinerFiber (K : Set (ℝ × E)) (y : E) : Set ℝ :=
   {t : ℝ | (t, y) ∈ K}
 
-/-- Upper endpoint `b(y) = sSup {t | (t, y) ∈ K}` of the vertical fiber over `y`. -/
+/-- Upper endpoint `b(y) = sSup {t | (t, y) ∈ K}` of the vertical fiber over `y`.
+By `Real.sSup_empty`/`Real.sSup_of_not_bddAbove`, this defaults to `0` on empty or
+unbounded-above fibers; intended for compact sets `K`. -/
 noncomputable def steinerUpper (K : Set (ℝ × E)) (y : E) : ℝ :=
   sSup (steinerFiber K y)
 
-/-- Lower endpoint `a(y) = sInf {t | (t, y) ∈ K}` of the vertical fiber over `y`. -/
+/-- Lower endpoint `a(y) = sInf {t | (t, y) ∈ K}` of the vertical fiber over `y`.
+Defaults to `0` on empty or unbounded-below fibers; intended for compact sets `K`. -/
 noncomputable def steinerLower (K : Set (ℝ × E)) (y : E) : ℝ :=
   sInf (steinerFiber K y)
 
-/-- **Steiner symmetrization** of `K ⊆ ℝ × E` about the hyperplane `{0} × E`:
-replaces every nonempty fiber `[a(y), b(y)]` by `[-(b(y)-a(y))/2, (b(y)-a(y))/2]`. -/
+/-- **Interval-hull Steiner symmetrization** of `K ⊆ ℝ × E` about the hyperplane `{0} × E`:
+replaces every nonempty fiber `steinerFiber K y` by the centered closed interval
+`[-(b(y) - a(y)) / 2, (b(y) - a(y)) / 2]` where `a(y) = sInf` and `b(y) = sSup`.
+
+On compact convex sets every nonempty fiber is already the closed interval `[a(y), b(y)]`
+(`steinerFiber_eq_Icc`), so this agrees with measure-theoretic Steiner symmetrization.
+On disconnected sets it replaces each fiber by the symmetrization of its interval hull
+(filling gaps). For the bundled `ConvexBody (ℝ × E)` operator, see `bodySteinerSymm`. -/
 def steinerSymm (K : Set (ℝ × E)) : Set (ℝ × E) :=
   {p : ℝ × E | (steinerFiber K p.2).Nonempty ∧
     |p.1| ≤ (steinerUpper K p.2 - steinerLower K p.2) / 2}
@@ -462,6 +461,30 @@ theorem steinerSymm_dist_le_diam {K : Set (ℝ × E)} (hKc : IsCompact K)
       rw [← sq_abs (t₁ - t₂)]
       exact pow_le_pow_left₀ (abs_nonneg _) hbound 2
     linarith
+
+/-- **Bundled Steiner symmetrization on `ConvexBody (ℝ × E)`:**
+maps any convex body `K : ConvexBody (ℝ × E)` to its Steiner symmetrization about `{0} × E`. -/
+noncomputable def bodySteinerSymm (K : ConvexBody (ℝ × E)) : ConvexBody (ℝ × E) where
+  carrier := steinerSymm (K : Set (ℝ × E))
+  convex' := convex_steinerSymm K.convex K.isCompact
+  isCompact' := isCompact_steinerSymm K.isCompact
+  nonempty' := by
+    obtain ⟨⟨t, y⟩, hty⟩ := K.nonempty
+    have hfc := isCompact_steinerFiber K.isCompact y
+    have hlo : steinerLower (K : Set (ℝ × E)) y ≤ t := csInf_le hfc.bddBelow hty
+    have hhi : t ≤ steinerUpper (K : Set (ℝ × E)) y := le_csSup hfc.bddAbove hty
+    exact ⟨(0, y), ⟨t, hty⟩, by simp only [abs_zero]; linarith⟩
+
+@[simp]
+lemma coe_bodySteinerSymm (K : ConvexBody (ℝ × E)) :
+    (bodySteinerSymm K : Set (ℝ × E)) = steinerSymm (K : Set (ℝ × E)) := by
+  simp [bodySteinerSymm, ConvexBody.coe_mk]
+
+/-- `bodySteinerSymm` preserves Lebesgue volume on `ConvexBody (ℝ × E)`. -/
+theorem volume_bodySteinerSymm [FiniteDimensional ℝ E] [MeasureSpace E]
+    [SigmaFinite (volume : Measure E)] [BorelSpace E] (K : ConvexBody (ℝ × E)) :
+    volume (bodySteinerSymm K : Set (ℝ × E)) = volume (K : Set (ℝ × E)) :=
+  volume_steinerSymm K.convex K.isCompact
 
 end SteinerSymm
 

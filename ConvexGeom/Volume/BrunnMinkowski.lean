@@ -17,9 +17,9 @@ import Mathlib.MeasureTheory.Measure.Regular
 # Prékopa–Leindler, Brunn–Minkowski, and Bieberbach's Isodiametric Inequality
 
 This file proves the **Prékopa–Leindler inequality** in arbitrary dimension via the layer-cake
-and Tonelli induction (Ball, *An Elementary Introduction to Modern Convex Geometry*, Lecture 5;
-Gardner, *The Brunn–Minkowski Inequality*, §7), and derives its foundational convex-geometric
-corollaries:
+and Tonelli induction (Ball, *An Elementary Introduction to Modern Convex Geometry*, Lectures 1 & 5;
+Gardner, *The Brunn–Minkowski Inequality*, Bull. AMS 39 (2002), §7), and derives its foundational
+convex-geometric corollaries:
 
 1. **1D Brunn–Minkowski** (`brunn_minkowski_one_dim_compact`, `brunn_minkowski_one_dim`):
    for any nonempty measurable `A, B ⊆ ℝ`, `volume A + volume B ≤ volume (A + B)`.
@@ -212,6 +212,64 @@ theorem brunn_minkowski_one_dim {A B : Set ℝ}
 
 /-! ### 2. One-Dimensional Prékopa–Leindler Inequality -/
 
+/-- Helper: normalizing `f` by its finite nonzero supremum `A = ⨆ x, f x` makes every strict
+superlevel `{x | s < (A⁻¹ * f x).toReal}` nonempty for `s < 1`. -/
+private lemma nonempty_superlevel_of_lt_one {f : ℝ → ℝ≥0∞} {A : ℝ≥0∞}
+    (hA : A = ⨆ x, f x) (hA_ne0 : A ≠ 0) (hA_top : A ≠ ⊤) {s : ℝ} (hs1 : s < 1) :
+    {x : ℝ | s < (A⁻¹ * f x).toReal}.Nonempty := by
+  have hlt : ENNReal.ofReal s * A < ⨆ x, f x := by
+    rw [← hA]
+    simpa using ENNReal.mul_lt_mul_left hA_ne0 hA_top (ENNReal.ofReal_lt_one.mpr hs1)
+  rw [lt_iSup_iff] at hlt
+  obtain ⟨x, hx⟩ := hlt
+  refine ⟨x, ?_⟩
+  have hmul : ENNReal.ofReal s < A⁻¹ * f x := by
+    calc
+      ENNReal.ofReal s = A⁻¹ * (ENNReal.ofReal s * A) := by
+        rw [mul_comm (ENNReal.ofReal s) A, ← mul_assoc, ENNReal.inv_mul_cancel hA_ne0 hA_top,
+          one_mul]
+      _ < A⁻¹ * f x := ENNReal.mul_lt_mul_right (ENNReal.inv_ne_zero.mpr hA_top)
+          (ENNReal.inv_ne_top.mpr hA_ne0) hx
+  have hof : ENNReal.ofReal (A⁻¹ * f x).toReal = A⁻¹ * f x :=
+    ENNReal.ofReal_toReal (ENNReal.mul_ne_top (ENNReal.inv_ne_top.mpr hA_ne0)
+      (ne_top_of_le_ne_top hA_top (hA ▸ le_iSup f x)))
+  rw [← hof] at hmul
+  exact (ENNReal.ofReal_lt_ofReal_iff (by
+    by_contra hle; push Not at hle
+    rw [ENNReal.ofReal_of_nonpos hle] at hmul; exact not_lt_zero hmul)).mp hmul
+
+/-- Helper: nonzero scalar multiplication preserves measurability of subsets of `ℝ`. -/
+private lemma measurableSet_smul_real {A : Set ℝ} (hAm : MeasurableSet A) {c : ℝ} (hc : c ≠ 0) :
+    MeasurableSet (c • A) := by
+  have heq : c • A = (fun x => c⁻¹ * x) ⁻¹' A := by
+    ext x; simp only [Set.mem_smul_set, smul_eq_mul, mem_preimage]
+    exact ⟨fun ⟨a, ha, hax⟩ => by rw [← hax, inv_mul_cancel_left₀ hc]; exact ha,
+      fun hx => ⟨c⁻¹ * x, hx, mul_inv_cancel_left₀ hc x⟩⟩
+  rw [heq]
+  exact (measurable_const_mul c⁻¹) hAm
+
+/-- Helper: layer-cake integral on `(0, 1)` for a measurable `[0, 1]`-valued real function. -/
+private lemma lintegral_Ioo_meas_lt_eq {f : ℝ → ℝ} (hf_m : Measurable f)
+    (hf_nn : ∀ x, 0 ≤ f x) (hf_le1 : ∀ x, f x ≤ 1) :
+    ∫⁻ s in Ioo (0 : ℝ) 1, volume {x : ℝ | s < f x} = ∫⁻ x, ENNReal.ofReal (f x) := by
+  have hlc := lintegral_eq_lintegral_meas_lt (μ := volume) (f := f)
+    (Filter.Eventually.of_forall hf_nn) hf_m.aemeasurable
+  rw [hlc]
+  have hsplit : (Ioi (0 : ℝ)) = Ioo 0 1 ∪ Ici 1 := by
+    ext s; simp only [mem_Ioi, mem_union, mem_Ioo, mem_Ici]; constructor <;> intro h
+    · rcases lt_or_ge s 1 with h1 | h1; exact Or.inl ⟨h, h1⟩; exact Or.inr h1
+    · rcases h with ⟨h0, _⟩ | h1; exact h0; linarith
+  have hdisj : Disjoint (Ioo (0 : ℝ) 1) (Ici 1) := by
+    rw [Set.disjoint_left]; intro s ⟨_, h1⟩ h2; rw [mem_Ici] at h2; linarith
+  rw [hsplit, lintegral_union measurableSet_Ici hdisj]
+  have hzero : ∫⁻ s in Ici (1 : ℝ), volume {x : ℝ | s < f x} = 0 := by
+    refine setLIntegral_eq_zero measurableSet_Ici fun s hs => ?_
+    have hemp : {x : ℝ | s < f x} = ∅ := by
+      ext x; simp only [mem_ofPred_eq, mem_empty_iff_false, iff_false, not_lt]
+      exact (hf_le1 x).trans hs
+    simp [hemp]
+  rw [hzero, add_zero]
+
 /-- Bounded 1D Prékopa–Leindler via layer-cake + 1D Brunn–Minkowski + weighted AM-GM. -/
 private lemma prekopa_leindler_one_dim_bounded {t : ℝ} (ht0 : 0 < t) (ht1 : t < 1)
     {f g h : ℝ → ℝ≥0∞} (hf : Measurable f) (hg : Measurable g) (hh : Measurable h)
@@ -280,44 +338,8 @@ private lemma prekopa_leindler_one_dim_bounded {t : ℝ} (ht0 : 0 < t) (ht1 : t 
     let Cs := {z : ℝ | s < h' z}
     have hAs_m : MeasurableSet As := measurableSet_lt measurable_const hf'_m
     have hBs_m : MeasurableSet Bs := measurableSet_lt measurable_const hg'_m
-    have hAs_ne : As.Nonempty := by
-      have hlt : ENNReal.ofReal s * A < A := by
-        have hs1' : ENNReal.ofReal s < 1 := ENNReal.ofReal_lt_one.mpr hs1
-        simpa using ENNReal.mul_lt_mul_left hA_ne0 hA_top hs1'
-      rw [lt_iSup_iff] at hlt
-      obtain ⟨x, hx⟩ := hlt
-      refine ⟨x, ?_⟩
-      change s < f' x
-      have hmul : ENNReal.ofReal s < A⁻¹ * f x := by
-        calc
-          ENNReal.ofReal s = A⁻¹ * (ENNReal.ofReal s * A) := by
-            rw [mul_comm (ENNReal.ofReal s) A, ← mul_assoc, ENNReal.inv_mul_cancel hA_ne0 hA_top,
-              one_mul]
-          _ < A⁻¹ * f x := ENNReal.mul_lt_mul_right (ENNReal.inv_ne_zero.mpr hA_top)
-              (ENNReal.inv_ne_top.mpr hA_ne0) hx
-      rw [← hf'_ofReal x] at hmul
-      exact (ENNReal.ofReal_lt_ofReal_iff (by
-        by_contra hle; push Not at hle
-        rw [ENNReal.ofReal_of_nonpos hle] at hmul; exact not_lt_zero hmul)).mp hmul
-    have hBs_ne : Bs.Nonempty := by
-      have hlt : ENNReal.ofReal s * B < B := by
-        have hs1' : ENNReal.ofReal s < 1 := ENNReal.ofReal_lt_one.mpr hs1
-        simpa using ENNReal.mul_lt_mul_left hB_ne0 hB_top hs1'
-      rw [lt_iSup_iff] at hlt
-      obtain ⟨y, hy⟩ := hlt
-      refine ⟨y, ?_⟩
-      change s < g' y
-      have hmul : ENNReal.ofReal s < B⁻¹ * g y := by
-        calc
-          ENNReal.ofReal s = B⁻¹ * (ENNReal.ofReal s * B) := by
-            rw [mul_comm (ENNReal.ofReal s) B, ← mul_assoc, ENNReal.inv_mul_cancel hB_ne0 hB_top,
-              one_mul]
-          _ < B⁻¹ * g y := ENNReal.mul_lt_mul_right (ENNReal.inv_ne_zero.mpr hB_top)
-              (ENNReal.inv_ne_top.mpr hB_ne0) hy
-      rw [← hg'_ofReal y] at hmul
-      exact (ENNReal.ofReal_lt_ofReal_iff (by
-        by_contra hle; push Not at hle
-        rw [ENNReal.ofReal_of_nonpos hle] at hmul; exact not_lt_zero hmul)).mp hmul
+    have hAs_ne : As.Nonempty := nonempty_superlevel_of_lt_one rfl hA_ne0 hA_top hs1
+    have hBs_ne : Bs.Nonempty := nonempty_superlevel_of_lt_one rfl hB_ne0 hB_top hs1
     have hsub : (1 - t) • As + t • Bs ⊆ Cs := by
       intro z hz
       rcases Set.mem_add.mp hz with ⟨_, ⟨x, hx, rfl⟩, _, ⟨y, hy, rfl⟩, rfl⟩
@@ -351,67 +373,22 @@ private lemma prekopa_leindler_one_dim_bounded {t : ℝ} (ht0 : 0 < t) (ht1 : t 
       exact (ENNReal.ofReal_lt_ofReal_iff (by
         by_contra hle; push Not at hle
         rw [ENNReal.ofReal_of_nonpos hle] at hmin; exact not_lt_zero hmin)).mp hmin
-    have hAs_smul_m : MeasurableSet ((1 - t) • As) := by
-      have heq : (1 - t) • As = (fun x => (1 - t)⁻¹ * x) ⁻¹' As := by
-        ext x; simp only [Set.mem_smul_set, smul_eq_mul, mem_preimage]
-        exact ⟨fun ⟨a, ha, hax⟩ => by rw [← hax, inv_mul_cancel_left₀ h1t.ne']; exact ha,
-          fun hx => ⟨(1 - t)⁻¹ * x, hx, mul_inv_cancel_left₀ h1t.ne' x⟩⟩
-      rw [heq]
-      exact (measurable_const_mul (1 - t)⁻¹) hAs_m
-    have hBs_smul_m : MeasurableSet (t • Bs) := by
-      have heq : t • Bs = (fun y => t⁻¹ * y) ⁻¹' Bs := by
-        ext y; simp only [Set.mem_smul_set, smul_eq_mul, mem_preimage]
-        exact ⟨fun ⟨b, hb, hby⟩ => by rw [← hby, inv_mul_cancel_left₀ ht0.ne']; exact hb,
-          fun hy => ⟨t⁻¹ * y, hy, mul_inv_cancel_left₀ ht0.ne' y⟩⟩
-      rw [heq]
-      exact (measurable_const_mul t⁻¹) hBs_m
     calc
       ENNReal.ofReal (1 - t) * volume As + ENNReal.ofReal t * volume Bs
         = volume ((1 - t) • As) + volume (t • Bs) := by
             rw [Measure.addHaar_smul, Measure.addHaar_smul]
             simp [abs_of_nonneg h1t.le, abs_of_nonneg ht0.le]
       _ ≤ volume ((1 - t) • As + t • Bs) :=
-            brunn_minkowski_one_dim hAs_smul_m (hAs_ne.smul_set) hBs_smul_m (hBs_ne.smul_set)
+            brunn_minkowski_one_dim (measurableSet_smul_real hAs_m h1t.ne') hAs_ne.smul_set
+              (measurableSet_smul_real hBs_m ht0.ne') hBs_ne.smul_set
       _ ≤ volume Cs := measure_mono hsub
   -- Integrate `hlevel` over `s ∈ Ioo 0 1` using layer-cake!
   have hIoo_f : ∫⁻ s in Ioo (0 : ℝ) 1, volume {x : ℝ | s < f' x} = ∫⁻ x, A⁻¹ * f x := by
-    have hlc := lintegral_eq_lintegral_meas_lt (μ := volume) (f := f')
-      (Filter.Eventually.of_forall fun _ => ENNReal.toReal_nonneg) hf'_m.aemeasurable
-    simp_rw [hf'_ofReal] at hlc
-    rw [hlc]
-    have hsplit : (Ioi (0 : ℝ)) = Ioo 0 1 ∪ Ici 1 := by
-      ext s; simp only [mem_Ioi, mem_union, mem_Ioo, mem_Ici]; constructor <;> intro h
-      · rcases lt_or_ge s 1 with h1 | h1; exact Or.inl ⟨h, h1⟩; exact Or.inr h1
-      · rcases h with ⟨h0, _⟩ | h1; exact h0; linarith
-    have hdisj : Disjoint (Ioo (0 : ℝ) 1) (Ici 1) := by
-      rw [Set.disjoint_left]; intro s ⟨_, h1⟩ h2; rw [mem_Ici] at h2; linarith
-    rw [hsplit, lintegral_union measurableSet_Ici hdisj]
-    have hzero : ∫⁻ s in Ici (1 : ℝ), volume {x : ℝ | s < f' x} = 0 := by
-      refine setLIntegral_eq_zero measurableSet_Ici fun s hs => ?_
-      have hemp : {x : ℝ | s < f' x} = ∅ := by
-        ext x; simp only [mem_ofPred_eq, mem_empty_iff_false, iff_false, not_lt]
-        exact (hf'_le1 x).trans hs
-      simp [hemp]
-    rw [hzero, add_zero]
+    rw [lintegral_Ioo_meas_lt_eq hf'_m (fun _ => ENNReal.toReal_nonneg) hf'_le1]
+    simp_rw [hf'_ofReal]
   have hIoo_g : ∫⁻ s in Ioo (0 : ℝ) 1, volume {y : ℝ | s < g' y} = ∫⁻ y, B⁻¹ * g y := by
-    have hlc := lintegral_eq_lintegral_meas_lt (μ := volume) (f := g')
-      (Filter.Eventually.of_forall fun _ => ENNReal.toReal_nonneg) hg'_m.aemeasurable
-    simp_rw [hg'_ofReal] at hlc
-    rw [hlc]
-    have hsplit : (Ioi (0 : ℝ)) = Ioo 0 1 ∪ Ici 1 := by
-      ext s; simp only [mem_Ioi, mem_union, mem_Ioo, mem_Ici]; constructor <;> intro h
-      · rcases lt_or_ge s 1 with h1 | h1; exact Or.inl ⟨h, h1⟩; exact Or.inr h1
-      · rcases h with ⟨h0, _⟩ | h1; exact h0; linarith
-    have hdisj : Disjoint (Ioo (0 : ℝ) 1) (Ici 1) := by
-      rw [Set.disjoint_left]; intro s ⟨_, h1⟩ h2; rw [mem_Ici] at h2; linarith
-    rw [hsplit, lintegral_union measurableSet_Ici hdisj]
-    have hzero : ∫⁻ s in Ici (1 : ℝ), volume {y : ℝ | s < g' y} = 0 := by
-      refine setLIntegral_eq_zero measurableSet_Ici fun s hs => ?_
-      have hemp : {y : ℝ | s < g' y} = ∅ := by
-        ext y; simp only [mem_ofPred_eq, mem_empty_iff_false, iff_false, not_lt]
-        exact (hg'_le1 y).trans hs
-      simp [hemp]
-    rw [hzero, add_zero]
+    rw [lintegral_Ioo_meas_lt_eq hg'_m (fun _ => ENNReal.toReal_nonneg) hg'_le1]
+    simp_rw [hg'_ofReal]
   have hIoo_h : ∫⁻ s in Ioo (0 : ℝ) 1, volume {z : ℝ | s < h' z} ≤ ∫⁻ z, C⁻¹ * h z := by
     have hlc := lintegral_eq_lintegral_meas_lt (μ := volume) (f := h')
       (Filter.Eventually.of_forall fun _ => ENNReal.toReal_nonneg) hh'_m.aemeasurable

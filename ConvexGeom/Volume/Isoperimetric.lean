@@ -2,6 +2,7 @@ module
 
 public import ConvexGeom.Volume.BrunnMinkowski
 
+import ConvexGeom.Volume.Continuity
 import Mathlib.Analysis.Calculus.Deriv.Pow
 import Mathlib.Analysis.Calculus.Deriv.Slope
 import Mathlib.Topology.Instances.ENNReal.Lemmas
@@ -11,22 +12,27 @@ import Mathlib.Topology.Order.LiminfLimsup
 # Minkowski's First Inequality and the Euclidean Isoperimetric Inequality
 
 This file derives **Minkowski's First Inequality** and the **Euclidean Isoperimetric Inequality**
-(in outer Minkowski content form) in arbitrary dimension `d = finrank ℝ E ≥ 1` directly from
-additive Brunn–Minkowski (Ball, *An Elementary Introduction to Modern Convex Geometry*, Lecture 5;
-Klartag, Lecture 1; Schneider, *Convex Bodies*, §7.1):
+in lower outer Minkowski content form (`liminf_{t → 0⁺}`) in arbitrary dimension
+`d = finrank ℝ E ≥ 1` directly from additive Brunn–Minkowski (Ball, *An Elementary Introduction
+to Modern Convex Geometry*, Lecture 5; Klartag, Lecture 1; Schneider, *Convex Bodies*, §7.1):
 
 1. **Finite-`t` Minkowski First Inequality (`volume_add_smul_ge`, `minkowski_first_diff_ge`):**
    For any compact nonempty `K, L ⊆ E` and `t > 0`,
    $$\frac{\mathrm{vol}(K + t L) - \mathrm{vol}(K)}{t} \ge d\,\mathrm{vol}(K)^{(d-1)/d}\,\mathrm{vol}(L)^{1/d}.$$
 2. **Minkowski's First Inequality (`minkowski_first_inequality`):**
    $$\liminf_{t \to 0^+} \frac{\mathrm{vol}(K + t L) - \mathrm{vol}(K)}{t} \ge d\,\mathrm{vol}(K)^{(d-1)/d}\,\mathrm{vol}(L)^{1/d}.$$
-3. **Exact Minkowski Surface Area of Euclidean Balls (`minkowskiSurfaceArea_closedBall`):**
-   For `r > 0`,
+3. **Exact Outer Minkowski Content of Euclidean Balls (`minkowskiSurfaceArea_closedBall`):**
+   For `r > 0`, the limit exists and equals
    $$S(\overline{B}(c, r)) = d\,r^{d-1}\,\mathrm{vol}(\overline{B}(0, 1)).$$
 4. **Euclidean Isoperimetric Inequality (`isoperimetric_inequality`, `isoperimetric_inequality_ball`):**
    Among all compact nonempty sets `K ⊆ E` of a given volume, the Euclidean ball minimizes
-   outer Minkowski surface area:
+   lower outer Minkowski content:
    $$S(K) \ge d\,\mathrm{vol}(K)^{(d-1)/d}\,\mathrm{vol}(\overline{B}(0, 1))^{1/d} = S(\overline{B}(c, r_K)).$$
+
+**Convention:** `minkowskiSurfaceArea` is the *lower outer Minkowski content* (`liminf` as `t → 0⁺`
+of `(volume (K + t • closedBall 0 1) - volume K) / t`). For convex bodies (and in particular balls),
+the limit exists and agrees with classical surface area (`(d - 1)`-dimensional Hausdorff measure of
+the boundary); on general compact sets `liminf` is the standard lower Minkowski content.
 -/
 
 open MeasureTheory Set Filter
@@ -79,15 +85,8 @@ theorem volume_add_smul_ge [Nontrivial E]
   set d := Module.finrank ℝ E
   have hd_pos : 1 ≤ d := Module.finrank_pos
   have hd_rpos : (0 : ℝ) < d := Nat.cast_pos.mpr hd_pos
-  have hinv_pos : (0 : ℝ) < 1 / (d : ℝ) := one_div_pos.mpr hd_rpos
   have hbm := brunn_minkowski_compact hKc hKne (hLc.smul t) hLne.smul_set
-  have hLscale : volume (t • L) ^ (1 / (d : ℝ)) =
-      ENNReal.ofReal t * volume L ^ (1 / (d : ℝ)) := by
-    rw [Measure.addHaar_smul, abs_of_nonneg (pow_nonneg ht.le _),
-      ENNReal.mul_rpow_of_nonneg _ _ hinv_pos.le,
-      ENNReal.ofReal_rpow_of_pos (pow_pos ht d), ← Real.rpow_natCast,
-      ← Real.rpow_mul ht.le, mul_one_div_cancel hd_rpos.ne', Real.rpow_one]
-  rw [hLscale] at hbm
+  rw [addHaar_smul_rpow_inv_finrank volume ht.le L] at hbm
   have hpow : (volume K ^ (1 / (d : ℝ)) + ENNReal.ofReal t * volume L ^ (1 / (d : ℝ))) ^ d ≤
       (volume (K + t • L) ^ (1 / (d : ℝ))) ^ d := pow_le_pow_left' hbm d
   have hcancel : ∀ x : ℝ≥0∞, (x ^ (1 / (d : ℝ))) ^ d = x := fun x => by
@@ -134,15 +133,15 @@ theorem minkowski_first_diff_ge [Nontrivial E]
         volume L ^ (1 / (Module.finrank ℝ E : ℝ)) := by ring
     _ ≤ volume (K + t • L) - volume K := hsub
 
-/-! ### 2. Outer Minkowski Content, First Inequality, and Euclidean Isoperimetry -/
+/-! ### 2. Lower Outer Minkowski Content, First Inequality, and Euclidean Isoperimetry -/
 
-/-- Directional outer Minkowski first variation of `K` with respect to `L`:
+/-- Directional lower outer Minkowski first variation of `K` with respect to `L`:
 `liminf_{t → 0⁺} (volume (K + t • L) - volume K) / t`. -/
 noncomputable def minkowskiFirstDiff (K L : Set E) : ℝ≥0∞ :=
   Filter.liminf (fun t : ℝ => (volume (K + t • L) - volume K) / ENNReal.ofReal t)
     (𝓝[>] (0 : ℝ))
 
-/-- Outer Minkowski surface area of `K ⊆ E`:
+/-- Lower outer Minkowski content (outer Minkowski surface area) of `K ⊆ E`:
 `minkowskiSurfaceArea K = liminf_{t → 0⁺} (volume (K + t • B₁) - volume K) / t`. -/
 noncomputable def minkowskiSurfaceArea (K : Set E) : ℝ≥0∞ :=
   minkowskiFirstDiff K (Metric.closedBall (0 : E) 1)
@@ -170,7 +169,7 @@ theorem minkowski_first_inequality [Nontrivial E]
   exact Filter.liminf_le_liminf (eventually_nhdsWithin_of_forall fun t ht =>
     minkowski_first_diff_ge hKc hKne hLc hLne ht)
 
-/-- **Euclidean Isoperimetric Inequality (Minkowski content form):**
+/-- **Euclidean Isoperimetric Inequality (lower outer Minkowski content form):**
 for every compact nonempty `K ⊆ E` in dimension `d = finrank ℝ E ≥ 1`:
 $$S(K) \ge d\,\mathrm{vol}(K)^{(d-1)/d}\,\mathrm{vol}(\overline{B}(0, 1))^{1/d}.$$ -/
 theorem isoperimetric_inequality [Nontrivial E]

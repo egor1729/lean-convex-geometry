@@ -3,6 +3,7 @@ module
 public import ConvexGeom.Volume.BrunnMinkowski
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 
+import ConvexGeom.Volume.Continuity
 import Mathlib.Analysis.Convex.Intrinsic
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.Data.Nat.Choose.Basic
@@ -14,7 +15,8 @@ import Mathlib.MeasureTheory.Measure.Prod
 # Brunn's Concavity Principle, Log-Concave Convolutions, and Rogers–Shephard
 
 This file develops classical volumetric consequences of Brunn–Minkowski and Prékopa–Leindler
-(Ball, *An Elementary Introduction to Modern Convex Geometry*, Lecture 5; Klartag, Lecture 1–2;
+(Rogers–Shephard, *The difference body of a convex body*, Arch. Math. 8 (1957), 220–233;
+Ball, *An Elementary Introduction to Modern Convex Geometry*, Lecture 5; Klartag, Lectures 1–2;
 Artstein-Avidan–Giannopoulos–Milman, *Asymptotic Geometric Analysis I*, Ch. 1–2;
 Schneider, *Convex Bodies*, §7.1 & §10.1):
 
@@ -26,9 +28,11 @@ Schneider, *Convex Bodies*, §7.1 & §10.1):
 2. **Log-Concavity of Convolutions (`logConcave_convolution`):**
    If `f, g : E → ℝ≥0∞` are measurable log-concave, then `(f ⋆ g)(z) = ∫⁻ x, f x * g (z - x)`
    is log-concave.
-3. **Covariogram & Difference Body (`covariogram_lintegral`, `covariogram_rpow_concave`):**
-   `∫⁻ x, volume {y | y ∈ K ∧ y - x ∈ K} = volume K * volume K`, and the `1 / d`-th root of the
-   covariogram is concave on `K - K`.
+3. **Covariogram (`covariogram`) & Difference Body (`covariogram_lintegral`,
+   `covariogram_rpow_concave`):**
+   `covariogram μ K x := μ {y | y ∈ K ∧ y - x ∈ K}` satisfies
+   `∫⁻ x, covariogram volume K x = volume K * volume K`, is even, supported on `K - K`,
+   and has a concave `1 / d`-th root on `K - K`.
 4. **Rogers–Shephard Inequality (`rogers_shephard`) and Lower Bound (`two_pow_mul_volume_le_volume_diff`):**
    For every compact convex `K ⊆ E` in dimension `d = finrank ℝ E`:
    $$2^d\,\mathrm{vol}(K) \le \mathrm{vol}(K - K) \le \binom{2d}{d}\,\mathrm{vol}(K).$$
@@ -96,26 +100,11 @@ theorem brunn_concavity_sections [Nontrivial E]
     ENNReal.ofReal a * volume (slice K s) ^ (1 / (Module.finrank ℝ E : ℝ)) +
         ENNReal.ofReal b * volume (slice K t) ^ (1 / (Module.finrank ℝ E : ℝ)) ≤
       volume (slice K (a * s + b * t)) ^ (1 / (Module.finrank ℝ E : ℝ)) := by
-  set d := Module.finrank ℝ E
-  have hd_pos : (0 : ℝ) < d := Nat.cast_pos.mpr Module.finrank_pos
-  have hinv_pos : (0 : ℝ) < 1 / (d : ℝ) := one_div_pos.mpr hd_pos
-  rcases ha.eq_or_lt with rfl | ha_pos
-  · have hb1 : b = 1 := by linarith
-    subst hb1
-    simp
-  rcases hb.eq_or_lt with rfl | hb_pos
-  · have ha1 : a = 1 := by linarith
-    subst ha1
-    simp
+  have hd_pos : (0 : ℝ) < Module.finrank ℝ E := Nat.cast_pos.mpr Module.finrank_pos
+  have hinv_pos : (0 : ℝ) < 1 / (Module.finrank ℝ E : ℝ) := one_div_pos.mpr hd_pos
   have hbm := brunn_minkowski_compact ((isCompact_slice hKc s).smul a) hs.smul_set
     ((isCompact_slice hKc t).smul b) ht.smul_set
-  have hscale : ∀ (c : ℝ) (_hc : 0 < c) (A : Set E),
-      volume (c • A) ^ (1 / (d : ℝ)) = ENNReal.ofReal c * volume A ^ (1 / (d : ℝ)) := fun c hc A => by
-    rw [Measure.addHaar_smul, abs_of_nonneg (pow_nonneg hc.le _),
-      ENNReal.mul_rpow_of_nonneg _ _ hinv_pos.le,
-      ENNReal.ofReal_rpow_of_pos (pow_pos hc d), ← Real.rpow_natCast,
-      ← Real.rpow_mul hc.le, mul_one_div_cancel hd_pos.ne', Real.rpow_one]
-  rw [hscale a ha_pos, hscale b hb_pos] at hbm
+  rw [addHaar_smul_rpow_inv_finrank volume ha, addHaar_smul_rpow_inv_finrank volume hb] at hbm
   exact hbm.trans (ENNReal.rpow_le_rpow
     (measure_mono (smul_slice_add_smul_slice_subset hKconv ha hb hab)) hinv_pos.le)
 
@@ -272,20 +261,61 @@ theorem integral_rogers_shephard_weight {d : ℕ} (hd : 1 ≤ d) :
     _ = 1 / ((Nat.choose (2 * d) d : ℕ) : ℝ) := by
         field_simp [hfd_ne, hc_ne]
 
+section CovariogramBasic
+
+variable {E : Type*} [AddCommGroup E] [MeasurableSpace E]
+
+/-- The **covariogram** of `K ⊆ E` with respect to a measure `μ`:
+`covariogram μ K x := μ {y : E | y ∈ K ∧ y - x ∈ K} = μ (K ∩ (x + K))`. -/
+noncomputable def covariogram (μ : Measure E) (K : Set E) (x : E) : ℝ≥0∞ :=
+  μ {y : E | y ∈ K ∧ y - x ∈ K}
+
+@[simp]
+lemma covariogram_zero (μ : Measure E) (K : Set E) :
+    covariogram μ K 0 = μ K := by
+  simp [covariogram]
+
+lemma covariogram_le_self (μ : Measure E) (K : Set E) (x : E) :
+    covariogram μ K x ≤ μ K :=
+  measure_mono fun _ hy => hy.1
+
+lemma covariogram_eq_zero_of_notMem_sub (μ : Measure E) {K : Set E} {x : E} (hx : x ∉ K - K) :
+    covariogram μ K x = 0 := by
+  have hemp : {y : E | y ∈ K ∧ y - x ∈ K} = ∅ := by
+    ext y
+    simp only [mem_ofPred_eq, mem_empty_iff_false, iff_false, not_and]
+    intro hy hyx
+    exact hx ⟨y, hy, y - x, hyx, sub_sub_cancel y x⟩
+  simp [covariogram, hemp]
+
+end CovariogramBasic
+
+lemma covariogram_neg {E : Type*} [NormedAddCommGroup E] [MeasurableSpace E] [BorelSpace E]
+    (μ : Measure E) [μ.IsAddHaarMeasure] (K : Set E) (x : E) :
+    covariogram μ K (-x) = covariogram μ K x := by
+  unfold covariogram
+  have hpre : {y : E | y ∈ K ∧ y - -x ∈ K} =
+      (fun y : E => x + y) ⁻¹' {z : E | z ∈ K ∧ z - x ∈ K} := by
+    ext y
+    simp only [mem_ofPred_eq, mem_preimage, sub_neg_eq_add, add_sub_cancel_left]
+    rw [add_comm y x, and_comm]
+  rw [hpre, measure_preimage_add]
+
 section CovariogramAndRogersShephard
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
 
 /-- **Covariogram integral identity:**
-for any measurable set `K ⊆ E`, `∫⁻ x, volume {y | y ∈ K ∧ y - x ∈ K} = volume K * volume K`. -/
+for any measurable set `K ⊆ E`, `∫⁻ x, covariogram volume K x = volume K * volume K`. -/
 theorem covariogram_lintegral {K : Set E} (hKm : MeasurableSet K) :
-    ∫⁻ x : E, volume {y : E | y ∈ K ∧ y - x ∈ K} = volume K * volume K := by
+    ∫⁻ x : E, covariogram volume K x = volume K * volume K := by
   let S : Set (E × E) := {p : E × E | p.2 ∈ K ∧ p.2 - p.1 ∈ K}
   have hSm : MeasurableSet S :=
     (measurable_snd hKm).inter ((measurable_snd.sub measurable_fst) hKm)
   have hslice_x : ∀ x : E,
-      volume {y : E | y ∈ K ∧ y - x ∈ K} = ∫⁻ y : E, S.indicator 1 (x, y) := fun x => by
+      covariogram volume K x = ∫⁻ y : E, S.indicator 1 (x, y) := fun x => by
+    unfold covariogram
     have heq : (fun y : E => S.indicator (1 : E × E → ℝ≥0∞) (x, y)) =
         {y : E | y ∈ K ∧ y - x ∈ K}.indicator 1 := by
       ext y; by_cases hy : y ∈ K ∧ y - x ∈ K <;> simp [S, hy]
@@ -330,18 +360,11 @@ theorem covariogram_rpow_concave [Nontrivial E]
     {K : Set E} (hKconv : Convex ℝ K) (hKc : IsCompact K)
     {x₁ x₂ : E} (hx₁ : x₁ ∈ K - K) (hx₂ : x₂ ∈ K - K)
     {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
-    ENNReal.ofReal a * volume {y : E | y ∈ K ∧ y - x₁ ∈ K} ^ (1 / (Module.finrank ℝ E : ℝ)) +
-        ENNReal.ofReal b * volume {y : E | y ∈ K ∧ y - x₂ ∈ K} ^ (1 / (Module.finrank ℝ E : ℝ)) ≤
-      volume {y : E | y ∈ K ∧ y - (a • x₁ + b • x₂) ∈ K} ^ (1 / (Module.finrank ℝ E : ℝ)) := by
-  set d := Module.finrank ℝ E
-  have hd_pos : (0 : ℝ) < d := Nat.cast_pos.mpr Module.finrank_pos
-  have hinv_pos : (0 : ℝ) < 1 / (d : ℝ) := one_div_pos.mpr hd_pos
-  rcases ha.eq_or_lt with rfl | ha_pos
-  · have hb1 : b = 1 := by linarith
-    subst hb1; simp
-  rcases hb.eq_or_lt with rfl | hb_pos
-  · have ha1 : a = 1 := by linarith
-    subst ha1; simp
+    ENNReal.ofReal a * covariogram volume K x₁ ^ (1 / (Module.finrank ℝ E : ℝ)) +
+        ENNReal.ofReal b * covariogram volume K x₂ ^ (1 / (Module.finrank ℝ E : ℝ)) ≤
+      covariogram volume K (a • x₁ + b • x₂) ^ (1 / (Module.finrank ℝ E : ℝ)) := by
+  have hd_pos : (0 : ℝ) < Module.finrank ℝ E := Nat.cast_pos.mpr Module.finrank_pos
+  have hinv_pos : (0 : ℝ) < 1 / (Module.finrank ℝ E : ℝ) := one_div_pos.mpr hd_pos
   let S : E → Set E := fun x => {y : E | y ∈ K ∧ y - x ∈ K}
   have hSc : ∀ x, IsCompact (S x) := fun x =>
     hKc.inter_right (hKc.isClosed.preimage (continuous_id.sub continuous_const))
@@ -359,13 +382,7 @@ theorem covariogram_rpow_concave [Nontrivial E]
     exact hKconv hy₁x hy₂x ha hb hab
   have hbm := brunn_minkowski_compact ((hSc x₁).smul a) (hSne x₁ hx₁).smul_set
     ((hSc x₂).smul b) (hSne x₂ hx₂).smul_set
-  have hscale : ∀ (c : ℝ) (_hc : 0 < c) (A : Set E),
-      volume (c • A) ^ (1 / (d : ℝ)) = ENNReal.ofReal c * volume A ^ (1 / (d : ℝ)) := fun c hc A => by
-    rw [Measure.addHaar_smul, abs_of_nonneg (pow_nonneg hc.le _),
-      ENNReal.mul_rpow_of_nonneg _ _ hinv_pos.le,
-      ENNReal.ofReal_rpow_of_pos (pow_pos hc d), ← Real.rpow_natCast,
-      ← Real.rpow_mul hc.le, mul_one_div_cancel hd_pos.ne', Real.rpow_one]
-  rw [hscale a ha_pos, hscale b hb_pos] at hbm
+  rw [addHaar_smul_rpow_inv_finrank volume ha, addHaar_smul_rpow_inv_finrank volume hb] at hbm
   exact hbm.trans (ENNReal.rpow_le_rpow (measure_mono hsub) hinv_pos.le)
 
 /-- Helper: if a convex set `K ⊆ E` has measure `0`, then `K - K` also has measure `0`. -/
@@ -434,6 +451,98 @@ theorem two_pow_mul_volume_le_volume_diff {K : Set E} (hKc : IsCompact K) :
   rw [← mul_assoc, ← ENNReal.ofReal_mul (by positivity), ← mul_pow,
     show (2 : ℝ) * (1 / 2 : ℝ) = 1 by norm_num, one_pow, ENNReal.ofReal_one, one_mul] at hmul
   simpa [ENNReal.ofReal_pow (by norm_num : (0 : ℝ) ≤ 2)] using hmul
+
+/-- Helper for Rogers–Shephard: if `s ∈ (0, 1)` and `(1 - s)⁻¹ • x ∈ K - K` for convex `K`, then
+a translate of `s • K` fits inside `K ∩ (x + K)`, yielding `s ^ d * volume K ≤ covariogram volume K x`. -/
+private lemma rogers_shephard_homothety_volume {K : Set E} (hKconv : Convex ℝ K)
+    {x : E} {s : ℝ} (hs0 : 0 < s) (hs1 : s < 1) (hmem : (1 - s)⁻¹ • x ∈ K - K) :
+    ENNReal.ofReal (s ^ Module.finrank ℝ E) * volume K ≤ covariogram volume K x := by
+  rcases Set.mem_sub.mp hmem with ⟨a, ha, b, hb, hab⟩
+  have h1s : 0 < 1 - s := sub_pos.mpr hs1
+  have hx_eq : x = (1 - s) • (a - b) := by
+    have := congrArg (fun v => (1 - s) • v) hab
+    simpa [smul_smul, mul_inv_cancel₀ h1s.ne'] using this.symm
+  have hhom : (fun z : E => (1 - s) • a + z) '' (s • K) ⊆ {y : E | y ∈ K ∧ y - x ∈ K} := by
+    rintro _ ⟨_, ⟨z, hz, rfl⟩, rfl⟩
+    refine ⟨?_, ?_⟩
+    · dsimp only
+      rw [add_comm]
+      exact hKconv hz ha hs0.le h1s.le (add_sub_cancel s 1)
+    · dsimp only
+      have heq : ((1 - s) • a + s • z) - x = s • z + (1 - s) • b := by
+        rw [hx_eq, smul_sub]; abel
+      rw [heq]
+      exact hKconv hz hb hs0.le h1s.le (add_sub_cancel s 1)
+  have htrans : volume ((fun z : E => (1 - s) • a + z) '' (s • K)) =
+      ENNReal.ofReal (s ^ Module.finrank ℝ E) * volume K := by
+    have heq : (fun z : E => (1 - s) • a + z) '' (s • K) =
+        (fun z : E => -((1 - s) • a) + z) ⁻¹' (s • K) := by
+      ext z; simp only [mem_image, mem_preimage]
+      exact ⟨fun ⟨u, hu, huz⟩ => by rwa [← huz, neg_add_cancel_left],
+        fun hz => ⟨-((1 - s) • a) + z, hz, by abel⟩⟩
+    rw [heq, measure_preimage_add, Measure.addHaar_smul, abs_of_nonneg (pow_nonneg hs0.le _)]
+  exact htrans ▸ measure_mono hhom
+
+/-- Helper for Rogers–Shephard: for each `x : E`, the weighted radial integral over
+`{s ∈ (0, 1) | (1 - s)⁻¹ • x ∈ K - K}` is bounded by `covariogram volume K x / volume K`. -/
+private lemma rogers_shephard_radial_bound {K : Set E} (hKconv : Convex ℝ K)
+    (hd : 1 ≤ Module.finrank ℝ E) (hK0 : volume K ≠ 0) (hKfin : volume K ≠ ⊤) (x : E) :
+    ∫⁻ s : ℝ, {p : E × ℝ | p.2 ∈ Ioo (0 : ℝ) 1 ∧ (1 - p.2)⁻¹ • p.1 ∈ K - K}.indicator
+        (fun p => ENNReal.ofReal ((Module.finrank ℝ E : ℝ) * p.2 ^ (Module.finrank ℝ E - 1)))
+        (x, s) ≤
+      covariogram volume K x / volume K := by
+  set d := Module.finrank ℝ E
+  have hd0 : d ≠ 0 := by omega
+  have hd_rpos : (0 : ℝ) < d := Nat.cast_pos.mpr hd
+  let S : Set (E × ℝ) := {p : E × ℝ | p.2 ∈ Ioo (0 : ℝ) 1 ∧ (1 - p.2)⁻¹ • p.1 ∈ K - K}
+  let w : ℝ → ℝ≥0∞ := fun s => ENNReal.ofReal ((d : ℝ) * s ^ (d - 1))
+  have hratio_le1 : covariogram volume K x / volume K ≤ 1 := by
+    rw [ENNReal.div_le_iff_le_mul (Or.inl hK0) (Or.inl hKfin), one_mul]
+    exact covariogram_le_self volume K x
+  let c : ℝ := (covariogram volume K x / volume K).toReal
+  have hc_nn : 0 ≤ c := ENNReal.toReal_nonneg
+  have hc_ofReal : ENNReal.ofReal c = covariogram volume K x / volume K :=
+    ENNReal.ofReal_toReal (ne_top_of_le_ne_top ENNReal.one_ne_top hratio_le1)
+  let r : ℝ := c ^ (1 / (d : ℝ))
+  have hr_nn : 0 ≤ r := Real.rpow_nonneg hc_nn _
+  have hr_pow : r ^ d = c := by
+    dsimp only [r]
+    rw [← Real.rpow_natCast, ← Real.rpow_mul hc_nn, one_div_mul_cancel hd_rpos.ne', Real.rpow_one]
+  have hsub_s : {s : ℝ | (x, s) ∈ S} ⊆ Ioc (0 : ℝ) r := by
+    intro s ⟨⟨hs0, hs1⟩, hmem⟩
+    refine ⟨hs0, ?_⟩
+    have hvol_hom := rogers_shephard_homothety_volume hKconv hs0 hs1 hmem
+    have hsd_le : ENNReal.ofReal (s ^ d) ≤ ENNReal.ofReal c := by
+      rw [hc_ofReal, ENNReal.le_div_iff_mul_le (Or.inl hK0) (Or.inl hKfin)]
+      exact hvol_hom
+    have hsd_le' : s ^ d ≤ r ^ d := by
+      rw [hr_pow]
+      exact (ENNReal.ofReal_le_ofReal_iff hc_nn).mp hsd_le
+    by_contra hlt
+    push Not at hlt
+    have : r ^ d < s ^ d := pow_lt_pow_left₀ hlt hr_nn hd0
+    linarith
+  have hpt_le : ∀ s : ℝ, S.indicator (fun p => w p.2) (x, s) ≤ (Ioc (0 : ℝ) r).indicator w s := by
+    intro s
+    by_cases hs : (x, s) ∈ S
+    · rw [indicator_of_mem hs, indicator_of_mem (hsub_s hs)]
+    · rw [indicator_of_notMem hs]; exact zero_le
+  have hd_sub : ((d - 1 : ℕ) : ℝ) + 1 = d := by exact_mod_cast Nat.sub_add_cancel hd
+  calc
+    ∫⁻ s : ℝ, S.indicator (fun p => w p.2) (x, s)
+      ≤ ∫⁻ s : ℝ, (Ioc (0 : ℝ) r).indicator w s := lintegral_mono hpt_le
+    _ = ∫⁻ s in Ioc (0 : ℝ) r, w s := lintegral_indicator measurableSet_Ioc w
+    _ = ENNReal.ofReal (∫ s in (0 : ℝ)..r, (d : ℝ) * s ^ (d - 1)) := by
+        rw [← ofReal_integral_eq_lintegral_ofReal
+          ((Continuous.intervalIntegrable (by fun_prop) 0 r).1)
+          (by filter_upwards [ae_restrict_mem measurableSet_Ioc] with s hs
+              exact mul_nonneg hd_rpos.le (pow_nonneg hs.1.le _)),
+          ← intervalIntegral.integral_of_le hr_nn]
+    _ = ENNReal.ofReal (r ^ d) := by
+        rw [intervalIntegral.integral_const_mul, integral_pow,
+          Nat.sub_add_cancel hd, hd_sub, zero_pow hd0, sub_zero,
+          mul_div_cancel₀ _ hd_rpos.ne']
+    _ = covariogram volume K x / volume K := by rw [hr_pow, hc_ofReal]
 
 /-- **Rogers–Shephard Inequality (1957):**
 for every compact convex set `K ⊆ E` in a finite-dimensional real inner product space `E` of
@@ -531,91 +640,15 @@ theorem rogers_shephard {K : Set E} (hKconv : Convex ℝ K) (hKc : IsCompact K) 
               (pow_nonneg (sub_nonneg.mpr hs.2) _)),
       ← intervalIntegral.integral_of_le (by norm_num : (0 : ℝ) ≤ 1),
       integral_rogers_shephard_weight hd_pos]
-  -- Side 2: integrate `s` first, then `x`, using the homothety inclusion into `K ∩ (x + K)`.
-  have hrhs_pt : ∀ x : E, ∫⁻ s : ℝ, F x s ≤
-      volume {y : E | y ∈ K ∧ y - x ∈ K} / volume K := by
-    intro x
-    let Gx := {y : E | y ∈ K ∧ y - x ∈ K}
-    have hGx_le : volume Gx ≤ volume K := measure_mono fun _ hy => hy.1
-    have hratio_le1 : volume Gx / volume K ≤ 1 := by
-      rw [ENNReal.div_le_iff_le_mul (Or.inl hK0) (Or.inl hKfin), one_mul]
-      exact hGx_le
-    let c : ℝ := (volume Gx / volume K).toReal
-    have hc_nn : 0 ≤ c := ENNReal.toReal_nonneg
-    have hc_ofReal : ENNReal.ofReal c = volume Gx / volume K :=
-      ENNReal.ofReal_toReal (ne_top_of_le_ne_top ENNReal.one_ne_top hratio_le1)
-    let r : ℝ := c ^ (1 / (d : ℝ))
-    have hr_nn : 0 ≤ r := Real.rpow_nonneg hc_nn _
-    have hr_pow : r ^ d = c := by
-      dsimp only [r]
-      rw [← Real.rpow_natCast, ← Real.rpow_mul hc_nn, one_div_mul_cancel hd_rpos.ne', Real.rpow_one]
-    have hsub_s : {s : ℝ | (x, s) ∈ S} ⊆ Ioc (0 : ℝ) r := by
-      intro s ⟨⟨hs0, hs1⟩, hmem⟩
-      refine ⟨hs0, ?_⟩
-      rcases Set.mem_sub.mp hmem with ⟨a, ha, b, hb, hab⟩
-      -- Homothety inclusion: `s • K + {(1 - s) • a} ⊆ K ∩ (x + K) = Gx`!
-      have h1s : 0 < 1 - s := sub_pos.mpr hs1
-      have hx_eq : x = (1 - s) • (a - b) := by
-        have := congrArg (fun v => (1 - s) • v) hab
-        simpa [smul_smul, mul_inv_cancel₀ h1s.ne'] using this.symm
-      have hhom : (fun z : E => (1 - s) • a + z) '' (s • K) ⊆ Gx := by
-        rintro _ ⟨_, ⟨z, hz, rfl⟩, rfl⟩
-        refine ⟨?_, ?_⟩
-        · dsimp only
-          rw [add_comm]
-          exact hKconv hz ha hs0.le h1s.le (add_sub_cancel s 1)
-        · dsimp only
-          have heq : ((1 - s) • a + s • z) - x = s • z + (1 - s) • b := by
-            rw [hx_eq, smul_sub]; abel
-          rw [heq]
-          exact hKconv hz hb hs0.le h1s.le (add_sub_cancel s 1)
-      have hvol_hom : ENNReal.ofReal (s ^ d) * volume K ≤ volume Gx := by
-        have htrans : volume ((fun z : E => (1 - s) • a + z) '' (s • K)) =
-            ENNReal.ofReal (s ^ d) * volume K := by
-          have heq : (fun z : E => (1 - s) • a + z) '' (s • K) =
-              (fun z : E => -((1 - s) • a) + z) ⁻¹' (s • K) := by
-            ext z; simp only [mem_image, mem_preimage]
-            exact ⟨fun ⟨u, hu, huz⟩ => by rwa [← huz, neg_add_cancel_left],
-              fun hz => ⟨-((1 - s) • a) + z, hz, by abel⟩⟩
-          rw [heq, measure_preimage_add, Measure.addHaar_smul, abs_of_nonneg (pow_nonneg hs0.le _)]
-        exact htrans ▸ measure_mono hhom
-      have hsd_le : ENNReal.ofReal (s ^ d) ≤ ENNReal.ofReal c := by
-        rw [hc_ofReal, ENNReal.le_div_iff_mul_le (Or.inl hK0) (Or.inl hKfin)]
-        exact hvol_hom
-      have hsd_le' : s ^ d ≤ r ^ d := by
-        rw [hr_pow]
-        exact (ENNReal.ofReal_le_ofReal_iff hc_nn).mp hsd_le
-      by_contra hlt
-      push Not at hlt
-      have : r ^ d < s ^ d := pow_lt_pow_left₀ hlt hr_nn hd0
-      linarith
-    have hpt_le : ∀ s : ℝ, F x s ≤ (Ioc (0 : ℝ) r).indicator w s := fun s => by
-      dsimp only [F]
-      by_cases hs : (x, s) ∈ S
-      · rw [indicator_of_mem hs, indicator_of_mem (hsub_s hs)]
-      · rw [indicator_of_notMem hs]; exact zero_le
-    have hd_sub : ((d - 1 : ℕ) : ℝ) + 1 = d := by exact_mod_cast Nat.sub_add_cancel hd_pos
-    calc
-      ∫⁻ s : ℝ, F x s ≤ ∫⁻ s : ℝ, (Ioc (0 : ℝ) r).indicator w s := lintegral_mono hpt_le
-      _ = ∫⁻ s in Ioc (0 : ℝ) r, w s := lintegral_indicator measurableSet_Ioc w
-      _ = ENNReal.ofReal (∫ s in (0 : ℝ)..r, (d : ℝ) * s ^ (d - 1)) := by
-          rw [← ofReal_integral_eq_lintegral_ofReal
-            ((Continuous.intervalIntegrable (by fun_prop) 0 r).1)
-            (by filter_upwards [ae_restrict_mem measurableSet_Ioc] with s hs
-                exact mul_nonneg hd_rpos.le (pow_nonneg hs.1.le _)),
-            ← intervalIntegral.integral_of_le hr_nn]
-      _ = ENNReal.ofReal (r ^ d) := by
-          rw [intervalIntegral.integral_const_mul, integral_pow,
-            Nat.sub_add_cancel hd_pos, hd_sub, zero_pow hd0, sub_zero,
-            mul_div_cancel₀ _ hd_rpos.ne']
-      _ = volume Gx / volume K := by rw [hr_pow, hc_ofReal]
+  -- Side 2: integrate `s` first, then `x`, using `rogers_shephard_radial_bound`.
   have hswap : volume (K - K) * ENNReal.ofReal (1 / ((Nat.choose (2 * d) d : ℕ) : ℝ)) ≤ volume K := by
     calc
       volume (K - K) * ENNReal.ofReal (1 / ((Nat.choose (2 * d) d : ℕ) : ℝ))
         = ∫⁻ s : ℝ, ∫⁻ x : E, F x s := hlhs.symm
       _ = ∫⁻ x : E, ∫⁻ s : ℝ, F x s := (lintegral_lintegral_swap hFm.aemeasurable).symm
-      _ ≤ ∫⁻ x : E, volume {y : E | y ∈ K ∧ y - x ∈ K} / volume K := lintegral_mono hrhs_pt
-      _ = (∫⁻ x : E, volume {y : E | y ∈ K ∧ y - x ∈ K}) / volume K := by
+      _ ≤ ∫⁻ x : E, covariogram volume K x / volume K :=
+          lintegral_mono fun x => rogers_shephard_radial_bound hKconv hd_pos hK0 hKfin x
+      _ = (∫⁻ x : E, covariogram volume K x) / volume K := by
           simp_rw [ENNReal.div_eq_inv_mul]
           rw [lintegral_const_mul' _ _ (ENNReal.inv_ne_top.mpr hK0)]
       _ = (volume K * volume K) / volume K := by rw [covariogram_lintegral hKm]
