@@ -115,3 +115,20 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.minkowskiSurfaceArea_closedBall
 #print axioms ConvexGeom.isoperimetric_inequality
 #print axioms ConvexGeom.isoperimetric_inequality_ball
+
+-- 13. Spherical Integration, Polar Volume Formula, Mean Width, and Dual Urysohn
+#print axioms ConvexGeom.measurePreserving_sphereMap_sphereProb
+#print axioms ConvexGeom.measurePreserving_sphereNeg_sphereProb
+#print axioms ConvexGeom.addHaar_eq_lintegral_gauge_inv_pow
+#print axioms ConvexGeom.addHaar_real_eq_integral_gauge_inv_pow
+#print axioms ConvexGeom.addHaar_real_polarBody_eq_integral_supportFn_inv_pow
+#print axioms ConvexGeom.meanWidth_add
+#print axioms ConvexGeom.meanWidth_smul
+#print axioms ConvexGeom.meanWidth_translate
+#print axioms ConvexGeom.meanWidth_bodyClosedBall
+#print axioms ConvexGeom.lipschitzWith_meanWidth
+#print axioms ConvexGeom.meanWidth_linearIsometry
+#print axioms ConvexGeom.meanWidth_minkowskiSymm
+#print axioms ConvexGeom.meanWidth_centralSymm
+#print axioms ConvexGeom.dual_urysohn_inequality
+#print axioms ConvexGeom.urysohn_of_santalo
