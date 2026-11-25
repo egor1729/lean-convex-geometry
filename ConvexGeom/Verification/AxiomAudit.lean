@@ -107,3 +107,11 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.covariogram_rpow_concave
 #print axioms ConvexGeom.two_pow_mul_volume_le_volume_diff
 #print axioms ConvexGeom.rogers_shephard
+
+-- 12. Minkowski's First Inequality and Euclidean Isoperimetric Inequality
+#print axioms ConvexGeom.volume_add_smul_ge
+#print axioms ConvexGeom.minkowski_first_diff_ge
+#print axioms ConvexGeom.minkowski_first_inequality
+#print axioms ConvexGeom.minkowskiSurfaceArea_closedBall
+#print axioms ConvexGeom.isoperimetric_inequality
+#print axioms ConvexGeom.isoperimetric_inequality_ball

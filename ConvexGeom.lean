@@ -11,3 +11,4 @@ public import ConvexGeom.BrunnMinkowski
 public import ConvexGeom.Symmetrization
 public import ConvexGeom.Projection
 public import ConvexGeom.BrunnConcavity
+public import ConvexGeom.Isoperimetric
