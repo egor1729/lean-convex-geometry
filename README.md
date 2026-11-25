@@ -6,21 +6,14 @@ A Lean 4 + Mathlib (`v4.36.0`) library for **metric, volumetric, and spherical c
 
 It provides reusable analytic and geometric foundations complementing algebraic polyhedral libraries (such as [`Polyhedral`](https://github.com/ooovi/Polyhedral)) and supporting downstream formalizations (such as [`sphere-max-volume`](https://github.com/egor1729/sphere-max-volume)).
 
-## Contents
+## Highlights
 
-All modules are re-exported by [`ConvexGeom.lean`](ConvexGeom.lean).
+- **Support Functions & Metric Convexity:** Support calculus, Hörmander's isometric embedding, Minkowski's representation theorem, completeness of `ConvexBody E`, and the Blaschke Selection Theorem.
+- **Polarity & Polytopes:** One-sided polar bodies, Bipolar Theorem, gauge–support duality, and inscribed polytope approximation.
+- **Volume & Covering:** $d$-simplex volume $|\det|/d!$, half-ball bounds, Hausdorff continuity of volume, and volumetric covering/packing bounds for arbitrary norms.
+- **Inequalities & Symmetrization:** $d$-dimensional Prékopa–Leindler, Brunn–Minkowski, Bieberbach's isodiametric inequality, log-concave marginals, and Minkowski / central / Steiner symmetrization.
 
-| Module | Highlights |
-| --- | --- |
-| [`SupportFunction.lean`](ConvexGeom/SupportFunction.lean) | Support function calculus (`supportFn`), Hahn–Banach separation, directional width, Hörmander's isometric embedding (`isometry_supportFnOnBall`), Hausdorff metric algebra, Minkowski's representation theorem (`exists_convexBody_supportFn_eq`) |
-| [`Blaschke.lean`](ConvexGeom/Blaschke.lean) | Completeness of `ConvexBody E` (`instCompleteSpaceConvexBody`) and the Blaschke Selection Theorem (`blaschke_selection`) |
-| [`Polarity.lean`](ConvexGeom/Polarity.lean) | One-sided polar bodies (`polarBody`, `bodyPolar`), adjoint duality, Bipolar Theorem (`polarBody_polarBody`), and gauge–support duality |
-| [`Polytope.lean`](ConvexGeom/Polytope.lean) | Finite convex hulls (`bodyConvexHull`), 1-Lipschitz Hausdorff stability, and inscribed polytope approximation (`exists_polytope_dist_lt`) |
-| [`SimplexVolume.lean`](ConvexGeom/SimplexVolume.lean) | $d$-simplex volume $|\det|/d!$ on `Fin d → ℝ` (`volume_convexHull_simplex`) and `EuclideanSpace ℝ (Fin d)` |
-| [`VolumeContinuity.lean`](ConvexGeom/VolumeContinuity.lean) | Half-ball volume identity (`addHaar_halfBall`) and Hausdorff continuity of add-Haar volume on `ConvexBody E` (`continuous_addHaar_convexBody`) |
-| [`CoveringNumbers.lean`](ConvexGeom/CoveringNumbers.lean) | Volumetric covering and packing bounds for arbitrary norms on $\mathbb{R}^d$ and unit-ball bounds $(1/\varepsilon)^d \le \mathcal{N}_{\mathrm{ext}}$, $\mathcal{N} \le (3/\varepsilon)^d$ |
-| [`BrunnMinkowski.lean`](ConvexGeom/BrunnMinkowski.lean) | $d$-dimensional Prékopa–Leindler (`prekopa_leindler`), multiplicative and additive Brunn–Minkowski (`brunn_minkowski_compact`, `brunn_minkowski_convexBody`), Bieberbach's isodiametric inequality (`isodiametric_inequality`), and log-concavity of marginals |
-| [`Symmetrization.lean`](ConvexGeom/Symmetrization.lean) | Hyperplane reflection, Minkowski and central symmetrization (`minkowskiSymm`, `centralSymm`), and Steiner symmetrization (`steinerSymm`, convexity, compactness, volume preservation, diameter bound) |
+See [`MODULES.md`](MODULES.md) for the full repository layout, dependency graph, and module-by-module theorem index.
 
 ## Quick Start
 
@@ -53,6 +46,7 @@ import ConvexGeom
 - **Strict verification:** Zero `sorry`, zero warnings (`--wfail`), and CI-enforced axiom auditing ([`AxiomAudit.lean`](ConvexGeom/Verification/AxiomAudit.lean)) against Lean's standard axioms only.
 - **Structured commits:** Keep repository history clean with small, focused commits rather than large multi-feature dumps.
 
-## Roadmap & Contributing
+## Documentation
 
-See [`ROADMAP.md`](ROADMAP.md) for planned modules, classical targets, reference literature, and contribution guidelines.
+- [`MODULES.md`](MODULES.md) — Repository layout, dependency graph, and theorem guide.
+- [`ROADMAP.md`](ROADMAP.md) — Planned targets, reference literature, and contribution guidelines.

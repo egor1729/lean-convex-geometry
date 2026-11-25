@@ -8,6 +8,7 @@ This document outlines planned directions for `lean-convex-geometry` and serves 
 - **Conceptual proof routes:** Prefer clean structural proofs that reuse existing lemmas. If a target requires heavy specialized scaffolding, extract the missing general layer first or defer the target here.
 - **Structured commits:** Keep commits small, focused, and self-contained (e.g., one module, a cohesive group of lemmas, or a single documentation/CI change per commit). Avoid large multi-module dumps.
 - **Clean verification:** Every change must pass `lake build ConvexGeom --wfail` with zero `sorry` and zero warnings, and new headline theorems should be registered in [`ConvexGeom/Verification/AxiomAudit.lean`](ConvexGeom/Verification/AxiomAudit.lean).
+- **Keep docs in sync:** Update [`MODULES.md`](MODULES.md) when adding or restructuring library modules.
 
 ## Near-Term Building Blocks
 
