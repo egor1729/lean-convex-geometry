@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+title: "lean-convex-geometry"
+message: "If you use this library in your research or formalization, please cite it as below."
+type: software
+authors:
+  - family-names: Gorodzha
+    given-names: Yegor
+repository-code: "https://github.com/egor1729/lean-convex-geometry"
+license: Apache-2.0
+version: "0.1.0"
+keywords:
+  - lean4
+  - mathlib
+  - convex-geometry
+  - formal-verification
+  - brunn-minkowski
