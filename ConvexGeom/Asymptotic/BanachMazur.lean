@@ -1,7 +1,7 @@
 module
 
-public import ConvexGeom.Polarity
-public import ConvexGeom.Symmetrization
+public import ConvexGeom.Metric.Polarity
+public import ConvexGeom.Volume.Symmetrization
 public import Mathlib.LinearAlgebra.Determinant
 public import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
 

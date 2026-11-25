@@ -1,6 +1,6 @@
 module
 
-public import ConvexGeom.SupportFunction
+public import ConvexGeom.Metric.SupportFunction
 public import Mathlib.Analysis.Convex.Gauge
 public import Mathlib.Analysis.InnerProductSpace.Adjoint
 

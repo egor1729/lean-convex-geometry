@@ -1,7 +1,7 @@
 module
 
-public import ConvexGeom.BrunnMinkowski
-public import ConvexGeom.SupportFunction
+public import ConvexGeom.Volume.BrunnMinkowski
+public import ConvexGeom.Metric.SupportFunction
 
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.MeasureTheory.Measure.Prod

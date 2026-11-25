@@ -1,6 +1,6 @@
 module
 
-public import ConvexGeom.BrunnMinkowski
+public import ConvexGeom.Volume.BrunnMinkowski
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 
 import Mathlib.Analysis.Convex.Intrinsic

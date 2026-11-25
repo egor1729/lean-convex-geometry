@@ -1,6 +1,6 @@
 module
 
-public import ConvexGeom.Polytope
+public import ConvexGeom.Polytope.Basic
 public import Mathlib.LinearAlgebra.AffineSpace.Independent
 public import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 public import Mathlib.MeasureTheory.Measure.Haar.OfBasis

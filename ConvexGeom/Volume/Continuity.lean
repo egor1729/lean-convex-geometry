@@ -1,7 +1,7 @@
 module
 
-public import ConvexGeom.SupportFunction
-public import ConvexGeom.Polytope
+public import ConvexGeom.Metric.SupportFunction
+public import ConvexGeom.Polytope.Basic
 public import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 
 import Mathlib.Analysis.Convex.Measure

@@ -1,6 +1,6 @@
 module
 
-public import ConvexGeom.SupportFunction
+public import ConvexGeom.Metric.SupportFunction
 
 import Mathlib.Topology.ContinuousMap.Bounded.ArzelaAscoli
 import Mathlib.Topology.MetricSpace.UniformConvergence

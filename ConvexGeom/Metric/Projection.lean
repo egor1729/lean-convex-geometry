@@ -1,6 +1,6 @@
 module
 
-public import ConvexGeom.SupportFunction
+public import ConvexGeom.Metric.SupportFunction
 
 import Mathlib.Analysis.InnerProductSpace.Projection.Minimal
 

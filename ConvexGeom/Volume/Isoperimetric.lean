@@ -1,6 +1,6 @@
 module
 
-public import ConvexGeom.BrunnMinkowski
+public import ConvexGeom.Volume.BrunnMinkowski
 
 import Mathlib.Analysis.Calculus.Deriv.Pow
 import Mathlib.Analysis.Calculus.Deriv.Slope
