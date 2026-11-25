@@ -8,6 +8,7 @@ import Mathlib.Analysis.Convex.Integral
 import Mathlib.Analysis.Convex.SpecificFunctions.Pow
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
 import Mathlib.MeasureTheory.Measure.Haar.InnerProductSpace
+import Mathlib.MeasureTheory.Measure.Haar.Unique
 
 /-!
 # Spherical Probability Measure, Polar Volume Formula, Mean Width, and Dual Urysohn
@@ -18,9 +19,13 @@ integration layer underlying high-dimensional convex geometry (Ball, Lectures 1�
 Artstein-Avidan–Giannopoulos–Milman, Ch. 1; Schneider, §1.7):
 
 1. **Uniform Spherical Probability Measure (`sphereProb`):**
-   `sphereProb μ := (μ.toSphere univ)⁻¹ • μ.toSphere` is a probability measure on `sphere 0 1`,
-   invariant under antipodal negation (`measurePreserving_sphereNeg_sphereProb`) and under every
-   linear isometry preserving `μ` (in particular, all `U : E ≃ₗᵢ[ℝ] E` for `volume`).
+   `sphereProb μ := (μ.toSphere univ)⁻¹ • μ.toSphere` is the normalized cone probability measure
+   on `sphere 0 1` (unique `O(E)`-invariant probability measure on the Euclidean unit sphere in
+   dimension `d ≥ 1`; in dimension `0`, `sphere 0 1 = ∅` so `sphereProb μ = 0`).
+   It is independent of the choice or normalization of the ambient additive Haar measure
+   (`sphereProb_smul`, `sphereProb_eq_of_isAddHaarMeasure`), invariant under antipodal negation
+   (`measurePreserving_sphereNeg_sphereProb`), and invariant under every linear isometry
+   preserving `μ` (in particular all `U : E ≃ₗᵢ[ℝ] E` for `volume`).
 2. **Polar-Coordinate Volume Formula:**
    For any `ConvexBody E` with `0 ∈ interior K` and any add-Haar measure `μ`:
    - `addHaar_real_eq_integral_gauge_inv_pow`:
@@ -28,14 +33,18 @@ Artstein-Avidan–Giannopoulos–Milman, Ch. 1; Schneider, §1.7):
    - `addHaar_real_polarBody_eq_integral_supportFn_inv_pow`:
      $$\mu.\mathrm{real}(K^\circ) = \mu.\mathrm{real}(\overline{B}(0, 1)) \int_{S^{d-1}} h_K(u)^{-d}\,d\sigma(u).$$
 3. **Mean Width (`meanWidth`):**
-   `meanWidth K := ∫ u, supportFn K u ∂(sphereProb volume)` with full algebraic & metric calculus:
-   Minkowski additivity, positive homogeneity, translation invariance, rotation invariance,
-   monotonicity, `meanWidth (bodyClosedBall c r) = r`, 1-Lipschitz continuity in the Hausdorff
-   metric (`lipschitzWith_meanWidth`), and invariance under Minkowski and central symmetrization.
-4. **Dual Urysohn Inequality (`dual_urysohn_inequality`) & Santaló–Urysohn Bridge (`urysohn_of_santalo`):**
+   `meanWidth K := ∫ u, supportFn K u ∂(sphereProb volume)` is the **half mean breadth**
+   (normalized so `meanWidth (bodyClosedBall c r) = r`, with
+   `∫ u, width K u ∂(sphereProb volume) = 2 * meanWidth K` via `integral_width_eq_two_mul_meanWidth`),
+   with full algebraic & metric calculus: Minkowski additivity, positive homogeneity, translation
+   invariance, rotation invariance (`meanWidth_linearIsometry`, `meanWidth_mapLinearIsometry`),
+   monotonicity, 1-Lipschitz continuity (`lipschitzWith_meanWidth`), and symmetrization invariance.
+4. **Dual Urysohn Inequality (`dual_urysohn_inequality`) & Santaló–Urysohn Bridges
+   (`urysohn_of_santalo`, `urysohn_of_santalo_at`):**
    For any `K : ConvexBody E` with `0 ∈ interior K`:
    $$\left(\frac{\mathrm{vol}(\overline{B}(0, 1))}{\mathrm{vol}(K^\circ)}\right)^{1/d} \le w(K),$$
-   and hence any body satisfying the Blaschke–Santaló inequality satisfies Urysohn's inequality.
+   and hence any body satisfying the Blaschke–Santaló inequality about any interior point
+   `z ∈ interior K` satisfies Urysohn's inequality.
 -/
 
 open MeasureTheory Set Metric
@@ -82,8 +91,13 @@ section SphereProb
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
 
-/-- The normalized uniform probability measure on `Metric.sphere (0 : E) 1` induced by an
-additive Haar measure `μ` on `E`. -/
+/-- The normalized uniform cone probability measure on `Metric.sphere (0 : E) 1` induced by an
+additive Haar measure `μ` on `E` (when `E` is nontrivial; in dimension `0` the sphere is empty
+and `sphereProb μ = 0`).
+
+On a Euclidean inner product space this coincides with normalized `(d - 1)`-dimensional surface
+measure on `S^{d-1}`, and is independent of the choice of additive Haar measure `μ`
+(`sphereProb_eq_of_isAddHaarMeasure`). -/
 noncomputable def sphereProb (μ : Measure E) : Measure (sphere (0 : E) 1) :=
   (μ.toSphere Set.univ)⁻¹ • μ.toSphere
 
@@ -97,6 +111,44 @@ instance instIsProbabilityMeasure_sphereProb [Nontrivial E]
         (isOpen_ball.measure_pos μ ⟨0, mem_ball_self zero_lt_one⟩).ne'
     rw [sphereProb, smul_apply, smul_eq_mul,
       ENNReal.inv_mul_cancel hne0 (measure_ne_top μ.toSphere Set.univ)]
+
+omit [FiniteDimensional ℝ E] in
+/-- Scaling the ambient measure scales `Measure.toSphere` by the same factor. -/
+lemma toSphere_smul (μ : Measure E) (c : ℝ≥0∞) :
+    (c • μ).toSphere = c • μ.toSphere := by
+  ext s hs
+  rw [Measure.toSphere_apply' (c • μ) hs, smul_apply, smul_apply,
+    Measure.toSphere_apply' μ hs, smul_eq_mul, smul_eq_mul]
+  ring
+
+omit [FiniteDimensional ℝ E] in
+/-- `sphereProb` is invariant under rescaling the ambient measure by any `0 < c < ∞`. -/
+theorem sphereProb_smul (μ : Measure E) {c : ℝ≥0∞} (hc0 : c ≠ 0) (hctop : c ≠ ⊤) :
+    sphereProb (c • μ) = sphereProb μ := by
+  rw [sphereProb, sphereProb, toSphere_smul, smul_apply, smul_eq_mul,
+    ENNReal.mul_inv (Or.inl hc0) (Or.inl hctop), smul_smul]
+  congr 1
+  rw [mul_comm c⁻¹, mul_assoc, ENNReal.inv_mul_cancel hc0 hctop, mul_one]
+
+/-- **Haar-normalization independence of `sphereProb`:**
+any two additive Haar measures on `E` induce the exact same normalized spherical probability
+measure on `Metric.sphere (0 : E) 1`. -/
+theorem sphereProb_eq_of_isAddHaarMeasure [Nontrivial E]
+    (μ ν : Measure E) [μ.IsAddHaarMeasure] [ν.IsAddHaarMeasure] :
+    sphereProb μ = sphereProb ν := by
+  have huniq : μ = ((Measure.addHaarScalarFactor μ ν : ℝ≥0) : ℝ≥0∞) • ν := by
+    have h := Measure.isAddLeftInvariant_eq_smul μ ν
+    ext s _
+    rw [congrArg (fun m : Measure E => m s) h, smul_apply, smul_apply, ENNReal.smul_def,
+      smul_eq_mul]
+  have hc0 : ((Measure.addHaarScalarFactor μ ν : ℝ≥0) : ℝ≥0∞) ≠ 0 := by
+    intro h0
+    have hball_pos : 0 < μ (ball (0 : E) 1) :=
+      isOpen_ball.measure_pos μ ⟨0, mem_ball_self zero_lt_one⟩
+    rw [huniq, h0, zero_smul] at hball_pos
+    exact lt_irrefl 0 hball_pos
+  rw [huniq]
+  exact sphereProb_smul ν hc0 ENNReal.coe_ne_top
 
 lemma addHaar_closedBall_eq_addHaar_ball [Nontrivial E]
     (μ : Measure E) [μ.IsAddHaarMeasure] (c : E) {r : ℝ} (_hr : 0 ≤ r) :
@@ -463,6 +515,23 @@ theorem meanWidth_neg_one_smul [Nontrivial E] (K : ConvexBody E) :
     hmp.integral_comp (sphereMap (LinearIsometryEquiv.neg ℝ (E := E))).measurableEmbedding
       (fun u : sphere (0 : E) 1 => supportFn K u.1)
 
+/-- **Mean breadth vs. mean width convention:**
+integrating directional width `width K u = supportFn K u + supportFn K (-u)` over the unit
+sphere gives `2 * meanWidth K` (so `meanWidth K` is the half mean breadth, normalized to `r` on
+balls of radius `r`). -/
+theorem integral_width_eq_two_mul_meanWidth [Nontrivial E] (K : ConvexBody E) :
+    ∫ u : sphere (0 : E) 1, width K u.1 ∂(sphereProb (volume : Measure E)) =
+      2 * meanWidth K := by
+  have hpoint : ∀ u : sphere (0 : E) 1,
+      width K u.1 = supportFn K u.1 + supportFn ((-1 : ℝ) • K) u.1 := fun u => by
+    rw [width_eq_supportFn_diff, supportFn_minkowski_add]
+  simp_rw [hpoint]
+  rw [integral_add (integrable_supportFn_sphereProb K)
+    (integrable_supportFn_sphereProb ((-1 : ℝ) • K))]
+  change meanWidth K + meanWidth ((-1 : ℝ) • K) = 2 * meanWidth K
+  rw [meanWidth_neg_one_smul]
+  ring
+
 /-- Singletons have zero mean width (by antipodal symmetry of the sphere). -/
 theorem meanWidth_bodySingleton [Nontrivial E] (a : E) :
     meanWidth (bodySingleton a) = 0 := by
@@ -548,6 +617,11 @@ theorem meanWidth_linearIsometry [Nontrivial E] (U : E ≃ₗᵢ[ℝ] E) (K L : 
   simpa [sphereMap_coe] using
     hmp.integral_comp (sphereMap U.symm).measurableEmbedding
       (fun u : sphere (0 : E) 1 => supportFn K u.1)
+
+/-- Direct `mapLinear` form of orthogonal invariance of `meanWidth`. -/
+theorem meanWidth_mapLinearIsometry [Nontrivial E] (U : E ≃ₗᵢ[ℝ] E) (K : ConvexBody E) :
+    meanWidth (mapLinear U.toLinearIsometry.toContinuousLinearMap K) = meanWidth K :=
+  meanWidth_linearIsometry U K _ (supportFn_mapLinearIsometry U K)
 
 /-- Mean width is invariant under Minkowski symmetrization. -/
 theorem meanWidth_minkowskiSymm [Nontrivial E] {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) :
@@ -719,6 +793,45 @@ theorem urysohn_of_santalo [Nontrivial E]
     simpa [sq] using hsantalo
   exact (Real.rpow_le_rpow (div_nonneg measureReal_nonneg hvB_pos.le) hratio
     (one_div_nonneg.mpr hd_rpos.le)).trans (dual_urysohn_inequality K h0)
+
+/-- **Santaló–Urysohn Bridge (arbitrary interior center `z ∈ interior K`):**
+if `K` satisfies the Blaschke–Santaló inequality about some interior point `z ∈ interior K`
+(such as its Santaló point), then `K` satisfies Urysohn's inequality
+`(vol(K) / vol(B₁)) ^ (1 / d) ≤ meanWidth K`. -/
+theorem urysohn_of_santalo_at [Nontrivial E]
+    (K : ConvexBody E) {z : E} (hz : z ∈ interior (K : Set E))
+    (hsantalo : volume.real (K : Set E) *
+        volume.real (polarBody ((fun x : E => x - z) '' (K : Set E))) ≤
+      volume.real (closedBall (0 : E) 1) ^ 2) :
+    (volume.real (K : Set E) / volume.real (closedBall (0 : E) 1)) ^
+        (1 / (Module.finrank ℝ E : ℝ)) ≤
+      meanWidth K := by
+  let K' : ConvexBody E := K + bodySingleton (-z)
+  have hK'_coe : (K' : Set E) = (fun x : E => x - z) '' (K : Set E) := by
+    ext y
+    rw [ConvexBody.coe_add, coe_bodySingleton]
+    simp only [Set.mem_add, Set.mem_singleton_iff, Set.mem_image]
+    constructor
+    · rintro ⟨x, hx, _, rfl, rfl⟩; exact ⟨x, hx, by abel⟩
+    · rintro ⟨x, hx, rfl⟩; exact ⟨x, hx, -z, rfl, by abel⟩
+  have h0' : (0 : E) ∈ interior (K' : Set E) := by
+    let e : E ≃ₜ E := Homeomorph.addRight (-z)
+    have himg : (K' : Set E) = e '' (K : Set E) := by
+      rw [hK'_coe]; ext y; simp [e, sub_eq_add_neg]
+    rw [himg, ← e.image_interior]
+    exact ⟨z, hz, by simp [e]⟩
+  have hvol' : volume.real (K' : Set E) = volume.real (K : Set E) := by
+    have hpre : (K' : Set E) = (fun x : E => z + x) ⁻¹' (K : Set E) := by
+      rw [hK'_coe]
+      ext y; simp only [Set.mem_image, Set.mem_preimage]
+      exact ⟨fun ⟨x, hx, hxy⟩ => by rw [← hxy]; simpa [add_sub_cancel] using hx,
+        fun hy => ⟨z + y, hy, by abel⟩⟩
+    rw [Measure.real, Measure.real, hpre, measure_preimage_add]
+  have hsantalo' : volume.real (K' : Set E) * volume.real (polarBody (K' : Set E)) ≤
+      volume.real (closedBall (0 : E) 1) ^ 2 := by
+    rwa [hvol', hK'_coe]
+  have hmw : meanWidth K' = meanWidth K := meanWidth_translate K (-z)
+  simpa [hvol', hmw] using urysohn_of_santalo K' h0' hsantalo'
 
 end MeanWidth
 

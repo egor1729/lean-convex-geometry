@@ -2,6 +2,7 @@ module
 
 public import ConvexGeom.Metric.Polarity
 public import ConvexGeom.Volume.Symmetrization
+public import Mathlib.LinearAlgebra.AffineSpace.AffineEquiv
 public import Mathlib.LinearAlgebra.Determinant
 public import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
 
@@ -12,8 +13,9 @@ import Mathlib.Topology.Algebra.Module.FiniteDimension
 /-!
 # Origin-Symmetric Bodies, Ellipsoids, Mahler Volume, and Banach–Mazur Distance
 
-This module provides the linear-invariant geometric foundations used throughout asymptotic
-geometric analysis (Ball, Lectures 3–4; Klartag; Artstein-Avidan–Giannopoulos–Milman, Ch. 1–4):
+This module provides the linear- and affine-invariant geometric foundations used throughout
+asymptotic geometric analysis (Ball, Lectures 3–4; Klartag; Artstein-Avidan–Giannopoulos–Milman,
+Ch. 1–4):
 
 1. **Origin-Symmetric Sets (`IsOriginSymmetric`):**
    Closure under polarity, linear images, scaling, Minkowski sums, and symmetrizations;
@@ -25,21 +27,29 @@ geometric analysis (Ball, Lectures 3–4; Klartag; Artstein-Avidan–Giannopoulo
      inner product space.
    - `adjointLinearEquiv`: the adjoint equivalence `T† : E ≃ₗ[ℝ] E`.
    - `polarBody_linearEquiv_image`: `(T '' S)° = (T⁻¹)† '' S°`.
-3. **Ellipsoids & Affine Invariance of Mahler Volume:**
+3. **Ellipsoids & Mahler Volume (`mahlerVolume`, `mahlerVolumeAt`, `santaloMahlerVolume`):**
    - `ellipsoid T := T '' closedBall 0 1`: compactness, convexity, symmetry, `0 ∈ interior`,
      polarity (`polarBody_ellipsoid`), and add-Haar volume (`addHaar_ellipsoid`).
-   - `mahlerVolume μ S := μ S * μ (polarBody S)`:
-     - `mahlerVolume_linearEquiv`: **GL-invariance** `mahlerVolume μ (T '' S) = mahlerVolume μ S`.
-     - `mahlerVolume_ellipsoid`: `mahlerVolume μ (ellipsoid T) = μ (closedBall 0 1) ^ 2`.
-4. **Multiplicative Banach–Mazur Distance (`banachMazurDist`):**
+   - `mahlerVolume μ S := μ S * μ (polarBody S)` is **origin-centered** (`GL(E)`-invariant,
+     `mahlerVolume_linearEquiv`, `mahlerVolume_ellipsoid`, but NOT translation-invariant on
+     non-symmetric sets).
+   - `mahlerVolumeAt μ S z := mahlerVolume μ ((· - z) '' S)` and the **Santaló Mahler volume**
+     `santaloMahlerVolume μ S := ⨅ z : interior S, mahlerVolumeAt μ S z.1` are translation- and
+     full affine-invariant (`santaloMahlerVolume_translate`, `santaloMahlerVolume_affineEquiv`).
+4. **Origin-Fixed (Linear) Banach–Mazur Distance (`banachMazurDist`, `banachMazurEDist`):**
    $$d_{\mathrm{BM}}(K, L) := \inf \{ r \ge 1 \mid \exists T \in \mathrm{GL}(E),\; K \subseteq T(L) \subseteq r K \}.$$
-   - Reflexivity (`banachMazurDist_self`), symmetry (`banachMazurDist_symm`), lower bound `≥ 1`
-     (`one_le_banachMazurDist`), and multiplicative triangle inequality (`banachMazurDist_mul_triangle`).
-   - Full `GL(E)`- and positive-scale invariance on both arguments.
-   - **Polarity invariance** (`banachMazurDist_polar`): `d_BM(K°, L°) = d_BM(K, L)` via the
-     Bipolar Theorem.
-   - **Mahler volume comparison** (`mahlerVolume_le_banachMazurDist_pow_mul`):
-     `mahlerVolume μ L ≤ d_BM(K, L)^d * mahlerVolume μ K`.
+   - Appropriate for origin-symmetric bodies (for general non-symmetric bodies, recentering is
+     needed; see Section 5).
+   - Note: the real-valued `banachMazurDist` defaults to `0` on infeasible pairs via
+     `Real.sInf_empty`; `banachMazurEDist : ℝ≥0∞` returns `⊤` on infeasible pairs and satisfies
+     the unconditional multiplicative triangle inequality `banachMazurEDist_mul_triangle`.
+   - Reflexivity, symmetry, `GL(E)`- and positive-scale invariance, polarity invariance
+     (`banachMazurDist_polar`), and Mahler volume comparison.
+5. **Affine Banach–Mazur Distance (`affineBanachMazurDist`, `affineBanachMazurEDist`):**
+   $$d_{\mathrm{BM}}^{\mathrm{aff}}(K, L) := \inf \{ r \ge 1 \mid \exists T \in \mathrm{GL}(E),\, x, y \in E,\; K - x \subseteq T(L - y) \subseteq r (K - x) \}.$$
+   - Invariant under all affine equivalences `E ≃ᵃ[ℝ] E` on both arguments, bounded above by
+     `banachMazurDist`, and satisfies the multiplicative triangle inequality (unconditionally in
+     `ℝ≥0∞`).
 -/
 
 open MeasureTheory Set Metric
@@ -347,8 +357,12 @@ theorem addHaar_ellipsoid [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSp
   change μ ((T : E →ₗ[ℝ] E) '' closedBall (0 : E) 1) = _
   exact Measure.addHaar_image_linearMap μ (T : E →ₗ[ℝ] E) (closedBall (0 : E) 1)
 
-/-- The **Mahler volume** (volume product) of a set `S ⊆ E` with respect to a measure `μ`:
-`mahlerVolume μ S := μ S * μ (polarBody S)`. -/
+/-- The **origin-centered Mahler volume** (volume product) of `S ⊆ E` with respect to `μ`:
+`mahlerVolume μ S := μ S * μ (polarBody S)`.
+
+Note: `mahlerVolume` is `GL(E)`-invariant (`mahlerVolume_linearEquiv`) but depends on the choice
+of origin (e.g., on `[-1, ε] ⊂ ℝ` with `0 < ε < 1`, `mahlerVolume volume [-1, ε] > 4`). For the
+translation- and affine-invariant volume product over interior centers, see `santaloMahlerVolume`. -/
 noncomputable def mahlerVolume [MeasurableSpace E] (μ : Measure E) (S : Set E) : ℝ≥0∞ :=
   μ S * μ (polarBody S)
 
@@ -391,6 +405,121 @@ theorem mahlerVolume_ellipsoid [FiniteDimensional ℝ E] [MeasurableSpace E] [Bo
     mahlerVolume μ (ellipsoid T) = μ (closedBall (0 : E) 1) ^ 2 := by
   rw [ellipsoid, mahlerVolume_linearEquiv, mahlerVolume, polarBody_closedBall one_pos, inv_one, sq]
 
+/-- Helper: an affine equivalence on a finite-dimensional real inner product space is a
+homeomorphism. -/
+private noncomputable def affineEquivHomeomorph [FiniteDimensional ℝ E] (A : E ≃ᵃ[ℝ] E) :
+    E ≃ₜ E :=
+  A.linear.toContinuousLinearEquiv.toHomeomorph.trans (Homeomorph.addRight (A 0))
+
+private lemma affineEquivHomeomorph_apply [FiniteDimensional ℝ E] (A : E ≃ᵃ[ℝ] E) (x : E) :
+    affineEquivHomeomorph A x = A x := by
+  have h := A.map_vadd 0 x
+  simpa [affineEquivHomeomorph, vadd_eq_add] using h.symm
+
+private lemma affineEquiv_sub (A : E ≃ᵃ[ℝ] E) (x z : E) :
+    A x - A z = A.linear (x - z) := by
+  have h := A.map_vadd z (x - z)
+  simp only [vadd_eq_add, sub_add_cancel] at h
+  rw [h, add_sub_cancel_right]
+
+/-- The **Mahler volume of `S` centered at `z`**:
+`mahlerVolumeAt μ S z := mahlerVolume μ ((· - z) '' S)`. -/
+noncomputable def mahlerVolumeAt [MeasurableSpace E] (μ : Measure E) (S : Set E) (z : E) : ℝ≥0∞ :=
+  mahlerVolume μ ((fun x : E => x - z) '' S)
+
+@[simp]
+lemma mahlerVolumeAt_zero [MeasurableSpace E] (μ : Measure E) (S : Set E) :
+    mahlerVolumeAt μ S 0 = mahlerVolume μ S := by
+  simp [mahlerVolumeAt]
+
+lemma mahlerVolumeAt_translate [MeasurableSpace E] (μ : Measure E) (S : Set E) (z a : E) :
+    mahlerVolumeAt μ ((fun x : E => x + a) '' S) (z + a) = mahlerVolumeAt μ S z := by
+  unfold mahlerVolumeAt
+  congr 1
+  ext y
+  simp only [mem_image]
+  constructor
+  · rintro ⟨_, ⟨x, hx, rfl⟩, rfl⟩
+    exact ⟨x, hx, by abel⟩
+  · rintro ⟨x, hx, rfl⟩
+    exact ⟨x + a, ⟨x, hx, rfl⟩, by abel⟩
+
+/-- Covariant transformation of centered Mahler volume under any affine equivalence `A : E ≃ᵃ[ℝ] E`. -/
+theorem mahlerVolumeAt_affineEquiv [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (μ : Measure E) [μ.IsAddHaarMeasure] (A : E ≃ᵃ[ℝ] E) (S : Set E) (z : E) :
+    mahlerVolumeAt μ (A '' S) (A z) = mahlerVolumeAt μ S z := by
+  unfold mahlerVolumeAt
+  have heq : (fun y : E => y - A z) '' (A '' S) = A.linear '' ((fun x : E => x - z) '' S) := by
+    ext y
+    simp only [mem_image]
+    constructor
+    · rintro ⟨_, ⟨x, hx, rfl⟩, rfl⟩
+      exact ⟨x - z, ⟨x, hx, rfl⟩, (affineEquiv_sub A x z).symm⟩
+    · rintro ⟨_, ⟨x, hx, rfl⟩, rfl⟩
+      exact ⟨A x, ⟨x, hx, rfl⟩, affineEquiv_sub A x z⟩
+  rw [heq, mahlerVolume_linearEquiv]
+
+/-- The **Santaló Mahler volume** (affine-invariant volume product) of `S ⊆ E`:
+$$\mathcal{P}^*_\mu(S) := \inf_{z \in \mathrm{int}(S)} \mu(S - z)\,\mu((S - z)^\circ).$$
+Note: if `interior S = ∅`, this infimum over an empty subtype is `⊤`. -/
+noncomputable def santaloMahlerVolume [MeasurableSpace E] (μ : Measure E) (S : Set E) : ℝ≥0∞ :=
+  ⨅ z : interior S, mahlerVolumeAt μ S z.1
+
+theorem santaloMahlerVolume_le_mahlerVolumeAt [MeasurableSpace E] (μ : Measure E) {S : Set E}
+    {z : E} (hz : z ∈ interior S) :
+    santaloMahlerVolume μ S ≤ mahlerVolumeAt μ S z :=
+  iInf_le (fun w : interior S => mahlerVolumeAt μ S w.1) ⟨z, hz⟩
+
+theorem santaloMahlerVolume_le_mahlerVolume [MeasurableSpace E] (μ : Measure E) {S : Set E}
+    (h0 : (0 : E) ∈ interior S) :
+    santaloMahlerVolume μ S ≤ mahlerVolume μ S := by
+  simpa [mahlerVolumeAt_zero] using santaloMahlerVolume_le_mahlerVolumeAt μ h0
+
+/-- **Translation invariance** of the Santaló Mahler volume. -/
+theorem santaloMahlerVolume_translate [MeasurableSpace E] (μ : Measure E) (S : Set E) (a : E) :
+    santaloMahlerVolume μ ((fun x : E => x + a) '' S) = santaloMahlerVolume μ S := by
+  let h : E ≃ₜ E := Homeomorph.addRight a
+  have hS : (fun x : E => x + a) '' S = h '' S := rfl
+  have hint : interior ((fun x : E => x + a) '' S) = h '' interior S := by
+    rw [hS, h.image_interior]
+  let e : interior S ≃ interior ((fun x : E => x + a) '' S) :=
+    { toFun := fun z => ⟨z.1 + a, hint ▸ ⟨z.1, z.2, rfl⟩⟩
+      invFun := fun w => ⟨w.1 - a, by
+        have hw : w.1 ∈ h '' interior S := hint ▸ w.2
+        rcases hw with ⟨x, hx, hxw⟩
+        have hx' : w.1 - a = x := by change x + a = w.1 at hxw; rw [← hxw, add_sub_cancel_right]
+        rwa [hx']⟩
+      left_inv := fun z => Subtype.ext (add_sub_cancel_right z.1 a)
+      right_inv := fun w => Subtype.ext (sub_add_cancel w.1 a) }
+  unfold santaloMahlerVolume
+  rw [← e.iInf_comp]
+  refine iInf_congr fun z => ?_
+  exact mahlerVolumeAt_translate μ S z.1 a
+
+/-- **Full affine invariance** of the Santaló Mahler volume under any `A : E ≃ᵃ[ℝ] E`. -/
+theorem santaloMahlerVolume_affineEquiv [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (μ : Measure E) [μ.IsAddHaarMeasure] (A : E ≃ᵃ[ℝ] E) (S : Set E) :
+    santaloMahlerVolume μ (A '' S) = santaloMahlerVolume μ S := by
+  let h : E ≃ₜ E := affineEquivHomeomorph A
+  have hS : A '' S = h '' S := by
+    ext y; simp [affineEquivHomeomorph_apply, h]
+  have hint : interior (A '' S) = A '' interior S := by
+    rw [hS, ← h.image_interior]
+    ext y; simp [affineEquivHomeomorph_apply, h]
+  let e : interior S ≃ interior (A '' S) :=
+    { toFun := fun z => ⟨A z.1, hint ▸ ⟨z.1, z.2, rfl⟩⟩
+      invFun := fun w => ⟨A.symm w.1, by
+        have hw : w.1 ∈ A '' interior S := hint ▸ w.2
+        rcases hw with ⟨x, hx, hxw⟩
+        rw [← hxw, A.symm_apply_apply]
+        exact hx⟩
+      left_inv := fun z => Subtype.ext (A.symm_apply_apply z.1)
+      right_inv := fun w => Subtype.ext (A.apply_symm_apply w.1) }
+  unfold santaloMahlerVolume
+  rw [← e.iInf_comp]
+  refine iInf_congr fun z => ?_
+  exact mahlerVolumeAt_affineEquiv μ A S z.1
+
 end EllipsoidAndMahler
 
 /-! ### 4. Multiplicative Banach–Mazur Distance -/
@@ -404,8 +533,13 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 def banachMazurSet (K L : Set E) : Set ℝ :=
   {r : ℝ | 1 ≤ r ∧ ∃ T : E ≃ₗ[ℝ] E, K ⊆ T '' L ∧ T '' L ⊆ r • K}
 
-/-- The multiplicative **Banach–Mazur distance** between sets `K, L ⊆ E`:
-$$d_{\mathrm{BM}}(K, L) := \inf \{ r \ge 1 \mid \exists T \in \mathrm{GL}(E),\; K \subseteq T(L) \subseteq r K \}.$$ -/
+/-- The **origin-fixed (linear) multiplicative Banach–Mazur distance** between sets `K, L ⊆ E`:
+$$d_{\mathrm{BM}}(K, L) := \inf \{ r \ge 1 \mid \exists T \in \mathrm{GL}(E),\; K \subseteq T(L) \subseteq r K \}.$$
+
+This matches the classical Banach–Mazur distance for origin-symmetric bodies. On infeasible pairs
+(when `banachMazurSet K L = ∅`), `Real.sInf_empty` returns `0`; use `banachMazurEDist` for
+`ℝ≥0∞`-valued semantics returning `⊤`. For general (non-symmetric) bodies requiring recentering,
+use `affineBanachMazurDist` / `affineBanachMazurEDist`. -/
 noncomputable def banachMazurDist (K L : Set E) : ℝ :=
   sInf (banachMazurSet K L)
 
@@ -690,7 +824,359 @@ theorem mahlerVolume_le_banachMazurDist_ball_pow_mul [FiniteDimensional ℝ E]
     rw [mahlerVolume, polarBody_closedBall one_pos, inv_one, sq]
   simpa [hball] using mahlerVolume_le_banachMazurDist_pow_mul μ hne
 
+/-- Extended (`ℝ≥0∞`-valued) origin-fixed Banach–Mazur distance:
+equals `ENNReal.ofReal (banachMazurDist K L)` when `banachMazurSet K L` is nonempty, and `⊤`
+when no invertible linear map embeds `K ⊆ T(L) ⊆ r K` (avoiding the `Real.sInf_empty = 0`
+totalization artifact). -/
+noncomputable def banachMazurEDist (K L : Set E) : ℝ≥0∞ :=
+  sInf (ENNReal.ofReal '' banachMazurSet K L)
+
+theorem banachMazurEDist_eq_top_of_empty {K L : Set E} (hemp : banachMazurSet K L = ∅) :
+    banachMazurEDist K L = ⊤ := by
+  simp [banachMazurEDist, hemp]
+
+theorem banachMazurEDist_eq_ofReal {K L : Set E} (hne : (banachMazurSet K L).Nonempty) :
+    banachMazurEDist K L = ENNReal.ofReal (banachMazurDist K L) := by
+  apply le_antisymm
+  · refine ENNReal.le_of_forall_pos_le_add fun ε hε _ => ?_
+    have hε' : (0 : ℝ) < (ε : ℝ) := NNReal.coe_pos.mpr hε
+    obtain ⟨r, hr_mem, hr_lt⟩ := Real.lt_sInf_add_pos hne hε'
+    calc
+      banachMazurEDist K L ≤ ENNReal.ofReal r := sInf_le ⟨r, hr_mem, rfl⟩
+      _ ≤ ENNReal.ofReal (banachMazurDist K L + (ε : ℝ)) := ENNReal.ofReal_le_ofReal hr_lt.le
+      _ = ENNReal.ofReal (banachMazurDist K L) + (ε : ℝ≥0∞) := by
+          rw [ENNReal.ofReal_add (le_trans zero_le_one (one_le_banachMazurDist hne)) hε'.le,
+            ENNReal.ofReal_coe_nnreal]
+  · refine le_sInf ?_
+    rintro _ ⟨r, hr, rfl⟩
+    exact ENNReal.ofReal_le_ofReal (csInf_le (bddBelow_banachMazurSet K L) hr)
+
+theorem one_le_banachMazurEDist (K L : Set E) : 1 ≤ banachMazurEDist K L := by
+  refine le_sInf ?_
+  rintro _ ⟨r, hr, rfl⟩
+  simpa using ENNReal.ofReal_le_ofReal hr.1
+
+theorem banachMazurEDist_self (K : Set E) : banachMazurEDist K K = 1 := by
+  have h1 : (1 : ℝ) ∈ banachMazurSet K K :=
+    ⟨le_rfl, LinearEquiv.refl ℝ E,
+      fun x hx => ⟨x, hx, rfl⟩,
+      by rintro _ ⟨x, hx, rfl⟩; exact ⟨x, hx, one_smul ℝ x⟩⟩
+  rw [banachMazurEDist_eq_ofReal ⟨1, h1⟩, banachMazurDist_self, ENNReal.ofReal_one]
+
+theorem banachMazurEDist_symm (K L : Set E) :
+    banachMazurEDist K L = banachMazurEDist L K := by
+  rw [banachMazurEDist, banachMazurSet_symm, banachMazurEDist]
+
+/-- **Unconditional multiplicative triangle inequality for `banachMazurEDist`:**
+holds for all sets `K, L, M ⊆ E` (with infeasible pairs yielding `⊤`). -/
+theorem banachMazurEDist_mul_triangle (K L M : Set E) :
+    banachMazurEDist K M ≤ banachMazurEDist K L * banachMazurEDist L M := by
+  by_cases hKL : (banachMazurSet K L).Nonempty
+  · by_cases hLM : (banachMazurSet L M).Nonempty
+    · have hKM : (banachMazurSet K M).Nonempty := by
+        obtain ⟨r₁, hr₁, T₁, hK1, h1K⟩ := hKL
+        obtain ⟨r₂, hr₂, T₂, hL2, h2L⟩ := hLM
+        refine ⟨r₁ * r₂, by nlinarith, T₂.trans T₁, ?_, ?_⟩
+        · intro x hx
+          rcases hK1 hx with ⟨y, hy, rfl⟩
+          rcases hL2 hy with ⟨z, hz, rfl⟩
+          exact ⟨z, hz, rfl⟩
+        · rintro _ ⟨z, hz, rfl⟩
+          rcases h2L ⟨z, hz, rfl⟩ with ⟨y, hy, hyz⟩
+          rcases h1K ⟨y, hy, rfl⟩ with ⟨x, hx, hxy⟩
+          refine ⟨x, hx, ?_⟩
+          change (r₁ * r₂) • x = T₁ (T₂ z)
+          rw [← hyz, map_smul, ← hxy, smul_smul, mul_comm]
+      rw [banachMazurEDist_eq_ofReal hKM, banachMazurEDist_eq_ofReal hKL,
+        banachMazurEDist_eq_ofReal hLM,
+        ← ENNReal.ofReal_mul (le_trans zero_le_one (one_le_banachMazurDist hKL))]
+      exact ENNReal.ofReal_le_ofReal (banachMazurDist_mul_triangle hKL hLM)
+    · rw [Set.not_nonempty_iff_eq_empty] at hLM
+      rw [banachMazurEDist_eq_top_of_empty hLM,
+        ENNReal.mul_top (lt_of_lt_of_le zero_lt_one (one_le_banachMazurEDist K L)).ne']
+      exact le_top
+  · rw [Set.not_nonempty_iff_eq_empty] at hKL
+    rw [banachMazurEDist_eq_top_of_empty hKL,
+      ENNReal.top_mul (lt_of_lt_of_le zero_lt_one (one_le_banachMazurEDist L M)).ne']
+    exact le_top
+
 end BanachMazur
+
+/-! ### 5. Affine Banach–Mazur Distance (Allowing Recentering) -/
+
+section AffineBanachMazur
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- The set of affine Banach–Mazur distortion factors `r ≥ 1`:
+there exist `T ∈ GL(E)` and centers `x, y ∈ E` such that
+`K - x ⊆ T(L - y) ⊆ r • (K - x)`. -/
+def affineBanachMazurSet (K L : Set E) : Set ℝ :=
+  {r : ℝ | 1 ≤ r ∧ ∃ (T : E ≃ₗ[ℝ] E) (x y : E),
+    (fun z => z - x) '' K ⊆ T '' ((fun z => z - y) '' L) ∧
+    T '' ((fun z => z - y) '' L) ⊆ r • ((fun z => z - x) '' K)}
+
+/-- The **affine multiplicative Banach–Mazur distance** between sets `K, L ⊆ E`:
+$$d_{\mathrm{BM}}^{\mathrm{aff}}(K, L) := \inf \{ r \ge 1 \mid \exists T \in \mathrm{GL}(E),\, x, y \in E,\; K - x \subseteq T(L - y) \subseteq r (K - x) \}.$$
+This is the standard Banach–Mazur distance for general (non-symmetric) convex bodies, where
+Fritz John's theorem gives `d_BM^aff(K, B₂^d) ≤ d`. On infeasible pairs, `Real.sInf_empty`
+returns `0`; use `affineBanachMazurEDist` for `ℝ≥0∞`-valued semantics returning `⊤`. -/
+noncomputable def affineBanachMazurDist (K L : Set E) : ℝ :=
+  sInf (affineBanachMazurSet K L)
+
+/-- Extended (`ℝ≥0∞`-valued) affine Banach–Mazur distance (equals `⊤` on infeasible pairs). -/
+noncomputable def affineBanachMazurEDist (K L : Set E) : ℝ≥0∞ :=
+  sInf (ENNReal.ofReal '' affineBanachMazurSet K L)
+
+lemma mem_affineBanachMazurSet_iff {K L : Set E} {r : ℝ} :
+    r ∈ affineBanachMazurSet K L ↔
+      ∃ x y : E, r ∈ banachMazurSet ((fun z => z - x) '' K) ((fun z => z - y) '' L) := by
+  simp only [affineBanachMazurSet, banachMazurSet, mem_ofPred_eq]
+  constructor
+  · rintro ⟨hr, T, x, y, h1, h2⟩; exact ⟨x, y, hr, T, h1, h2⟩
+  · rintro ⟨x, y, hr, T, h1, h2⟩; exact ⟨hr, T, x, y, h1, h2⟩
+
+lemma bddBelow_affineBanachMazurSet (K L : Set E) : BddBelow (affineBanachMazurSet K L) :=
+  ⟨1, fun _ hr => hr.1⟩
+
+lemma banachMazurSet_subset_affineBanachMazurSet (K L : Set E) :
+    banachMazurSet K L ⊆ affineBanachMazurSet K L := by
+  intro r hr
+  rw [mem_affineBanachMazurSet_iff]
+  exact ⟨0, 0, by simpa using hr⟩
+
+/-- Any two bounded sets with nonempty interior have nonempty affine Banach–Mazur set
+(without requiring `0` to lie in their interiors). -/
+lemma affineBanachMazurSet_nonempty {K L : Set E}
+    (hKint : (interior K).Nonempty) (hKb : Bornology.IsBounded K)
+    (hLint : (interior L).Nonempty) (hLb : Bornology.IsBounded L) :
+    (affineBanachMazurSet K L).Nonempty := by
+  obtain ⟨x, hx⟩ := hKint
+  obtain ⟨y, hy⟩ := hLint
+  have hK0 : (0 : E) ∈ interior ((fun z => z - x) '' K) := by
+    let e : E ≃ₜ E := Homeomorph.addRight (-x)
+    have himg : (fun z => z - x) '' K = e '' K := by ext w; simp [e, sub_eq_add_neg]
+    rw [himg, ← e.image_interior]
+    exact ⟨x, hx, by simp [e]⟩
+  have hL0 : (0 : E) ∈ interior ((fun z => z - y) '' L) := by
+    let e : E ≃ₜ E := Homeomorph.addRight (-y)
+    have himg : (fun z => z - y) '' L = e '' L := by ext w; simp [e, sub_eq_add_neg]
+    rw [himg, ← e.image_interior]
+    exact ⟨y, hy, by simp [e]⟩
+  have hKb' : Bornology.IsBounded ((fun z => z - x) '' K) := by
+    obtain ⟨R, hKR⟩ := hKb.subset_closedBall x
+    refine (Metric.isBounded_iff_subset_closedBall (0 : E)).mpr ⟨R, ?_⟩
+    rintro _ ⟨z, hz, rfl⟩
+    simpa [mem_closedBall, dist_eq_norm] using hKR hz
+  have hLb' : Bornology.IsBounded ((fun z => z - y) '' L) := by
+    obtain ⟨R, hLR⟩ := hLb.subset_closedBall y
+    refine (Metric.isBounded_iff_subset_closedBall (0 : E)).mpr ⟨R, ?_⟩
+    rintro _ ⟨z, hz, rfl⟩
+    simpa [mem_closedBall, dist_eq_norm] using hLR hz
+  obtain ⟨r, hr⟩ := banachMazurSet_nonempty hK0 hKb' hL0 hLb'
+  exact ⟨r, mem_affineBanachMazurSet_iff.mpr ⟨x, y, hr⟩⟩
+
+theorem one_le_affineBanachMazurDist {K L : Set E} (hne : (affineBanachMazurSet K L).Nonempty) :
+    1 ≤ affineBanachMazurDist K L :=
+  le_csInf hne fun _ hr => hr.1
+
+theorem affineBanachMazurDist_self (K : Set E) : affineBanachMazurDist K K = 1 := by
+  have h1 : (1 : ℝ) ∈ affineBanachMazurSet K K :=
+    banachMazurSet_subset_affineBanachMazurSet K K
+      ⟨le_rfl, LinearEquiv.refl ℝ E,
+        fun x hx => ⟨x, hx, rfl⟩,
+        by rintro _ ⟨x, hx, rfl⟩; exact ⟨x, hx, one_smul ℝ x⟩⟩
+  exact le_antisymm (csInf_le (bddBelow_affineBanachMazurSet K K) h1)
+    (one_le_affineBanachMazurDist ⟨1, h1⟩)
+
+lemma affineBanachMazurSet_symm (K L : Set E) :
+    affineBanachMazurSet K L = affineBanachMazurSet L K := by
+  ext r
+  simp only [mem_affineBanachMazurSet_iff]
+  constructor
+  · rintro ⟨x, y, hr⟩
+    rw [banachMazurSet_symm] at hr
+    exact ⟨y, x, hr⟩
+  · rintro ⟨y, x, hr⟩
+    rw [banachMazurSet_symm] at hr
+    exact ⟨x, y, hr⟩
+
+theorem affineBanachMazurDist_symm (K L : Set E) :
+    affineBanachMazurDist K L = affineBanachMazurDist L K := by
+  rw [affineBanachMazurDist, affineBanachMazurSet_symm, affineBanachMazurDist]
+
+theorem affineBanachMazurDist_le_banachMazurDist {K L : Set E}
+    (hne : (banachMazurSet K L).Nonempty) :
+    affineBanachMazurDist K L ≤ banachMazurDist K L :=
+  csInf_le_csInf (bddBelow_affineBanachMazurSet K L) hne
+    (banachMazurSet_subset_affineBanachMazurSet K L)
+
+theorem affineBanachMazurEDist_le_banachMazurEDist (K L : Set E) :
+    affineBanachMazurEDist K L ≤ banachMazurEDist K L :=
+  sInf_le_sInf (Set.image_mono (banachMazurSet_subset_affineBanachMazurSet K L))
+
+lemma affineBanachMazurSet_affineEquiv_right (K L : Set E) (A : E ≃ᵃ[ℝ] E) :
+    affineBanachMazurSet K (A '' L) = affineBanachMazurSet K L := by
+  ext r
+  simp only [mem_affineBanachMazurSet_iff]
+  have hshift : ∀ y : E,
+      (fun z : E => z - A y) '' (A '' L) = A.linear '' ((fun z : E => z - y) '' L) := by
+    intro y
+    ext w
+    simp only [mem_image]
+    constructor
+    · rintro ⟨_, ⟨z, hz, rfl⟩, rfl⟩
+      exact ⟨z - y, ⟨z, hz, rfl⟩, (affineEquiv_sub A z y).symm⟩
+    · rintro ⟨_, ⟨z, hz, rfl⟩, rfl⟩
+      exact ⟨A z, ⟨z, hz, rfl⟩, affineEquiv_sub A z y⟩
+  constructor
+  · rintro ⟨x, y', hr⟩
+    refine ⟨x, A.symm y', ?_⟩
+    have hy' : A (A.symm y') = y' := A.apply_symm_apply y'
+    rw [← hy', hshift, banachMazurSet_linearEquiv_right] at hr
+    exact hr
+  · rintro ⟨x, y, hr⟩
+    refine ⟨x, A y, ?_⟩
+    rw [hshift, banachMazurSet_linearEquiv_right]
+    exact hr
+
+/-- Right invariance of affine Banach–Mazur distance under all affine equivalences `E ≃ᵃ[ℝ] E`. -/
+theorem affineBanachMazurDist_affineEquiv_right (K L : Set E) (A : E ≃ᵃ[ℝ] E) :
+    affineBanachMazurDist K (A '' L) = affineBanachMazurDist K L := by
+  rw [affineBanachMazurDist, affineBanachMazurSet_affineEquiv_right, affineBanachMazurDist]
+
+/-- Left invariance of affine Banach–Mazur distance under all affine equivalences `E ≃ᵃ[ℝ] E`. -/
+theorem affineBanachMazurDist_affineEquiv_left (K L : Set E) (A : E ≃ᵃ[ℝ] E) :
+    affineBanachMazurDist (A '' K) L = affineBanachMazurDist K L := by
+  rw [affineBanachMazurDist_symm, affineBanachMazurDist_affineEquiv_right,
+    affineBanachMazurDist_symm]
+
+private lemma affineBanachMazurSet_mul {K L M : Set E} {r₁ r₂ : ℝ}
+    (hr₁ : r₁ ∈ affineBanachMazurSet K L) (hr₂ : r₂ ∈ affineBanachMazurSet L M) :
+    r₁ * r₂ ∈ affineBanachMazurSet K M := by
+  rcases hr₁ with ⟨h1_ge, T₁, x, y₁, hK1, h1K⟩
+  rcases hr₂ with ⟨h2_ge, T₂, y₂, z, hL2, h2L⟩
+  let v : E := T₁ (y₂ - y₁)
+  -- Choose `w : E` so that `(1 - r₂) • v - w = -(r₁ * r₂) • w`.
+  have hex_w : ∃ w : E, (1 - r₂) • v - w = -(r₁ * r₂) • w := by
+    by_cases h12 : r₁ * r₂ = 1
+    · have hr₂1 : r₂ = 1 := by nlinarith
+      refine ⟨0, ?_⟩
+      simp [hr₂1]
+    · have hdenom : r₁ * r₂ - 1 ≠ 0 := sub_ne_zero.mpr h12
+      refine ⟨((r₂ - 1) / (r₁ * r₂ - 1)) • v, ?_⟩
+      rw [smul_smul, ← sub_smul]
+      congr 1
+      apply mul_right_cancel₀ hdenom
+      rw [sub_mul, div_mul_cancel₀ _ hdenom, mul_assoc, div_mul_cancel₀ _ hdenom]
+      ring
+  obtain ⟨w, hw⟩ := hex_w
+  let x' : E := x + w
+  let z' : E := z - T₂.symm (T₁.symm (v - w))
+  refine ⟨by nlinarith, T₂.trans T₁, x', z', ?_, ?_⟩
+  · rintro _ ⟨k, hk, rfl⟩
+    rcases hK1 ⟨k, hk, rfl⟩ with ⟨_, ⟨l, hl, rfl⟩, hkl⟩
+    rcases hL2 ⟨l, hl, rfl⟩ with ⟨_, ⟨m, hm, rfl⟩, hlm⟩
+    refine ⟨m - z', ⟨m, hm, rfl⟩, ?_⟩
+    change T₁ (T₂ (m - z')) = k - x'
+    have hT2 : T₂ (m - z') = T₂ (m - z) + T₁.symm (v - w) := by
+      have hmz : m - z' = (m - z) + T₂.symm (T₁.symm (v - w)) := by dsimp only [z']; abel
+      rw [hmz, map_add, T₂.apply_symm_apply]
+    have hly : l - y₁ = (l - y₂) + (y₂ - y₁) := by abel
+    dsimp only at hkl hlm
+    rw [hT2, map_add, T₁.apply_symm_apply, hlm]
+    dsimp only [v, x']
+    rw [← add_sub_assoc, ← map_add, ← hly, hkl]
+    abel
+  · rintro _ ⟨_, ⟨m, hm, rfl⟩, rfl⟩
+    have hT2 : T₂ (m - z') = T₂ (m - z) + T₁.symm (v - w) := by
+      have hmz : m - z' = (m - z) + T₂.symm (T₁.symm (v - w)) := by dsimp only [z']; abel
+      rw [hmz, map_add, T₂.apply_symm_apply]
+    rcases h2L ⟨m - z, ⟨m, hm, rfl⟩, rfl⟩ with ⟨_, ⟨l, hl, rfl⟩, hlm⟩
+    rcases h1K ⟨l - y₁, ⟨l, hl, rfl⟩, rfl⟩ with ⟨_, ⟨k, hk, rfl⟩, hkl⟩
+    refine ⟨k - x', ⟨k, hk, rfl⟩, ?_⟩
+    change (r₁ * r₂) • (k - x') = T₁ (T₂ (m - z'))
+    have hsub_ly : T₁ (l - y₂) = T₁ (l - y₁) - v := by
+      dsimp only [v]
+      rw [← map_sub]
+      congr 1; abel
+    have hT12 : T₁ (T₂ (m - z')) = ((1 - r₂) • v - w) + r₂ • T₁ (l - y₁) := by
+      rw [hT2, map_add, T₁.apply_symm_apply, ← hlm, map_smul, hsub_ly, smul_sub, sub_smul, one_smul]
+      abel
+    rw [hT12, hw, ← hkl, smul_smul, mul_comm r₂ r₁]
+    dsimp only [x']
+    rw [show k - (x + w) = (k - x) - w by abel, smul_sub, neg_smul]
+    abel
+
+/-- **Multiplicative triangle inequality for affine Banach–Mazur distance:**
+holds for all sets `K, L, M` with nonempty affine distortion sets. -/
+theorem affineBanachMazurDist_mul_triangle {K L M : Set E}
+    (hKL : (affineBanachMazurSet K L).Nonempty) (hLM : (affineBanachMazurSet L M).Nonempty) :
+    affineBanachMazurDist K M ≤ affineBanachMazurDist K L * affineBanachMazurDist L M := by
+  have hstep1 : ∀ r₁ ∈ affineBanachMazurSet K L,
+      affineBanachMazurDist K M ≤ r₁ * affineBanachMazurDist L M := by
+    intro r₁ hr₁
+    have hr₁_pos : 0 < r₁ := lt_of_lt_of_le zero_lt_one hr₁.1
+    rw [← div_le_iff₀' hr₁_pos]
+    refine le_csInf hLM fun r₂ hr₂ => ?_
+    rw [div_le_iff₀' hr₁_pos]
+    exact csInf_le (bddBelow_affineBanachMazurSet K M) (affineBanachMazurSet_mul hr₁ hr₂)
+  have hdLM_pos : 0 < affineBanachMazurDist L M :=
+    lt_of_lt_of_le zero_lt_one (one_le_affineBanachMazurDist hLM)
+  rw [← div_le_iff₀ hdLM_pos]
+  refine le_csInf hKL fun r₁ hr₁ => ?_
+  rw [div_le_iff₀ hdLM_pos]
+  exact hstep1 r₁ hr₁
+
+theorem affineBanachMazurEDist_eq_top_of_empty {K L : Set E}
+    (hemp : affineBanachMazurSet K L = ∅) :
+    affineBanachMazurEDist K L = ⊤ := by
+  simp [affineBanachMazurEDist, hemp]
+
+theorem affineBanachMazurEDist_eq_ofReal {K L : Set E}
+    (hne : (affineBanachMazurSet K L).Nonempty) :
+    affineBanachMazurEDist K L = ENNReal.ofReal (affineBanachMazurDist K L) := by
+  apply le_antisymm
+  · refine ENNReal.le_of_forall_pos_le_add fun ε hε _ => ?_
+    have hε' : (0 : ℝ) < (ε : ℝ) := NNReal.coe_pos.mpr hε
+    obtain ⟨r, hr_mem, hr_lt⟩ := Real.lt_sInf_add_pos hne hε'
+    calc
+      affineBanachMazurEDist K L ≤ ENNReal.ofReal r := sInf_le ⟨r, hr_mem, rfl⟩
+      _ ≤ ENNReal.ofReal (affineBanachMazurDist K L + (ε : ℝ)) := ENNReal.ofReal_le_ofReal hr_lt.le
+      _ = ENNReal.ofReal (affineBanachMazurDist K L) + (ε : ℝ≥0∞) := by
+          rw [ENNReal.ofReal_add (le_trans zero_le_one (one_le_affineBanachMazurDist hne)) hε'.le,
+            ENNReal.ofReal_coe_nnreal]
+  · refine le_sInf ?_
+    rintro _ ⟨r, hr, rfl⟩
+    exact ENNReal.ofReal_le_ofReal (csInf_le (bddBelow_affineBanachMazurSet K L) hr)
+
+theorem one_le_affineBanachMazurEDist (K L : Set E) : 1 ≤ affineBanachMazurEDist K L := by
+  refine le_sInf ?_
+  rintro _ ⟨r, hr, rfl⟩
+  simpa using ENNReal.ofReal_le_ofReal hr.1
+
+/-- **Unconditional multiplicative triangle inequality for `affineBanachMazurEDist`.** -/
+theorem affineBanachMazurEDist_mul_triangle (K L M : Set E) :
+    affineBanachMazurEDist K M ≤ affineBanachMazurEDist K L * affineBanachMazurEDist L M := by
+  by_cases hKL : (affineBanachMazurSet K L).Nonempty
+  · by_cases hLM : (affineBanachMazurSet L M).Nonempty
+    · obtain ⟨r₁, hr₁⟩ := hKL
+      obtain ⟨r₂, hr₂⟩ := hLM
+      have hKM : (affineBanachMazurSet K M).Nonempty := ⟨r₁ * r₂, affineBanachMazurSet_mul hr₁ hr₂⟩
+      rw [affineBanachMazurEDist_eq_ofReal hKM, affineBanachMazurEDist_eq_ofReal ⟨r₁, hr₁⟩,
+        affineBanachMazurEDist_eq_ofReal ⟨r₂, hr₂⟩,
+        ← ENNReal.ofReal_mul (le_trans zero_le_one (one_le_affineBanachMazurDist ⟨r₁, hr₁⟩))]
+      exact ENNReal.ofReal_le_ofReal (affineBanachMazurDist_mul_triangle ⟨r₁, hr₁⟩ ⟨r₂, hr₂⟩)
+    · rw [Set.not_nonempty_iff_eq_empty] at hLM
+      rw [affineBanachMazurEDist_eq_top_of_empty hLM,
+        ENNReal.mul_top (lt_of_lt_of_le zero_lt_one (one_le_affineBanachMazurEDist K L)).ne']
+      exact le_top
+  · rw [Set.not_nonempty_iff_eq_empty] at hKL
+    rw [affineBanachMazurEDist_eq_top_of_empty hKL,
+      ENNReal.top_mul (lt_of_lt_of_le zero_lt_one (one_le_affineBanachMazurEDist L M)).ne']
+    exact le_top
+
+end AffineBanachMazur
 
 end
 
