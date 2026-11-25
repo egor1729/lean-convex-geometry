@@ -2,14 +2,9 @@ module
 
 import ConvexGeom.Metric
 
-/-!
-# Regression Tests: Metric Layer
+/-! Checks for `ConvexGeom.Metric`. -/
 
-Tests boundary conventions and core identities for support functions, `bodyOfSupportFn`,
-`mapLinear`, `normalCone` vs `strictNormalCone`, and polarity.
--/
-
-namespace ConvexGeomTest
+namespace ConvexGeomChecks
 
 open ConvexGeom Metric Set
 open scoped RealInnerProductSpace
@@ -49,4 +44,4 @@ example : polarBody (closedBall (0 : ℝ) 2) = closedBall (0 : ℝ) (2 : ℝ)⁻
 example : polarBody (polarBody (Icc (-1 : ℝ) 2)) = Icc (-1 : ℝ) 2 :=
   polarBody_polarBody (convex_Icc (-1) 2) isClosed_Icc (by norm_num)
 
-end ConvexGeomTest
+end ConvexGeomChecks

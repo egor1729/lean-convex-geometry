@@ -2,17 +2,9 @@ module
 
 import ConvexGeom.Volume
 
-/-!
-# Regression Tests: Volume Layer
+/-! Checks for `ConvexGeom.Volume`. -/
 
-Tests semantic contracts and concrete evaluations in the `Volume` layer:
-- Interval-hull behavior of `steinerSymm` on disconnected sets (`{-1, 1} × {0} ↦ [-1, 1] × {0}`).
-- Product max-norm convention on `ℝ × ℝ` (`‖(1, 1)‖ = 1`).
-- 1D Brunn–Minkowski equality on closed intervals and dim-0 Prékopa–Leindler sanity check.
-- General-dimension half-ball origin criterion, covariogram identities, and 1D Minkowski surface area.
--/
-
-namespace ConvexGeomTest
+namespace ConvexGeomChecks
 
 open ConvexGeom MeasureTheory Metric Set
 open scoped ENNReal Pointwise
@@ -90,4 +82,4 @@ example (K : Set ℝ) (x : ℝ) :
     covariogram volume K 0 = volume K ∧ covariogram volume K (-x) = covariogram volume K x :=
   ⟨covariogram_zero volume K, covariogram_neg volume K x⟩
 
-end ConvexGeomTest
+end ConvexGeomChecks

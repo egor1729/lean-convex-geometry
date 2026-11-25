@@ -2,16 +2,9 @@ module
 
 import ConvexGeom.Polytope
 
-/-!
-# Regression Tests: Polytope Layer
+/-! Checks for `ConvexGeom.Polytope`. -/
 
-Tests simplex volume across dimensions `0, 1, 2` (including public `simplexEdgeMatrix` without
-`import all` and degenerate repeated-vertex simplices), plus general-position edge cases
-(dimension `0`, dimension `1`, collinear triple in `ℝ²`, and inscribed full-dimensional
-approximation).
--/
-
-namespace ConvexGeomTest
+namespace ConvexGeomChecks
 
 open ConvexGeom MeasureTheory Set
 open scoped ENNReal
@@ -127,4 +120,4 @@ example :
   have hzero := hind Finset.univ w hw_sum hw_vsum 0 (Finset.mem_univ 0)
   simp [w] at hzero
 
-end ConvexGeomTest
+end ConvexGeomChecks

@@ -2,15 +2,9 @@ module
 
 import ConvexGeom
 
-/-!
-# Downstream Import Smoke Test
+/-! Import check for the public `ConvexGeom` API without direct Mathlib imports. -/
 
-Imports *only* the public `ConvexGeom` umbrella module (no direct Mathlib imports) and exercises
-representative definitions and theorems from all four layers (`Metric`, `Polytope`, `Volume`,
-`Asymptotic`) to ensure downstream consumers have a clean, self-contained import surface.
--/
-
-namespace ConvexGeomTest
+namespace ConvexGeomChecks
 
 open ConvexGeom
 
@@ -42,4 +36,4 @@ example (K : ConvexBody ℝ) (hKint : (interior (K : Set ℝ)).Nonempty) :
       dist (bodyConvexHull S hS) K < 1 :=
   exists_inscribed_generalPosition_polytope_dist_lt K hKint zero_lt_one
 
-end ConvexGeomTest
+end ConvexGeomChecks

@@ -2,23 +2,9 @@ module
 
 import ConvexGeom.Asymptotic
 
-/-!
-# Regression & Counterexample Tests: Asymptotic Layer
+/-! Checks for `ConvexGeom.Asymptotic` (1D interval bounds, totalization, and Haar scaling). -/
 
-Verifies key semantic boundaries highlighted in the library design:
-1. **Linear vs. Affine Banach–Mazur distance on `K = [-1, ε]` (`0 < ε < 1`) vs. `B = [-1, 1]`:**
-   - `banachMazurDist K B = ε⁻¹` (grows unboundedly as `ε → 0⁺` because the origin is pinned).
-   - `affineBanachMazurDist K B = 1` (recentering aligns the intervals exactly).
-2. **Origin-centered vs. Santaló Mahler volume on `K = [-1, ε]` (`0 < ε < 1`):**
-   - `volume (closedBall 0 1) ^ 2 < mahlerVolume volume K` (`4 < (1 + ε)(1 + ε⁻¹)`),
-     demonstrating that Blaschke–Santaló requires recentering / symmetry.
-   - `santaloMahlerVolume volume K ≤ volume (closedBall 0 1) ^ 2` (attained at the midpoint).
-3. **Infeasible Banach–Mazur totalization:**
-   - `banachMazurDist ∅ {0} = 0` (`Real.sInf_empty`), whereas `banachMazurEDist ∅ {0} = ⊤`.
-4. **Haar-scale invariance of `sphereProb`** and **mean breadth `= 2 * meanWidth`**.
--/
-
-namespace ConvexGeomTest
+namespace ConvexGeomChecks
 
 open ConvexGeom MeasureTheory Metric Set
 open scoped ENNReal Pointwise
@@ -187,4 +173,4 @@ example :
   rw [integral_width_eq_two_mul_meanWidth, meanWidth_bodyClosedBall]
   norm_num
 
-end ConvexGeomTest
+end ConvexGeomChecks

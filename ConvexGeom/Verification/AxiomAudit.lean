@@ -3,18 +3,10 @@ module
 import ConvexGeom
 
 /-!
-# Axiom Audit (Spot-Check Snapshot)
+# Axiom Audit
 
-Prints the axioms of headline theorems in `ConvexGeom` so `lean -DwarningAsError=true` verifies
-each depends solely on Lean's three standard classical axioms (`propext`, `Classical.choice`,
-`Quot.sound`).
-
-For the **primary exhaustive environment-wide audit** covering *every* declaration (public and
-private, in every namespace) and filesystem module completeness, run:
-
-```bash
-lake exe convexgeom-audit
-```
+Prints the axioms of headline theorems in `ConvexGeom`. For the full module- and declaration-level
+audit, run `lake exe convexgeom-audit`.
 -/
 
 -- 1. Support Functions, Linear Transport, Hörmander Isometry, and Minkowski Representation

@@ -9,16 +9,16 @@ cd "$ROOT_DIR"
 
 REPORT_PATH="${1:-audit-report.json}"
 
-echo "==> 1. Building ConvexGeom (warnings fatal)"
+echo "==> 1. Building ConvexGeom"
 lake build ConvexGeom --wfail
 
-echo "==> 2. Building ConvexGeomTest regression suite (warnings fatal)"
-lake build ConvexGeomTest --wfail
+echo "==> 2. Building verification checks"
+lake build ConvexGeom.Verification.Checks --wfail
 
-echo "==> 3. Building convexgeom-audit tool (warnings fatal)"
+echo "==> 3. Building convexgeom-audit"
 lake build convexgeom-audit --wfail
 
-echo "==> 4. Running exhaustive environment-wide audit"
+echo "==> 4. Running environment-wide axiom audit"
 lake exe convexgeom-audit --json "$REPORT_PATH"
 
 # Attach repository provenance (git commit and manifest SHA-256) to the JSON report.
