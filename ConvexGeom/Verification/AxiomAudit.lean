@@ -88,3 +88,12 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.isCompact_steinerSymm
 #print axioms ConvexGeom.volume_steinerSymm
 #print axioms ConvexGeom.steinerSymm_dist_le_diam
+
+-- 10. Metric Projection, Outer Normal Cones, and Supporting Hyperplanes
+#print axioms ConvexGeom.metricProj_eq_iff
+#print axioms ConvexGeom.sq_norm_metricProj_sub_le
+#print axioms ConvexGeom.lipschitzWith_metricProj
+#print axioms ConvexGeom.metricProj_mem_frontier_of_not_mem
+#print axioms ConvexGeom.mem_normalCone_iff_supportFn
+#print axioms ConvexGeom.exists_supporting_normal_of_mem_frontier
+#print axioms ConvexGeom.exists_unit_supportFn_eq_of_mem_frontier

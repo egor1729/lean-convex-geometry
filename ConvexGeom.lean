@@ -9,3 +9,4 @@ public import ConvexGeom.VolumeContinuity
 public import ConvexGeom.CoveringNumbers
 public import ConvexGeom.BrunnMinkowski
 public import ConvexGeom.Symmetrization
+public import ConvexGeom.Projection
