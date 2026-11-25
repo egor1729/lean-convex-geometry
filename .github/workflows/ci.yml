@@ -24,19 +24,29 @@ jobs:
           set -euo pipefail
           out="$(lake env lean ConvexGeom/Verification/AxiomAudit.lean 2>&1)"
           echo "$out"
-          if echo "$out" | grep -E "sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler"; then
-            echo "ERROR: Forbidden axiom detected!"
-            exit 1
-          fi
-          bad="$(echo "$out" | grep "depends on axioms:" | grep -vE 'depends on axioms: \[(propext|Classical\.choice|Quot\.sound|, )+\]$' || true)"
-          if [ -n "$bad" ]; then
-            echo "ERROR: Unexpected axiom(s) detected:"
-            echo "$bad"
-            exit 1
-          fi
-          count="$(echo "$out" | grep -c "depends on axioms:" || true)"
-          if [ "$count" -lt 1 ]; then
-            echo "ERROR: AxiomAudit produced no axiom reports!"
-            exit 1
-          fi
-          echo "Axiom audit passed ($count theorems verified)."
+          python3 - "$out" <<'PY'
+          import re, sys
+          text = sys.argv[1]
+          forbidden = ("sorryAx", "Lean.ofReduceBool", "Lean.trustCompiler")
+          for tok in forbidden:
+              if tok in text:
+                  print(f"ERROR: Forbidden axiom detected: {tok}")
+                  sys.exit(1)
+          entries = re.findall(r"'([^']+)' depends on axioms: \[([^\]]*)\]", text, re.S)
+          if not entries:
+              print("ERROR: AxiomAudit produced no axiom reports!")
+              sys.exit(1)
+          allowed = {"propext", "Classical.choice", "Quot.sound"}
+          bad = []
+          for name, axs in entries:
+              parsed = [a.strip() for a in axs.split(",") if a.strip()]
+              unexpected = [a for a in parsed if a not in allowed]
+              if unexpected:
+                  bad.append((name, unexpected))
+          if bad:
+              print("ERROR: Unexpected axiom(s) detected:")
+              for name, unexpected in bad:
+                  print(f"  {name}: {unexpected}")
+              sys.exit(1)
+          print(f"Axiom audit passed ({len(entries)} theorems verified).")
+          PY
