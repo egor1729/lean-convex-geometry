@@ -1,7 +1,8 @@
 module
 
 public import ConvexGeom.Metric.SupportFunction
-public import ConvexGeom.Polytope.Basic
+public import ConvexGeom.Polytope.GeneralPosition
+public import Mathlib.Analysis.Convex.Extreme
 public import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 
 import Mathlib.Analysis.Convex.Measure
@@ -473,6 +474,238 @@ theorem exists_max_addHaar_convexHull_closedBall (μ : Measure E) [μ.IsAddHaarM
         μ (convexHull ℝ (Set.range w)) ≤ μ (convexHull ℝ (Set.range v)) :=
   exists_max_addHaar_convexHull_of_isCompact μ (isCompact_closedBall (0 : E) r)
     ⟨0, Metric.mem_closedBall_self hr⟩
+
+/-- **Half-ball origin criterion:** if a convex set `K ⊆ closedBall 0 r` has volume strictly
+greater than half the volume of `closedBall 0 r`, then `0 ∈ interior K`. -/
+theorem zero_mem_interior_of_addHaar_gt_half_closedBall (μ : Measure E) [μ.IsAddHaarMeasure]
+    {r : ℝ} {K : Set E} (hKconv : Convex ℝ K)
+    (hKsub : K ⊆ Metric.closedBall (0 : E) r)
+    (hgt : μ (Metric.closedBall (0 : E) r) / 2 < μ K) :
+    (0 : E) ∈ interior K := by
+  by_contra h0
+  exact hgt.not_ge (addHaar_le_half_closedBall_of_zero_not_mem_interior μ hKconv hKsub h0)
+
+omit [FiniteDimensional ℝ E] in
+/-- Adding an exterior point `w ∉ P` to a compact convex set `P` with nonempty interior strictly
+increases its additive Haar measure. -/
+theorem strict_addHaar_convexHull_insert_of_notMem (μ : Measure E) [μ.IsAddHaarMeasure]
+    {P : Set E} (hPc : IsCompact P) (hPint : (interior P).Nonempty)
+    {w : E} (hw : w ∉ P) :
+    μ P < μ (convexHull ℝ (insert w P)) := by
+  obtain ⟨x₀, hx₀⟩ := hPint
+  obtain ⟨ε, hε, hball_sub⟩ := Metric.isOpen_iff.mp isOpen_interior x₀ hx₀
+  have hball_P : Metric.ball x₀ ε ⊆ P := hball_sub.trans interior_subset
+  have hPclosed : IsClosed P := hPc.isClosed
+  obtain ⟨δ, hδ, hdisj_ball⟩ := Metric.isOpen_iff.mp hPclosed.isOpen_compl w hw
+  set M : ℝ := ‖x₀ - w‖ + ε + 1
+  have hM_pos : 0 < M := by positivity
+  set t : ℝ := min (1 / 2) (δ / (2 * M))
+  have ht_pos : 0 < t := lt_min (by norm_num) (by positivity)
+  have ht_lt_one : t < 1 := lt_of_le_of_lt (min_le_left _ _) (by norm_num)
+  let c : E := (1 - t) • w + t • x₀
+  let U : Set E := Metric.ball c (t * ε)
+  have hU_sub : U ⊆ convexHull ℝ (insert w P) := by
+    intro z hz
+    have hnorm_z : ‖z - c‖ < t * ε := by simpa [U, Metric.mem_ball, dist_eq_norm] using hz
+    let y : E := x₀ + t⁻¹ • (z - c)
+    have hy_ball : y ∈ Metric.ball x₀ ε := by
+      rw [Metric.mem_ball, dist_eq_norm, show y - x₀ = t⁻¹ • (z - c) by simp [y],
+        norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr ht_pos)]
+      calc
+        t⁻¹ * ‖z - c‖ < t⁻¹ * (t * ε) :=
+          mul_lt_mul_of_pos_left hnorm_z (inv_pos.mpr ht_pos)
+        _ = ε := by rw [← mul_assoc, inv_mul_cancel₀ ht_pos.ne', one_mul]
+    have hz_comb : (1 - t) • w + t • y = z := by
+      dsimp only [y, c]
+      rw [smul_add, smul_smul, mul_inv_cancel₀ ht_pos.ne', one_smul]
+      abel
+    rw [← hz_comb]
+    exact (convex_convexHull ℝ _)
+      (subset_convexHull ℝ _ (Set.mem_insert w P))
+      (subset_convexHull ℝ _ (Set.mem_insert_of_mem w (hball_P hy_ball)))
+      (sub_nonneg.mpr ht_lt_one.le) ht_pos.le (by ring)
+  have hU_disj : Disjoint P U := by
+    rw [Set.disjoint_left]
+    intro z hzP hzU
+    have hz_w : z ∈ Metric.ball w δ := by
+      rw [Metric.mem_ball, dist_eq_norm]
+      have h1 : ‖z - c‖ < t * ε := by simpa [U, Metric.mem_ball, dist_eq_norm] using hzU
+      have h2 : c - w = t • (x₀ - w) := by
+        dsimp only [c]; rw [sub_smul, one_smul, smul_sub]; abel
+      have h3 : ‖z - w‖ ≤ ‖z - c‖ + ‖c - w‖ := by
+        have := norm_add_le (z - c) (c - w)
+        simpa [sub_add_sub_cancel] using this
+      have h4 : ‖c - w‖ = t * ‖x₀ - w‖ := by
+        rw [h2, norm_smul, Real.norm_eq_abs, abs_of_pos ht_pos]
+      have ht_le : t ≤ δ / (2 * M) := min_le_right _ _
+      have h5 : t * M ≤ δ / 2 := by
+        calc
+          t * M ≤ (δ / (2 * M)) * M := mul_le_mul_of_nonneg_right ht_le hM_pos.le
+          _ = δ / 2 := by field_simp [hM_pos.ne']
+      have h6 : t * ε + t * ‖x₀ - w‖ < t * M := by
+        dsimp only [M]; nlinarith
+      linarith
+    exact hdisj_ball hz_w hzP
+  have hP_sub : P ⊆ convexHull ℝ (insert w P) :=
+    (Set.subset_insert w P).trans (subset_convexHull ℝ _)
+  have hU_pos : 0 < μ U := Metric.isOpen_ball.measure_pos μ ⟨c, Metric.mem_ball_self (by positivity)⟩
+  have hunion : μ P + μ U ≤ μ (convexHull ℝ (insert w P)) := by
+    rw [← measure_union hU_disj measurableSet_ball]
+    exact measure_mono (Set.union_subset hP_sub hU_sub)
+  have hP_lt_top : μ P < ⊤ := hPc.measure_lt_top
+  exact lt_of_lt_of_le (ENNReal.lt_add_right hP_lt_top.ne hU_pos.ne') hunion
+
+/-- Pushing vertices from `closedBall 0 r` onto `sphere 0 r` preserves the supremum of polytope
+volume for any finite vertex budget in a nontrivial space. -/
+theorem iSup_addHaar_convexHull_closedBall_eq_sphere [Nontrivial E]
+    (μ : Measure E) [μ.IsAddHaarMeasure] {ι : Type*} [Fintype ι] [Nonempty ι]
+    (r : ℝ) :
+    (⨆ (v : ι → E) (_ : ∀ i, v i ∈ Metric.closedBall (0 : E) r),
+        μ (convexHull ℝ (Set.range v))) =
+      ⨆ (v : ι → E) (_ : ∀ i, v i ∈ Metric.sphere (0 : E) r),
+        μ (convexHull ℝ (Set.range v)) := by
+  apply le_antisymm
+  · refine iSup₂_le fun v hv => ?_
+    by_cases hcard : 2 ≤ Fintype.card ι
+    · obtain ⟨w, hw_sph, hw_sub⟩ := exists_pushOut_range_sphere hcard v hv
+      exact (measure_mono hw_sub).trans (le_iSup₂_of_le w hw_sph le_rfl)
+    · -- `Fintype.card ι = 1`: every range is a singleton, so its convex hull has Haar measure `0`.
+      have hsub : Subsingleton ι := Fintype.card_le_one_iff_subsingleton.mp (by omega)
+      have hrange : Set.range v = {v (Classical.arbitrary ι)} := by
+        ext x; simp only [Set.mem_range, Set.mem_singleton_iff]
+        exact ⟨fun ⟨i, hi⟩ => by rw [Subsingleton.elim i (Classical.arbitrary ι)] at hi; exact hi.symm,
+          fun h => ⟨Classical.arbitrary ι, h.symm⟩⟩
+      rw [hrange, convexHull_singleton, measure_singleton]
+      exact zero_le
+  · refine iSup₂_le fun v hv => ?_
+    exact le_iSup₂_of_le v (fun i => Metric.sphere_subset_closedBall (hv i)) le_rfl
+
+omit [FiniteDimensional ℝ E] in
+/-- Every extreme vertex of a full-dimensional maximal-volume polytope in `closedBall 0 r`
+lies on the boundary sphere `sphere 0 r` (in any nontrivial space). -/
+theorem mem_sphere_of_max_addHaar_convexHull_closedBall [Nontrivial E]
+    (μ : Measure E) [μ.IsAddHaarMeasure] {ι : Type*} [Fintype ι] {r : ℝ}
+    {v : ι → E} (hv : ∀ i, v i ∈ Metric.closedBall (0 : E) r)
+    (hmax : ∀ w : ι → E, (∀ j, w j ∈ Metric.closedBall (0 : E) r) →
+      μ (convexHull ℝ (Set.range w)) ≤ μ (convexHull ℝ (Set.range v)))
+    (hint : (interior (convexHull ℝ (Set.range v))).Nonempty)
+    {i : ι} (hext : v i ∈ (convexHull ℝ (Set.range v)).extremePoints ℝ) :
+    v i ∈ Metric.sphere (0 : E) r := by
+  classical
+  by_contra hnot_sph
+  set P : Set E := convexHull ℝ (Set.range v)
+  have hPc : IsCompact P := (Set.finite_range v).isCompact_convexHull ℝ
+  -- Since `interior P` is nonempty and `E` is nontrivial, `P` is not a singleton, so some `v j ≠ v i`.
+  have hdiff : ∃ j : ι, v j ≠ v i := by
+    by_contra hall
+    push Not at hall
+    have hsub : Set.range v ⊆ {v i} := by rintro _ ⟨j, rfl⟩; exact Set.mem_singleton_iff.mpr (hall j)
+    have hPsub : P ⊆ {v i} := convexHull_min hsub (convex_singleton (v i))
+    obtain ⟨x, hx⟩ := hint
+    obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.mp isOpen_interior x hx
+    have hball_sub : Metric.ball x ε ⊆ {v i} := hball.trans (interior_subset.trans hPsub)
+    obtain ⟨y, hy⟩ := exists_ne (0 : E)
+    let z : E := x + ((ε / 2) / ‖y‖) • y
+    have hz_ball : z ∈ Metric.ball x ε := by
+      rw [Metric.mem_ball, dist_eq_norm, show z - x = ((ε / 2) / ‖y‖) • y by simp [z],
+        norm_smul, Real.norm_eq_abs, abs_of_pos (by positivity)]
+      rw [div_mul_cancel₀ _ (norm_ne_zero_iff.mpr hy)]
+      linarith
+    have hx_eq : x = v i := Set.mem_singleton_iff.mp (hball_sub (Metric.mem_ball_self hε))
+    have hz_eq : z = v i := Set.mem_singleton_iff.mp (hball_sub hz_ball)
+    have hz_ne_x : z ≠ x := by
+      intro hzx
+      have : ((ε / 2) / ‖y‖) • y = 0 := by
+        have := congrArg (fun a => a - x) hzx
+        simpa [z] using this
+      rcases smul_eq_zero.mp this with h0 | hy0
+      · exact (div_pos (half_pos hε) (norm_pos_iff.mpr hy)).ne' h0
+      · exact hy hy0
+    exact hz_ne_x (hz_eq.trans hx_eq.symm)
+  obtain ⟨j, hj⟩ := hdiff
+  obtain ⟨t, ht1, hqt⟩ := exists_ray_mem_sphere (hv i) hj.symm
+  set q : E := v j + t • (v i - v j)
+  have ht_gt : 1 < t := lt_of_le_of_ne ht1 fun h => by
+    have hqv : q = v i := by
+      dsimp only [q]; rw [← h, one_smul, add_sub_cancel]
+    exact hnot_sph (hqv ▸ hqt)
+  have ht_pos : 0 < t := by linarith
+  have hvi_comb : (1 - t⁻¹) • v j + t⁻¹ • q = v i := by
+    have ht_ne : t ≠ 0 := ht_pos.ne'
+    calc
+      (1 - t⁻¹) • v j + t⁻¹ • (v j + t • (v i - v j))
+        = (1 - t⁻¹) • v j + t⁻¹ • v j + (t⁻¹ * t) • (v i - v j) := by
+            rw [smul_add, smul_smul, add_assoc]
+      _ = ((1 - t⁻¹) + t⁻¹) • v j + (1 : ℝ) • (v i - v j) := by
+            rw [← add_smul, inv_mul_cancel₀ ht_ne]
+      _ = v j + (v i - v j) := by simp
+      _ = v i := add_sub_cancel _ _
+  have hq_not_P : q ∉ P := by
+    intro hqP
+    have hopen : v i ∈ openSegment ℝ (v j) q :=
+      ⟨1 - t⁻¹, t⁻¹, sub_pos.mpr (inv_lt_one_of_one_lt₀ ht_gt), inv_pos.mpr ht_pos,
+        by ring, hvi_comb⟩
+    have hvjP : v j ∈ P := subset_convexHull ℝ _ ⟨j, rfl⟩
+    exact hj (hext.2 hvjP hqP hopen)
+  let w : ι → E := Function.update v i q
+  have hw_ball : ∀ k, w k ∈ Metric.closedBall (0 : E) r := fun k => by
+    by_cases hk : k = i
+    · rw [hk]; simpa [w] using Metric.sphere_subset_closedBall hqt
+    · simp [w, hk, hv k]
+  have hsub_w : convexHull ℝ (insert q P) ⊆ convexHull ℝ (Set.range w) := by
+    refine convexHull_min ?_ (convex_convexHull ℝ _)
+    intro x hx
+    rcases Set.mem_insert_iff.mp hx with rfl | hxP
+    · exact subset_convexHull ℝ _ ⟨i, by simp [w]⟩
+    · refine convexHull_min ?_ (convex_convexHull ℝ _) hxP
+      rintro _ ⟨k, rfl⟩
+      by_cases hk : k = i
+      · rw [hk]
+        have hj_ne : j ≠ i := fun h => hj (congrArg v h)
+        have hvj_mem : v j ∈ Set.range w := ⟨j, by simp [w, hj_ne]⟩
+        have hq_mem : q ∈ Set.range w := ⟨i, by simp [w]⟩
+        rw [← hvi_comb]
+        exact (convex_convexHull ℝ _)
+          (subset_convexHull ℝ _ hvj_mem) (subset_convexHull ℝ _ hq_mem)
+          (sub_nonneg.mpr (inv_le_one_of_one_le₀ ht1)) (inv_nonneg.mpr ht_pos.le) (by ring)
+      · exact subset_convexHull ℝ _ ⟨k, by simp [w, hk]⟩
+  have hlt : μ P < μ (convexHull ℝ (Set.range w)) :=
+    (strict_addHaar_convexHull_insert_of_notMem μ hPc hint hq_not_P).trans_le
+      (measure_mono hsub_w)
+  exact hlt.not_ge (hmax w hw_ball)
+
+/-- In dimension `≥ 2`, the supremum of polytope volume over `sphere 0 r` (`r > 0`) equals the
+supremum restricted to configurations in `InSphericalGeneralPosition r`. -/
+theorem iSup_addHaar_convexHull_sphere_eq_generalPosition
+    (hd : 2 ≤ Module.finrank ℝ E) (μ : Measure E) [μ.IsAddHaarMeasure]
+    {ι : Type*} [Fintype ι] [Nonempty ι] {r : ℝ} (hr : 0 < r) :
+    (⨆ (v : ι → E) (_ : ∀ i, v i ∈ Metric.sphere (0 : E) r),
+        μ (convexHull ℝ (Set.range v))) =
+      ⨆ (v : ι → E) (_ : InSphericalGeneralPosition r v),
+        μ (convexHull ℝ (Set.range v)) := by
+  apply le_antisymm
+  · refine iSup₂_le fun v hv => ?_
+    have hex : ∀ n : ℕ, ∃ w : ι → E, InSphericalGeneralPosition r w ∧
+        ∀ i, dist (w i) (v i) < 1 / ((n : ℝ) + 1) := fun n =>
+      exists_sphericalGeneralPosition_dist_lt_of_fintype hd hr v hv (by positivity)
+    choose w hw_gp hw_dist using hex
+    have htend : Tendsto w atTop (𝓝 v) := by
+      rw [tendsto_pi_nhds]
+      intro i
+      rw [Metric.tendsto_nhds]
+      intro ε hε
+      obtain ⟨N, hN⟩ := exists_nat_one_div_lt hε
+      filter_upwards [Filter.eventually_ge_atTop N] with n hn
+      have h1 : (1 : ℝ) / ((n : ℝ) + 1) ≤ 1 / ((N : ℝ) + 1) :=
+        one_div_le_one_div_of_le (by positivity) (by exact_mod_cast Nat.add_le_add_right hn 1)
+      exact (hw_dist n i).trans (h1.trans_lt hN)
+    have hvol_tend :
+        Tendsto (fun n => μ (convexHull ℝ (Set.range (w n)))) atTop
+          (𝓝 (μ (convexHull ℝ (Set.range v)))) :=
+      (continuous_addHaar_convexHull_range μ).continuousAt.tendsto.comp htend
+    exact le_of_tendsto' hvol_tend fun n => le_iSup₂_of_le (w n) (hw_gp n) le_rfl
+  · refine iSup₂_le fun v hv => ?_
+    exact le_iSup₂_of_le v hv.1 le_rfl
 
 end
 

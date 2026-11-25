@@ -519,6 +519,371 @@ theorem exists_inscribed_generalPosition_polytope_dist_lt (K : ConvexBody E)
 
 end PolytopeApproximation
 
+/-! ### 5. Density of General Position on a Sphere `S(0, r)` -/
+
+section SphericalGeneralPosition
+
+open scoped RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+
+/-- A family `v : ι → E` is in **spherical general position** on `sphere 0 r` if every point lies
+on `sphere 0 r`, `v` is in affine general position (`InGeneralPosition v`), and every finite
+subfamily of size at most `finrank ℝ E` is linearly independent over `ℝ` (equivalently, no
+`≤ finrank ℝ E` points lie in a linear hyperplane through the origin). -/
+@[expose]
+def InSphericalGeneralPosition {ι : Type*} (r : ℝ) (v : ι → E) : Prop :=
+  (∀ i, v i ∈ Metric.sphere (0 : E) r) ∧
+  InGeneralPosition v ∧
+  ∀ s : Finset ι, s.card ≤ Module.finrank ℝ E → LinearIndepOn ℝ v (s : Set ι)
+
+/-- In dimension `≥ 2`, a proper affine subspace cannot contain any nonempty open patch
+`ball q η ∩ sphere 0 r` (`r > 0`). -/
+theorem not_ball_inter_sphere_subset_affineSubspace
+    (hd : 2 ≤ Module.finrank ℝ E) {r : ℝ} (hr : 0 < r)
+    {q : E} (hq : q ∈ Metric.sphere (0 : E) r) {η : ℝ} (hη : 0 < η)
+    {A : AffineSubspace ℝ E} (hA : A ≠ ⊤) :
+    ¬ (Metric.ball q η ∩ Metric.sphere (0 : E) r ⊆ (A : Set E)) := by
+  intro hsub
+  have hqA : q ∈ A := hsub ⟨Metric.mem_ball_self hη, hq⟩
+  have hq_norm : ‖q‖ = r := by simpa [Metric.mem_sphere] using hq
+  -- Helper: any unit vector `v ⊥ q` yields `q ∈ A.direction` and `v ∈ A.direction`.
+  have horth : ∀ v : E, ⟪q, v⟫ = 0 → ‖v‖ = 1 → v ∈ A.direction ∧ q ∈ A.direction := by
+    intro v hqv hv_norm
+    set s : ℝ := η / 3
+    have hs_pos : 0 < s := by positivity
+    set R : ℝ := Real.sqrt (r ^ 2 + s ^ 2)
+    have hR_pos : 0 < R := Real.sqrt_pos.mpr (by positivity)
+    have hR_gt : r < R := by
+      have hsq : r ^ 2 < r ^ 2 + s ^ 2 := by nlinarith
+      calc
+        r = Real.sqrt (r ^ 2) := (Real.sqrt_sq hr.le).symm
+        _ < Real.sqrt (r ^ 2 + s ^ 2) := Real.sqrt_lt_sqrt (sq_nonneg r) hsq
+    have hR_le : R ≤ r + s := by
+      have hsq : r ^ 2 + s ^ 2 ≤ (r + s) ^ 2 := by nlinarith
+      exact (Real.sqrt_le_iff).mpr ⟨by linarith, hsq⟩
+    set c : ℝ := r / R
+    have hc_pos : 0 < c := div_pos hr hR_pos
+    have hc_lt_one : c < 1 := (div_lt_one hR_pos).mpr hR_gt
+    have h1mc_le : 1 - c ≤ s / r := by
+      have h1 : 1 - c = (R - r) / R := by
+        dsimp only [c]; field_simp [hR_pos.ne']
+      rw [h1]
+      calc
+        (R - r) / R ≤ s / R := div_le_div_of_nonneg_right (by linarith) hR_pos.le
+        _ ≤ s / r := div_le_div_of_nonneg_left hs_pos.le hr hR_gt.le
+    have hpm_mem : ∀ σ : ℝ, |σ| = 1 → c • (q + (σ * s) • v) ∈ A := by
+      intro σ hσ
+      have hσ_sq : σ ^ 2 = 1 := by
+        have := sq_abs σ; rw [hσ] at this; linarith
+      have hnorm_sum : ‖q + (σ * s) • v‖ = R := by
+        have hsq : ‖q + (σ * s) • v‖ ^ 2 = r ^ 2 + s ^ 2 := by
+          rw [norm_add_sq_real, inner_smul_right, hqv, mul_zero, mul_zero, add_zero,
+            hq_norm, norm_smul, hv_norm, mul_one, Real.norm_eq_abs, sq_abs]
+          calc
+            r ^ 2 + (σ * s) ^ 2 = r ^ 2 + σ ^ 2 * s ^ 2 := by ring
+            _ = r ^ 2 + s ^ 2 := by rw [hσ_sq, one_mul]
+        rw [← Real.sqrt_sq (norm_nonneg _), hsq]
+      have hsph : c • (q + (σ * s) • v) ∈ Metric.sphere (0 : E) r := by
+        rw [Metric.mem_sphere, dist_zero_right, norm_smul, Real.norm_eq_abs, abs_of_pos hc_pos,
+          hnorm_sum]
+        dsimp only [c]
+        exact div_mul_cancel₀ r hR_pos.ne'
+      have hball : c • (q + (σ * s) • v) ∈ Metric.ball q η := by
+        rw [Metric.mem_ball, dist_eq_norm]
+        have hdiff : c • (q + (σ * s) • v) - q = (c - 1) • q + (c * (σ * s)) • v := by
+          rw [smul_add, smul_smul, sub_smul, one_smul]; abel
+        rw [hdiff]
+        have h1 : ‖(c - 1) • q + (c * (σ * s)) • v‖ ≤
+            ‖(c - 1) • q‖ + ‖(c * (σ * s)) • v‖ := norm_add_le _ _
+        have h2 : ‖(c - 1) • q‖ = (1 - c) * r := by
+          rw [norm_smul, hq_norm, Real.norm_eq_abs, abs_of_neg (by linarith)]; ring
+        have h3 : ‖(c * (σ * s)) • v‖ = c * s := by
+          rw [norm_smul, hv_norm, mul_one, Real.norm_eq_abs, abs_mul, abs_mul,
+            abs_of_pos hc_pos, hσ, abs_of_pos hs_pos, one_mul]
+        have h4 : (1 - c) * r ≤ s := by
+          calc
+            (1 - c) * r ≤ (s / r) * r := mul_le_mul_of_nonneg_right h1mc_le hr.le
+            _ = s := div_mul_cancel₀ s hr.ne'
+        have h5 : c * s < s := by nlinarith
+        dsimp only [s] at h1 h3 h4 h5 ⊢
+        linarith
+      exact hsub ⟨hball, hsph⟩
+    have hqp : c • (q + (1 * s) • v) ∈ A := hpm_mem 1 (by simp)
+    have hqm : c • (q + (-1 * s) • v) ∈ A := hpm_mem (-1) (by simp)
+    have hv_dir : v ∈ A.direction := by
+      have hsub_mem : c • (q + (1 * s) • v) -ᵥ c • (q + (-1 * s) • v) ∈ A.direction :=
+        AffineSubspace.vsub_mem_direction hqp hqm
+      have hval : c • (q + (1 * s) • v) -ᵥ c • (q + (-1 * s) • v) = (2 * c * s) • v := by
+        rw [vsub_eq_sub]; module
+      rw [hval] at hsub_mem
+      have hne : (2 * c * s : ℝ) ≠ 0 := by positivity
+      have := A.direction.smul_mem (2 * c * s)⁻¹ hsub_mem
+      rwa [smul_smul, inv_mul_cancel₀ hne, one_smul] at this
+    have hq_dir : q ∈ A.direction := by
+      have h1 : c • (q + (1 * s) • v) -ᵥ q ∈ A.direction :=
+        AffineSubspace.vsub_mem_direction hqp hqA
+      have h2 : c • (q + (-1 * s) • v) -ᵥ q ∈ A.direction :=
+        AffineSubspace.vsub_mem_direction hqm hqA
+      have hsum : (c • (q + (1 * s) • v) -ᵥ q) + (c • (q + (-1 * s) • v) -ᵥ q) ∈ A.direction :=
+        A.direction.add_mem h1 h2
+      have hval : (c • (q + (1 * s) • v) -ᵥ q) + (c • (q + (-1 * s) • v) -ᵥ q) =
+          (2 * (c - 1)) • q := by
+        rw [vsub_eq_sub, vsub_eq_sub]; module
+      rw [hval] at hsum
+      have hne : (2 * (c - 1) : ℝ) ≠ 0 := by linarith
+      have := A.direction.smul_mem (2 * (c - 1))⁻¹ hsum
+      rwa [smul_smul, inv_mul_cancel₀ hne, one_smul] at this
+    exact ⟨hv_dir, hq_dir⟩
+  -- Pick one unit vector orthogonal to `q` (exists since `2 ≤ finrank ℝ E`) to get `q ∈ A.direction`.
+  have hq_dir : q ∈ A.direction := by
+    have hspan_le : Module.finrank ℝ (Submodule.span ℝ ({q} : Set E)) ≤ 1 :=
+      finrank_span_le_card ({q} : Set E)
+    have horth_dim : 1 ≤ Module.finrank ℝ (Submodule.span ℝ ({q} : Set E))ᗮ := by
+      have hadd := Submodule.finrank_add_finrank_orthogonal (Submodule.span ℝ ({q} : Set E))
+      omega
+    have hne_bot : (Submodule.span ℝ ({q} : Set E))ᗮ ≠ ⊥ := by
+      intro hbot
+      rw [hbot, finrank_bot] at horth_dim
+      omega
+    obtain ⟨u, hu_mem, hu_ne⟩ := Submodule.exists_mem_ne_zero_of_ne_bot hne_bot
+    have hqu : ⟪q, u⟫ = 0 :=
+      (Submodule.mem_orthogonal _ u).mp hu_mem q (Submodule.subset_span (Set.mem_singleton q))
+    let v : E := ‖u‖⁻¹ • u
+    have hqv : ⟪q, v⟫ = 0 := by simp [v, inner_smul_right, hqu]
+    have hv_norm : ‖v‖ = 1 := by
+      rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr (norm_pos_iff.mpr hu_ne)),
+        inv_mul_cancel₀ (norm_ne_zero_iff.mpr hu_ne)]
+    exact (horth v hqv hv_norm).2
+  -- Now every `w : E` decomposes into `span {q}` + orthogonal part, hence lies in `A.direction`.
+  have hdir_top : A.direction = ⊤ := by
+    rw [eq_top_iff]
+    intro w _
+    let α : ℝ := ⟪w, q⟫ / r ^ 2
+    let w_perp : E := w - α • q
+    have hw_eq : w = α • q + w_perp := by simp [w_perp]
+    have hqw : ⟪q, w_perp⟫ = 0 := by
+      rw [inner_sub_right, inner_smul_right, real_inner_self_eq_norm_sq, hq_norm, real_inner_comm]
+      dsimp only [α]
+      rw [div_mul_cancel₀ _ (by positivity)]
+      exact sub_self _
+    have hw_perp_dir : w_perp ∈ A.direction := by
+      by_cases hw0 : w_perp = 0
+      · rw [hw0]; exact A.direction.zero_mem
+      · let v : E := ‖w_perp‖⁻¹ • w_perp
+        have hqv : ⟪q, v⟫ = 0 := by simp [v, inner_smul_right, hqw]
+        have hv_norm : ‖v‖ = 1 := by
+          rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr (norm_pos_iff.mpr hw0)),
+            inv_mul_cancel₀ (norm_ne_zero_iff.mpr hw0)]
+        have hv_dir := (horth v hqv hv_norm).1
+        have := A.direction.smul_mem ‖w_perp‖ hv_dir
+        rwa [smul_smul, mul_inv_cancel₀ (norm_ne_zero_iff.mpr hw0), one_smul] at this
+    rw [hw_eq]
+    exact A.direction.add_mem (A.direction.smul_mem α hq_dir) hw_perp_dir
+  refine hA (eq_top_iff.mpr fun w _ => ?_)
+  have hmem : (w -ᵥ q) +ᵥ q ∈ A :=
+    AffineSubspace.vadd_mem_of_mem_direction (hdir_top ▸ Submodule.mem_top) hqA
+  simpa using hmem
+
+/-- In dimension `≥ 2`, every nonempty open patch `ball p ε ∩ sphere 0 r` (`r > 0`) contains a
+point avoiding any finite collection of proper affine subspaces. -/
+theorem exists_mem_ball_sphere_notMem_biUnion_affineSubspace
+    (hd : 2 ≤ Module.finrank ℝ E) {r : ℝ} (hr : 0 < r)
+    {p : E} (hp : p ∈ Metric.sphere (0 : E) r) {ε : ℝ} (hε : 0 < ε)
+    (F : Finset (AffineSubspace ℝ E)) (hF : ∀ A ∈ F, A ≠ ⊤) :
+    ∃ q ∈ Metric.ball p ε ∩ Metric.sphere (0 : E) r, ∀ A ∈ F, q ∉ (A : Set E) := by
+  classical
+  induction F using Finset.induction with
+  | empty => exact ⟨p, ⟨Metric.mem_ball_self hε, hp⟩, fun _ h => (Finset.notMem_empty _ h).elim⟩
+  | @insert A F hAF ih =>
+    obtain ⟨q₀, ⟨hq₀_ball, hq₀_sph⟩, hq₀_avoid⟩ :=
+      ih fun B hB => hF B (Finset.mem_insert_of_mem hB)
+    have hU_open : IsOpen (Metric.ball p ε \ ⋃ B ∈ F, (B : Set E)) := by
+      refine Metric.isOpen_ball.sdiff ?_
+      exact F.finite_toSet.isClosed_biUnion fun B _ => AffineSubspace.isClosed_of_finiteDimensional B
+    have hq₀_U : q₀ ∈ Metric.ball p ε \ ⋃ B ∈ F, (B : Set E) := by
+      refine ⟨hq₀_ball, ?_⟩
+      simp only [Set.mem_iUnion, exists_prop, not_exists, not_and]
+      exact hq₀_avoid
+    obtain ⟨η, hη_pos, hη_sub⟩ := Metric.isOpen_iff.mp hU_open q₀ hq₀_U
+    have hnot : ¬ (Metric.ball q₀ η ∩ Metric.sphere (0 : E) r ⊆ (A : Set E)) :=
+      not_ball_inter_sphere_subset_affineSubspace hd hr hq₀_sph hη_pos
+        (hF A (Finset.mem_insert_self A F))
+    obtain ⟨q, ⟨hq_ballη, hq_sph⟩, hq_notA⟩ := Set.not_subset.mp hnot
+    have hq_U := hη_sub hq_ballη
+    refine ⟨q, ⟨hq_U.1, hq_sph⟩, fun B hB => ?_⟩
+    rcases Finset.mem_insert.mp hB with rfl | hBF
+    · exact hq_notA
+    · intro hqB
+      exact hq_U.2 (Set.mem_biUnion hBF hqB)
+
+omit [FiniteDimensional ℝ E] in
+/-- Helper: appending `q` outside every linear span of `≤ d - 1` points of `w` preserves
+linear independence of all subfamilies of cardinality `≤ d`. -/
+private lemma linearIndepOn_snoc_of_notMem_span {m : ℕ} {w : Fin m → E}
+    (hw : ∀ s : Finset (Fin m), s.card ≤ Module.finrank ℝ E → LinearIndepOn ℝ w (s : Set (Fin m)))
+    {q : E}
+    (hq : ∀ t : Finset (Fin m), t.card + 1 ≤ Module.finrank ℝ E →
+      q ∉ Submodule.span ℝ (w '' (t : Set (Fin m)))) :
+    ∀ s : Finset (Fin (m + 1)), s.card ≤ Module.finrank ℝ E →
+      LinearIndepOn ℝ (Fin.snoc (α := fun _ => E) w q) (s : Set (Fin (m + 1))) := by
+  classical
+  set d := Module.finrank ℝ E
+  let w' : Fin (m + 1) → E := Fin.snoc (α := fun _ => E) w q
+  have hpull : ∀ s' : Finset (Fin (m + 1)), Fin.last m ∉ s' →
+      let t := s'.preimage Fin.castSucc (Fin.castSucc_injective m).injOn
+      t.card = s'.card ∧
+      (Fin.castSucc : Fin m → Fin (m + 1)) '' (t : Set (Fin m)) = (s' : Set (Fin (m + 1))) := by
+    intro s' hlast
+    set t := s'.preimage Fin.castSucc (Fin.castSucc_injective m).injOn
+    have himg : t.image Fin.castSucc = s' := by
+      ext i
+      simp only [Finset.mem_image, t, Finset.mem_preimage]
+      constructor
+      · rintro ⟨j, hj, rfl⟩; exact hj
+      · intro hi
+        revert hi
+        refine Fin.lastCases ?_ (fun j hj => ⟨j, hj, rfl⟩) i
+        exact fun h => (hlast h).elim
+    refine ⟨?_, ?_⟩
+    · rw [← himg, Finset.card_image_of_injective _ (Fin.castSucc_injective m)]
+    · rw [← Finset.coe_image, himg]
+  have hind_no_last : ∀ s' : Finset (Fin (m + 1)), Fin.last m ∉ s' → s'.card ≤ d →
+      LinearIndepOn ℝ w' (s' : Set (Fin (m + 1))) := by
+    intro s' hlast hcard
+    set t := s'.preimage Fin.castSucc (Fin.castSucc_injective m).injOn
+    obtain ⟨ht_card, ht_img⟩ := hpull s' hlast
+    have hwt : LinearIndepOn ℝ w (t : Set (Fin m)) := hw t (ht_card.trans_le hcard)
+    have hcomp : LinearIndepOn ℝ (w' ∘ Fin.castSucc) (t : Set (Fin m)) := by
+      have hfun : (w' ∘ Fin.castSucc : Fin m → E) = w := by
+        ext j; exact Fin.snoc_castSucc (α := fun _ => E) q w j
+      rwa [hfun]
+    rw [← ht_img]
+    exact hcomp.image_of_comp
+  intro s hs
+  by_cases hlast : Fin.last m ∈ s
+  · set s' := s.erase (Fin.last m)
+    have hlast' : Fin.last m ∉ s' := Finset.notMem_erase (Fin.last m) s
+    have hs'_card : s'.card + 1 ≤ d := by
+      have h1 : s'.card + 1 = s.card := Finset.card_erase_add_one hlast
+      omega
+    have hind' : LinearIndepOn ℝ w' (s' : Set (Fin (m + 1))) :=
+      hind_no_last s' hlast' (by omega)
+    set t := s'.preimage Fin.castSucc (Fin.castSucc_injective m).injOn
+    obtain ⟨ht_card, ht_img⟩ := hpull s' hlast'
+    have himg_eq : w' '' (s' : Set (Fin (m + 1))) = w '' (t : Set (Fin m)) := by
+      rw [← ht_img, ← Set.image_comp]
+      congr 1; ext j; exact Fin.snoc_castSucc (α := fun _ => E) q w j
+    have hnot_span : w' (Fin.last m) ∉ Submodule.span ℝ (w' '' (s' : Set (Fin (m + 1)))) := by
+      have hlast_eq : w' (Fin.last m) = q := Fin.snoc_last (α := fun _ => E) q w
+      rw [hlast_eq, himg_eq]
+      exact hq t (ht_card.symm ▸ hs'_card)
+    have hins : (s : Set (Fin (m + 1))) = insert (Fin.last m) (s' : Set (Fin (m + 1))) := by
+      ext i
+      simp only [Finset.mem_coe, Set.mem_insert_iff, s', Finset.mem_erase]
+      by_cases hi : i = Fin.last m
+      · subst hi; simp [hlast]
+      · simp [hi]
+    rw [hins]
+    exact hind'.insert hnot_span
+  · exact hind_no_last s hlast hs
+
+/-- One-point spherical general-position extension on `sphere 0 r` (`r > 0`, `2 ≤ finrank ℝ E`). -/
+theorem exists_sphericalGeneralPosition_snoc
+    (hd : 2 ≤ Module.finrank ℝ E) {r : ℝ} (hr : 0 < r)
+    {m : ℕ} (w : Fin m → E) (hw : InSphericalGeneralPosition r w)
+    {p : E} (hp : p ∈ Metric.sphere (0 : E) r) {ε : ℝ} (hε : 0 < ε) :
+    ∃ q ∈ Metric.ball p ε ∩ Metric.sphere (0 : E) r,
+      InSphericalGeneralPosition r (Fin.snoc (α := fun _ => E) w q) := by
+  classical
+  set d := Module.finrank ℝ E
+  let affSets : Finset (Finset (Fin m)) := Finset.univ.powerset.filter (fun t => t.card ≤ d)
+  let linSets : Finset (Finset (Fin m)) := Finset.univ.powerset.filter (fun t => t.card + 1 ≤ d)
+  let F_aff : Finset (AffineSubspace ℝ E) :=
+    affSets.image fun (t : Finset (Fin m)) => affineSpan ℝ (w '' (t : Set (Fin m)))
+  let F_lin : Finset (AffineSubspace ℝ E) :=
+    linSets.image fun (t : Finset (Fin m)) => (Submodule.span ℝ (w '' (t : Set (Fin m)))).toAffineSubspace
+  let F : Finset (AffineSubspace ℝ E) := F_aff ∪ F_lin
+  have hF : ∀ A ∈ F, A ≠ ⊤ := by
+    intro A hA
+    rcases Finset.mem_union.mp hA with hA_aff | hA_lin
+    · rcases Finset.mem_image.mp hA_aff with ⟨t, ht, rfl⟩
+      have ht_card : t.card ≤ d := (Finset.mem_filter.mp ht).2
+      have henc : ((t : Set (Fin m)).encard) ≤ (d : ENat) := by
+        rw [Set.encard_coe_eq_coe_finsetCard]; exact Nat.cast_le.mpr ht_card
+      exact affineSpan_image_ne_top_of_encard_le_finrank ℝ henc w
+    · rcases Finset.mem_image.mp hA_lin with ⟨t, ht, rfl⟩
+      have ht_card : t.card + 1 ≤ d := (Finset.mem_filter.mp ht).2
+      intro htop
+      have hspan_top : Submodule.span ℝ (w '' (t : Set (Fin m))) = ⊤ := by
+        have hdir := congrArg AffineSubspace.direction htop
+        simpa using hdir
+      have hfin_le : Module.finrank ℝ (Submodule.span ℝ (w '' (t : Set (Fin m)))) ≤ t.card := by
+        rw [← Finset.coe_image]
+        exact (finrank_span_finset_le_card (R := ℝ) (t.image w)).trans Finset.card_image_le
+      rw [hspan_top, finrank_top] at hfin_le
+      omega
+  obtain ⟨q, ⟨hq_ball, hq_sph⟩, hq_avoid⟩ :=
+    exists_mem_ball_sphere_notMem_biUnion_affineSubspace hd hr hp hε F hF
+  refine ⟨q, ⟨hq_ball, hq_sph⟩, ?_, ?_, ?_⟩
+  · intro i
+    refine Fin.lastCases ?_ (fun j => ?_) i
+    · simpa [Fin.snoc_last] using hq_sph
+    · simpa [Fin.snoc_castSucc] using hw.1 j
+  · refine inGeneralPosition_snoc_of_notMem_affineSpan hw.2.1 fun t ht => ?_
+    exact hq_avoid _ (Finset.mem_union_left _
+      (Finset.mem_image_of_mem _ (Finset.mem_filter.mpr ⟨Finset.mem_powerset.mpr (Finset.subset_univ _), ht⟩)))
+  · refine linearIndepOn_snoc_of_notMem_span hw.2.2 fun t ht => ?_
+    exact hq_avoid _ (Finset.mem_union_right _
+      (Finset.mem_image_of_mem _ (Finset.mem_filter.mpr ⟨Finset.mem_powerset.mpr (Finset.subset_univ _), ht⟩)))
+
+/-- **Density of Spherical General Position on `S(0, r)` (`Fin m`):**
+In dimension `≥ 2` and for `r > 0`, any finite configuration on `sphere 0 r` can be perturbed
+within `< ε` on `sphere 0 r` into `InSphericalGeneralPosition r w` (both affinely in general
+position and with every `≤ d` points linearly independent). -/
+theorem exists_sphericalGeneralPosition_dist_lt
+    (hd : 2 ≤ Module.finrank ℝ E) {r : ℝ} (hr : 0 < r)
+    {m : ℕ} (v : Fin m → E) (hv : ∀ i, v i ∈ Metric.sphere (0 : E) r) {ε : ℝ} (hε : 0 < ε) :
+    ∃ w : Fin m → E, InSphericalGeneralPosition r w ∧ ∀ i, dist (w i) (v i) < ε := by
+  induction m with
+  | zero =>
+    refine ⟨Fin.elim0, ⟨fun i => Fin.elim0 i, ?_, ?_⟩, fun i => Fin.elim0 i⟩
+    · intro s _; exact affineIndependent_of_subsingleton ℝ _
+    · intro s _
+      have hs : (s : Set (Fin 0)) = ∅ := Set.eq_empty_of_isEmpty _
+      rw [hs]; exact linearIndepOn_empty ℝ _
+  | succ m ih =>
+    obtain ⟨w, hw_gp, hw_dist⟩ := ih (Fin.init v) (fun j => hv (Fin.castSucc j))
+    obtain ⟨q, ⟨hq_ball, _⟩, hq_gp⟩ :=
+      exists_sphericalGeneralPosition_snoc hd hr w hw_gp (hv (Fin.last m)) hε
+    refine ⟨Fin.snoc (α := fun _ => E) w q, hq_gp, fun i => ?_⟩
+    refine Fin.lastCases ?_ (fun j => ?_) i
+    · simpa [Fin.snoc_last] using Metric.mem_ball.mp hq_ball
+    · simpa [Fin.snoc_castSucc, Fin.init] using hw_dist j
+
+/-- **Density of Spherical General Position on `S(0, r)` (arbitrary `Fintype`):**
+generalizes `exists_sphericalGeneralPosition_dist_lt` to any finite index type `ι`. -/
+theorem exists_sphericalGeneralPosition_dist_lt_of_fintype
+    (hd : 2 ≤ Module.finrank ℝ E) {r : ℝ} (hr : 0 < r)
+    {ι : Type*} [Fintype ι] (v : ι → E) (hv : ∀ i, v i ∈ Metric.sphere (0 : E) r)
+    {ε : ℝ} (hε : 0 < ε) :
+    ∃ w : ι → E, InSphericalGeneralPosition r w ∧ ∀ i, dist (w i) (v i) < ε := by
+  classical
+  let e := Fintype.equivFin ι
+  obtain ⟨w₀, hw₀_gp, hw₀_dist⟩ :=
+    exists_sphericalGeneralPosition_dist_lt hd hr (v ∘ e.symm) (fun j => hv (e.symm j)) hε
+  refine ⟨w₀ ∘ e, ⟨fun i => hw₀_gp.1 (e i), hw₀_gp.2.1.comp_injective e.injective, ?_⟩, fun i => ?_⟩
+  · intro s hs
+    have himg_card : (s.image e).card ≤ Module.finrank ℝ E :=
+      (Finset.card_image_le).trans hs
+    have hli : LinearIndepOn ℝ w₀ ((s.image e : Finset (Fin (Fintype.card ι))) : Set _) :=
+      hw₀_gp.2.2 (s.image e) himg_card
+    rw [Finset.coe_image] at hli
+    exact hli.comp_of_image e.injective.injOn
+  · simpa using hw₀_dist (e i)
+
+end SphericalGeneralPosition
+
 end
 
 end ConvexGeom
