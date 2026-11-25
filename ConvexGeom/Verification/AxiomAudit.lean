@@ -97,3 +97,13 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.mem_normalCone_iff_supportFn
 #print axioms ConvexGeom.exists_supporting_normal_of_mem_frontier
 #print axioms ConvexGeom.exists_unit_supportFn_eq_of_mem_frontier
+
+-- 11. Brunn Concavity, Log-Concave Convolutions, Covariogram, and Rogers–Shephard
+#print axioms ConvexGeom.logConcave_sections
+#print axioms ConvexGeom.brunn_concavity_sections
+#print axioms ConvexGeom.concaveOn_volume_slice_rpow
+#print axioms ConvexGeom.logConcave_convolution
+#print axioms ConvexGeom.covariogram_lintegral
+#print axioms ConvexGeom.covariogram_rpow_concave
+#print axioms ConvexGeom.two_pow_mul_volume_le_volume_diff
+#print axioms ConvexGeom.rogers_shephard
