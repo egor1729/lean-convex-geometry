@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   lean-verify:
-    name: Lean 4 Build, Tests & Exhaustive Audit
+    name: Lean 4 Build & Verify
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -35,10 +35,10 @@ jobs:
           rm -rf /tmp/elan.tar.gz /tmp/elan-unpack
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
-      - name: Fetch pinned Mathlib cache
+      - name: Fetch Mathlib cache
         run: lake exe cache get
 
-      - name: Run full verification pipeline
+      - name: Run verification
         run: bash scripts/verify.sh audit-report.json
 
       - name: Upload audit report artifact

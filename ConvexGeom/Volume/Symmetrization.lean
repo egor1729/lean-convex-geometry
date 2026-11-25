@@ -9,37 +9,20 @@ import Mathlib.MeasureTheory.Measure.Prod
 /-!
 # Minkowski and Steiner Symmetrization
 
-Symmetrization processes are the geometric workhorse of Klartag's Lecture 2 and classical
-convex geometry (isoperimetric, isodiametric, and Blaschke–Santaló inequalities).
+Hyperplane reflection, Minkowski and central symmetrization, and Steiner symmetrization on `ℝ × E`
+(Klartag, Lecture 2; Schneider, *Convex Bodies*, §10.3):
 
-This file implements:
-
-## 1. Hyperplane Reflection & Minkowski Symmetrization (`E` any finite-dim inner product space)
-- `reflectHyperplane u`: orthogonal reflection across `u⊥` (a `LinearIsometryEquiv ℝ E E` when `‖u‖ = 1`).
-- `reflectBody u K`: image of `K : ConvexBody E` under `reflectHyperplane u`.
-- `minkowskiSymm u K := (1/2) • (K + reflectBody u K)`: Minkowski symmetrization across `u⊥`.
-  - `supportFn_minkowskiSymm`: `h_{M_u(K)}(v) = (h_K(v) + h_K(R_u v)) / 2`
-  - `reflectBody_minkowskiSymm`: symmetric across `u⊥`
-  - `volume_le_volume_minkowskiSymm`: `volume K ≤ volume (minkowskiSymm u K)` (via Brunn–Minkowski!)
-  - `diam_minkowskiSymm_le`: does not increase diameter
-- `centralSymm K := (1/2) • (K + (-1) • K)`: central (difference-body) symmetrization.
-  - `supportFn_centralSymm`, `volume_le_volume_centralSymm`.
-
-## 2. Steiner Symmetrization (on `ℝ × E` along the first coordinate)
-- `steinerSymm K`: **interval-hull Steiner symmetrization** — replaces every nonempty line fiber
-  `steinerFiber K y = {t | (t, y) ∈ K}` by the centered interval
-  `[-(b(y) - a(y)) / 2, (b(y) - a(y)) / 2] × {y}`, where `a(y) = sInf`, `b(y) = sSup`.
-  On compact convex sets every nonempty fiber is an interval `[a(y), b(y)]`, so this coincides
-  with classical measure-theoretic Steiner symmetrization; on disconnected sets it fills gaps
-  between `a(y)` and `b(y)` (e.g. `{-1, 1} × {0}` maps to `[-1, 1] × {0}`).
-- `bodySteinerSymm`: the induced map `ConvexBody (ℝ × E) → ConvexBody (ℝ × E)`.
-- `steinerSymm_symm`, `steinerSymm_mono`, `convex_steinerSymm`, `isCompact_steinerSymm`,
-  `volume_steinerSymm`, `volume_bodySteinerSymm`, `steinerSymm_dist_le_diam`.
-
-**Metric convention on `ℝ × E`:** Mathlib equips `ℝ × E` with the product max-norm
-`‖(t, y)‖ = max |t| ‖y‖` (used for compactness/topology), whereas `steinerSymm_dist_le_diam`
-states diameter non-increase explicitly for the Euclidean product squared distance
-`(t₁ - t₂)² + ‖y₁ - y₂‖²`.
+1. **Hyperplane reflection & Minkowski / central symmetrization** (finite-dimensional inner product space `E`):
+   - `reflectHyperplane`, `reflectBody`, `minkowskiSymm`, `centralSymm`.
+   - Support formulas, reflection invariance, volume non-decrease (`volume_le_volume_minkowskiSymm`,
+     `volume_le_volume_centralSymm`), and diameter non-increase (`diam_minkowskiSymm_le`).
+2. **Steiner symmetrization** (along the first coordinate on `ℝ × E`):
+   - `steinerSymm`: interval-hull symmetrization, replacing each nonempty line fiber `steinerFiber K y`
+     by `[-(b - a)/2, (b - a)/2] × {y}` (`a = sInf`, `b = sSup`). Agrees with measure-theoretic
+     Steiner symmetrization on compact convex sets; `bodySteinerSymm` packages it on `ConvexBody (ℝ × E)`.
+   - `steinerSymm_symm`, `steinerSymm_mono`, `convex_steinerSymm`, `isCompact_steinerSymm`,
+     `volume_steinerSymm`, `volume_bodySteinerSymm`, `steinerSymm_dist_le_diam` (Euclidean squared distance;
+     `ℝ × E` itself carries Mathlib's product max-norm).
 -/
 
 open MeasureTheory Set

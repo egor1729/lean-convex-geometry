@@ -1,21 +1,17 @@
 import Lean
 
 /-!
-# Environment-Wide Exhaustive Axiom & Module Audit (`convexgeom-audit`)
+# Environment-Wide Axiom & Module Audit (`convexgeom-audit`)
 
-Audits every declaration (public and private, in every namespace) defined in every module under a
-root module (default: `ConvexGeom`, excluding `ConvexGeom.Verification`):
+Checks every declaration (public and private, in every namespace) in modules under a root module
+(default `ConvexGeom`, excluding `ConvexGeom.Verification`):
 
-1. **Module completeness** (when `--check-dir` is enabled): verifies that every `.lean` file in the
-   target source directory (excluding `Verification/`) is transitively imported by the root module.
-2. **Zero project axioms:** rejects any `ConstantInfo.axiomInfo` defined in a project module,
-   even if unused (including `private axiom` declarations).
-3. **Exhaustive transitive axiom check:** loads the full environment at `OLeanLevel.private`
-   (without executing module initializers) and walks the kernel-checked `ConstantInfo` dependency
-   graph with a shared cache, rejecting any axiom outside `{propext, Classical.choice, Quot.sound}`
-   (including `sorryAx`, `Lean.ofReduceBool`, `Lean.trustCompiler`, and custom axioms).
-4. **Structured reporting:** prints a human-readable summary and optionally emits a JSON report
-   (`--json <path>`), exiting nonzero on any violation.
+1. Module completeness (`--check-dir`): every `.lean` file outside `Verification/` is imported by
+   the root module.
+2. No project-defined `axiom` declarations (even unused or private).
+3. Transitive axiom check at `OLeanLevel.private` (without executing initializers), rejecting any
+   axiom outside `{propext, Classical.choice, Quot.sound}`.
+4. Optional JSON output (`--json <path>`), exiting nonzero on any violation.
 -/
 
 open Lean

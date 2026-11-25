@@ -18,10 +18,9 @@ This file develops the theory of the support function `supportFn K u = sSup {⟪
 of a `ConvexBody E` in a real inner product space `E` (following Schneider, *Convex Bodies*,
 §1.7–1.8).
 
-**Convention:** Mathlib's `ConvexBody E` is the type of nonempty compact convex subsets of `E`,
-so it deliberately includes degenerate bodies with empty interior (singletons, line segments,
-radius-zero balls). Results requiring nonempty interior or `0 ∈ interior K` state that hypothesis
-explicitly.
+`ConvexBody E` is Mathlib's type of nonempty compact convex sets, which includes degenerate sets
+with empty interior (singletons, segments, radius-zero balls). Results needing nonempty interior
+or `0 ∈ interior K` take that hypothesis explicitly.
 
 1. **Constructors & Transport:** `bodySingleton`, `bodyClosedBall`, and continuous linear image
    transport `mapLinear` (`coe_mapLinear`, `mapLinear_id`, `mapLinear_comp`, `dist_mapLinear_le`,

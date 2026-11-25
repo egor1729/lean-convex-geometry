@@ -21,7 +21,7 @@ we prove:
   is compact in the Hausdorff metric.
 - `blaschke_selection` (`isCompact_subset_of_isCompact`): **Blaschke Selection Theorem** —
   for any compact set `C ⊆ E`, `{K : ConvexBody E | (K : Set E) ⊆ C}` is compact, so every
-  uniformly bounded sequence of convex bodies has a Hausdorff-convergent subsequence!
+  uniformly bounded sequence of convex bodies has a Hausdorff-convergent subsequence.
 -/
 
 open scoped RealInnerProductSpace BoundedContinuousFunction
