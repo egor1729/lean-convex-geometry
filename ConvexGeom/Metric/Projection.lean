@@ -162,10 +162,30 @@ theorem metricProj_mem_frontier_of_not_mem {K : ConvexBody E} {x : E} (hx : x �
 
 /-! ### 2. Outer Normal Cone -/
 
-/-- The **outer normal cone** of a set `S ⊆ E` at a point `y : E`:
-`normalCone S y = {u | ∀ z ∈ S, ⟪z - y, u⟫ ≤ 0}`. -/
+/-- The **ambient outer normal cone** of a set `S ⊆ E` at a point `y : E`:
+`normalCone S y = {u | ∀ z ∈ S, ⟪z - y, u⟫ ≤ 0}`.
+
+**Convention:** This definition is total in `y` and does not guard on `y ∈ S` (in particular,
+`0 ∈ normalCone S y` even if `y ∉ S`). All geometric normal-cone theorems in this file take
+`hy : y ∈ S` explicitly; for the Rockafellar convention returning `∅` outside `S`, see
+`strictNormalCone`. -/
 def normalCone (S : Set E) (y : E) : Set E :=
   {u : E | ∀ z ∈ S, ⟪z - y, u⟫ ≤ 0}
+
+/-- The **strict (Rockafellar) outer normal cone** of `S ⊆ E` at `y : E`: agrees with
+`normalCone S y` for `y ∈ S` and is `∅` for `y ∉ S`. -/
+noncomputable def strictNormalCone (S : Set E) (y : E) : Set E := by
+  classical exact if y ∈ S then normalCone S y else ∅
+
+@[simp]
+lemma strictNormalCone_of_mem {S : Set E} {y : E} (hy : y ∈ S) :
+    strictNormalCone S y = normalCone S y := by
+  classical simp [strictNormalCone, hy]
+
+@[simp]
+lemma strictNormalCone_of_notMem {S : Set E} {y : E} (hy : y ∉ S) :
+    strictNormalCone S y = ∅ := by
+  classical simp [strictNormalCone, hy]
 
 lemma mem_normalCone {S : Set E} {y u : E} :
     u ∈ normalCone S y ↔ ∀ z ∈ S, ⟪z - y, u⟫ ≤ 0 := Iff.rfl

@@ -115,9 +115,12 @@ theorem isClosed_range_supportFnOnBall :
   rw [supportFnOnBall_apply, hK₀]
   exact tendsto_nhds_unique (hpt_ext u.1) (hpt u)
 
-/-- **Completeness of `ConvexBody E`:**
+/-- **Completeness of `ConvexBody E` (Schneider, *Convex Bodies*, Thm. 1.8.2):**
 In a finite-dimensional real inner product space, `ConvexBody E` with the Hausdorff metric
-is a complete metric space. -/
+is a complete metric space.
+
+*Maintainer note:* This is a global instance on Mathlib's `ConvexBody`; check for overlap on
+Mathlib upgrades (candidate for upstreaming). -/
 instance instCompleteSpaceConvexBody : CompleteSpace (ConvexBody E) := by
   refine Metric.complete_of_cauchySeq_tendsto fun u hu => ?_
   have h_iso := isometry_supportFnOnBall (E := E)

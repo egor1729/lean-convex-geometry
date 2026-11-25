@@ -15,29 +15,32 @@ import Mathlib.Analysis.Normed.Module.FiniteDimension
 # Support Functions, Hörmander's Embedding, and Minkowski's Representation
 
 This file develops the theory of the support function `supportFn K u = sSup {⟪x, u⟫ | x ∈ K}`
-of a `ConvexBody E` in a real inner product space `E`:
+of a `ConvexBody E` in a real inner product space `E` (following Schneider, *Convex Bodies*,
+§1.7–1.8).
 
-1. **Constructors:** `bodySingleton`, `bodyClosedBall` (packaging `{a}` and `closedBall c r` as
-   `ConvexBody E`).
+**Convention:** Mathlib's `ConvexBody E` is the type of nonempty compact convex subsets of `E`,
+so it deliberately includes degenerate bodies with empty interior (singletons, line segments,
+radius-zero balls). Results requiring nonempty interior or `0 ∈ interior K` state that hypothesis
+explicitly.
+
+1. **Constructors & Transport:** `bodySingleton`, `bodyClosedBall`, and continuous linear image
+   transport `mapLinear` (`coe_mapLinear`, `mapLinear_id`, `mapLinear_comp`, `dist_mapLinear_le`,
+   `supportFn_mapLinearIsometry`).
 2. **Core calculus:** attainment (`exists_mem_supportFn_eq`), sublinearity (`supportFn_smul`,
    `supportFn_add_le`, `supportFn_convexOn`), Minkowski additivity (`supportFn_minkowski_add`),
-   body scaling (`supportFn_body_smul`), negation (`supportFn_neg_one_smul`), and formulas for singletons
-   and closed balls (`supportFn_bodySingleton`, `supportFn_bodyClosedBall`).
-3. **Separation & Width:**
-   - `supportFn_le_iff_subset`: `K ⊆ L ↔ ∀ u, supportFn K u ≤ supportFn L u` (via Hahn–Banach).
-   - `supportFn_injective`: a convex body is uniquely determined by its support function.
-   - `width K u := supportFn K u + supportFn K (-u)` and `diam_eq_sSup_width`.
+   body scaling (`supportFn_body_smul`), negation (`supportFn_neg_one_smul`), and formulas for
+   singletons and closed balls (`supportFn_bodySingleton`, `supportFn_bodyClosedBall`).
+3. **Separation, Halfspace Characterization & Width:**
+   - `supportFn_le_iff_subset`, `supportFn_injective`, `mem_iff_forall_inner_le_supportFn`.
+   - `width K u := supportFn K u + supportFn K (-u)`, `diam_eq_sSup_width`, and
+     `diam_eq_sSup_width_sphere` (in nontrivial spaces).
 4. **Hörmander's Isometric Embedding:**
    - `supportFnOnBall : ConvexBody E → (Metric.closedBall (0 : E) 1 →ᵇ ℝ)` is an **isometry**:
-     `dist_eq_dist_supportFnOnBall : dist K L = dist (supportFnOnBall K) (supportFnOnBall L)`.
-   - Instant metric corollaries:
-     - `dist_add_right`: `dist (K + M) (L + M) = dist K L`
-     - `dist_add_le`: `dist (K₁ + K₂) (L₁ + L₂) ≤ dist K₁ L₁ + dist K₂ L₂`
-     - `dist_smul`: `dist (c • K) (c • L) = |c| * dist K L`
-5. **Minkowski's Representation Theorem:**
-   - `exists_convexBody_supportFn_eq`: on a finite-dimensional real inner product space, every
-     positively homogeneous subadditive function `h : E → ℝ` is the support function of a unique
-     `ConvexBody E`.
+     `dist_eq_dist_supportFnOnBall`, `dist_le_iff_supportFn_sub_le`,
+     `dist_le_iff_supportFn_sub_le_sphere`, `dist_add_right`, `dist_add_le`, `dist_smul`.
+5. **Minkowski's Representation Theorem (Schneider, Thm. 1.7.1):**
+   - `bodyOfSupportFn`: constructive halfspace-intersection `ConvexBody E` from a sublinear `h`,
+     with `coe_bodyOfSupportFn`, `supportFn_bodyOfSupportFn`, and `exists_convexBody_supportFn_eq`.
 -/
 
 open scoped RealInnerProductSpace Pointwise BoundedContinuousFunction
@@ -46,9 +49,74 @@ namespace ConvexGeom
 
 public section
 
-variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+/-! ### 1. Basic Constructors and Continuous Linear Transport -/
 
-/-! ### 1. Basic ConvexBody Constructors -/
+section Transport
+
+variable {E F G : Type*}
+  [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [NormedAddCommGroup F] [NormedSpace ℝ F]
+  [NormedAddCommGroup G] [NormedSpace ℝ G]
+
+/-- Image of a convex body `K : ConvexBody E` under a continuous linear map `f : E →L[ℝ] F`. -/
+def mapLinear (f : E →L[ℝ] F) (K : ConvexBody E) : ConvexBody F where
+  carrier := f '' (K : Set E)
+  convex' := K.convex.linear_image f.toLinearMap
+  isCompact' := K.isCompact.image f.continuous
+  nonempty' := K.nonempty.image f
+
+@[simp]
+lemma coe_mapLinear (f : E →L[ℝ] F) (K : ConvexBody E) :
+    (mapLinear f K : Set F) = f '' (K : Set E) := by
+  simp [mapLinear, ConvexBody.coe_mk]
+
+@[simp]
+lemma mapLinear_id (K : ConvexBody E) :
+    mapLinear (ContinuousLinearMap.id ℝ E) K = K := by
+  apply ConvexBody.ext
+  simp
+
+lemma mapLinear_comp (g : F →L[ℝ] G) (f : E →L[ℝ] F) (K : ConvexBody E) :
+    mapLinear (g.comp f) K = mapLinear g (mapLinear f K) := by
+  apply ConvexBody.ext
+  rw [coe_mapLinear, coe_mapLinear, coe_mapLinear, ContinuousLinearMap.coe_comp, Set.image_comp]
+
+/-- Hausdorff stability of continuous linear transport:
+`dist (mapLinear f K) (mapLinear f L) ≤ ‖f‖ * dist K L`. -/
+theorem dist_mapLinear_le (f : E →L[ℝ] F) (K L : ConvexBody E) :
+    dist (mapLinear f K) (mapLinear f L) ≤ ‖f‖ * dist K L := by
+  rw [← ConvexBody.hausdorffDist_coe, coe_mapLinear, coe_mapLinear]
+  refine Metric.hausdorffDist_le_of_mem_dist (mul_nonneg (norm_nonneg f) dist_nonneg) ?_ ?_
+  · rintro _ ⟨x, hxK, rfl⟩
+    obtain ⟨y, hyL, hinf⟩ := L.isCompact.exists_infDist_eq_dist L.nonempty x
+    refine ⟨f y, ⟨y, hyL, rfl⟩, ?_⟩
+    have hxy : dist x y ≤ dist K L := by
+      rw [← hinf]
+      exact (Metric.infDist_le_hausdorffDist_of_mem hxK ConvexBody.hausdorffEDist_ne_top).trans
+        (by rw [ConvexBody.hausdorffDist_coe])
+    calc
+      dist (f x) (f y) = ‖f (x - y)‖ := by rw [dist_eq_norm, ← map_sub]
+      _ ≤ ‖f‖ * ‖x - y‖ := f.le_opNorm (x - y)
+      _ = ‖f‖ * dist x y := by rw [dist_eq_norm]
+      _ ≤ ‖f‖ * dist K L := mul_le_mul_of_nonneg_left hxy (norm_nonneg f)
+  · rintro _ ⟨y, hyL, rfl⟩
+    obtain ⟨x, hxK, hinf⟩ := K.isCompact.exists_infDist_eq_dist K.nonempty y
+    refine ⟨f x, ⟨x, hxK, rfl⟩, ?_⟩
+    have hyx : dist y x ≤ dist K L := by
+      rw [← hinf]
+      have hcomm : Metric.hausdorffDist (L : Set E) K = dist K L := by
+        rw [Metric.hausdorffDist_comm, ConvexBody.hausdorffDist_coe]
+      exact (Metric.infDist_le_hausdorffDist_of_mem hyL ConvexBody.hausdorffEDist_ne_top).trans
+        hcomm.le
+    calc
+      dist (f y) (f x) = ‖f (y - x)‖ := by rw [dist_eq_norm, ← map_sub]
+      _ ≤ ‖f‖ * ‖y - x‖ := f.le_opNorm (y - x)
+      _ = ‖f‖ * dist y x := by rw [dist_eq_norm]
+      _ ≤ ‖f‖ * dist K L := mul_le_mul_of_nonneg_left hyx (norm_nonneg f)
+
+end Transport
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- A singleton `{a}` viewed as a `ConvexBody E`. -/
 def bodySingleton (a : E) : ConvexBody E where
@@ -282,6 +350,30 @@ theorem supportFn_bodyClosedBall [ProperSpace E] (c : E) {r : ℝ} (hr : 0 ≤ r
             simp [x, inner_add_left, inner_smul_left]
         _ ≤ supportFn (bodyClosedBall c hr) u := inner_le_supportFn hx u
 
+/-- Support function of an isometric linear image `mapLinear U K`:
+`h_{U(K)}(v) = h_K(U⁻¹ v)`. -/
+theorem supportFn_mapLinearIsometry {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
+    (U : E ≃ₗᵢ[ℝ] F) (K : ConvexBody E) (v : F) :
+    supportFn (mapLinear U.toLinearIsometry.toContinuousLinearMap K) v = supportFn K (U.symm v) := by
+  apply le_antisymm
+  · rw [supportFn_le_iff]
+    intro y hy
+    rw [← SetLike.mem_coe, coe_mapLinear] at hy
+    rcases hy with ⟨x, hx, rfl⟩
+    have hinner : ⟪U.toLinearIsometry.toContinuousLinearMap x, v⟫ = ⟪x, U.symm v⟫ := by
+      simpa using U.inner_map_map x (U.symm v)
+    rw [hinner]
+    exact inner_le_supportFn hx (U.symm v)
+  · obtain ⟨x, hx, hxv⟩ := exists_mem_supportFn_eq K (U.symm v)
+    have hmem : U.toLinearIsometry.toContinuousLinearMap x ∈
+        mapLinear U.toLinearIsometry.toContinuousLinearMap K := by
+      rw [← SetLike.mem_coe, coe_mapLinear]
+      exact ⟨x, hx, rfl⟩
+    have hinner : ⟪U.toLinearIsometry.toContinuousLinearMap x, v⟫ = ⟪x, U.symm v⟫ := by
+      simpa using U.inner_map_map x (U.symm v)
+    rw [← hxv, ← hinner]
+    exact inner_le_supportFn hmem v
+
 /-! ### 3. Separation, Injectivity, Lipschitz Continuity, and Width -/
 
 /-- **Separation Theorem for Convex Bodies (in Hilbert spaces):**
@@ -318,6 +410,36 @@ theorem supportFn_injective [CompleteSpace E] :
   apply Set.Subset.antisymm
   · exact supportFn_le_iff_subset.mp (fun u => (congrFun h u).le)
   · exact supportFn_le_iff_subset.mp (fun u => (congrFun h u).ge)
+
+/-- **Halfspace Characterization of a Convex Body:**
+in a Hilbert space, `x ∈ K ↔ ∀ u : E, ⟪x, u⟫ ≤ supportFn K u`. -/
+theorem mem_iff_forall_inner_le_supportFn [CompleteSpace E] (K : ConvexBody E) (x : E) :
+    x ∈ K ↔ ∀ u : E, ⟪x, u⟫ ≤ supportFn K u := by
+  constructor
+  · exact fun hx u => inner_le_supportFn hx u
+  · intro h
+    have hsub : (bodySingleton x : Set E) ⊆ K :=
+      supportFn_le_iff_subset.mp fun u => by simpa [supportFn_bodySingleton] using h u
+    exact hsub (by simp)
+
+/-- Unit-ball halfspace characterization: `x ∈ K ↔ ∀ u, ‖u‖ ≤ 1 → ⟪x, u⟫ ≤ supportFn K u`. -/
+theorem mem_iff_forall_norm_le_one_inner_le_supportFn [CompleteSpace E]
+    (K : ConvexBody E) (x : E) :
+    x ∈ K ↔ ∀ u : E, ‖u‖ ≤ 1 → ⟪x, u⟫ ≤ supportFn K u := by
+  rw [mem_iff_forall_inner_le_supportFn]
+  constructor
+  · exact fun h u _ => h u
+  · intro h u
+    by_cases hu : u = 0
+    · subst hu; simp
+    · have hpos : 0 < ‖u‖ := norm_pos_iff.mpr hu
+      have hunit : ‖‖u‖⁻¹ • u‖ ≤ 1 := by
+        rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (inv_nonneg.mpr hpos.le),
+          inv_mul_cancel₀ hpos.ne']
+      have h1 := h (‖u‖⁻¹ • u) hunit
+      rw [inner_smul_right, supportFn_smul K (inv_nonneg.mpr hpos.le)] at h1
+      have h2 := mul_le_mul_of_nonneg_left h1 hpos.le
+      rwa [← mul_assoc, ← mul_assoc, mul_inv_cancel₀ hpos.ne', one_mul, one_mul] at h2
 
 /-- If `K ⊆ closedBall 0 R`, then `|h_K(u)| ≤ R * ‖u‖`. -/
 theorem abs_supportFn_le_of_subset_closedBall {K : ConvexBody E} {R : ℝ}
@@ -382,7 +504,7 @@ theorem inner_sub_le_width {K : ConvexBody E} {x y : E} (hx : x ∈ K) (hy : y �
   linarith
 
 /-- The diameter of a convex body `K` equals the supremum of its directional widths on the
-closed unit ball (equivalently on the unit sphere). -/
+closed unit ball (see `diam_eq_sSup_width_sphere` for the unit sphere in nontrivial spaces). -/
 theorem diam_eq_sSup_width (K : ConvexBody E) :
     Metric.diam (K : Set E) =
       sSup ((fun u : Metric.closedBall (0 : E) 1 => width K u) '' Set.univ) := by
@@ -435,6 +557,60 @@ theorem diam_eq_sSup_width (K : ConvexBody E) :
       _ ≤ ‖x - y‖ * ‖u‖ := real_inner_le_norm _ _
       _ ≤ ‖x - y‖ * 1 := mul_le_mul_of_nonneg_left hu1 (norm_nonneg _)
       _ = ‖x - y‖ := mul_one _
+      _ ≤ Metric.diam (K : Set E) := hxy
+
+/-- In a nontrivial inner product space, the diameter of `K` equals the supremum of its
+directional widths over the unit sphere `Metric.sphere 0 1`. -/
+theorem diam_eq_sSup_width_sphere [Nontrivial E] (K : ConvexBody E) :
+    Metric.diam (K : Set E) =
+      sSup ((fun u : Metric.sphere (0 : E) 1 => width K u.1) '' Set.univ) := by
+  obtain ⟨v, hv⟩ := exists_ne (0 : E)
+  have hv_pos : 0 < ‖v‖ := norm_pos_iff.mpr hv
+  let u₀ : Metric.sphere (0 : E) 1 := ⟨‖v‖⁻¹ • v, by
+    rw [mem_sphere_zero_iff_norm, norm_smul, Real.norm_eq_abs,
+      abs_of_nonneg (inv_nonneg.mpr hv_pos.le), inv_mul_cancel₀ hv_pos.ne']⟩
+  have hne : ((fun u : Metric.sphere (0 : E) 1 => width K u.1) '' Set.univ).Nonempty :=
+    ⟨width K u₀.1, ⟨u₀, Set.mem_univ _, rfl⟩⟩
+  have hbdd : BddAbove ((fun u : Metric.sphere (0 : E) 1 => width K u.1) '' Set.univ) := by
+    refine ⟨Metric.diam (K : Set E), ?_⟩
+    rintro _ ⟨⟨u, hu⟩, _, rfl⟩
+    obtain ⟨x, hx, hxu⟩ := exists_mem_supportFn_eq K u
+    obtain ⟨y, hy, hyu⟩ := exists_mem_supportFn_eq K (-u)
+    have hu1 : ‖u‖ = 1 := mem_sphere_zero_iff_norm.mp hu
+    have hxy : ‖x - y‖ ≤ Metric.diam (K : Set E) := by
+      simpa [dist_eq_norm] using Metric.dist_le_diam_of_mem K.isBounded hx hy
+    calc
+      width K u = ⟪x - y, u⟫ := by rw [width, ← hxu, ← hyu, inner_sub_left, inner_neg_right]; ring
+      _ ≤ ‖x - y‖ * ‖u‖ := real_inner_le_norm _ _
+      _ = ‖x - y‖ := by rw [hu1, mul_one]
+      _ ≤ Metric.diam (K : Set E) := hxy
+  apply le_antisymm
+  · refine Metric.diam_le_of_forall_dist_le
+      (le_csSup_of_le hbdd ⟨u₀, Set.mem_univ _, rfl⟩ (width_nonneg K u₀.1)) ?_
+    intro x hx y hy
+    by_cases hxy : x = y
+    · subst hxy
+      simpa using le_csSup_of_le hbdd ⟨u₀, Set.mem_univ _, rfl⟩ (width_nonneg K u₀.1)
+    · have hpos : 0 < ‖x - y‖ := norm_pos_iff.mpr (sub_ne_zero.mpr hxy)
+      let u : Metric.sphere (0 : E) 1 := ⟨‖x - y‖⁻¹ • (x - y), by
+        rw [mem_sphere_zero_iff_norm, norm_smul, Real.norm_eq_abs,
+          abs_of_nonneg (inv_nonneg.mpr hpos.le), inv_mul_cancel₀ hpos.ne']⟩
+      have hnorm : dist x y = ⟪x - y, u.1⟫ := by
+        rw [dist_eq_norm, inner_smul_right, real_inner_self_eq_norm_sq]
+        field_simp [hpos.ne']
+      rw [hnorm]
+      exact (inner_sub_le_width hx hy u.1).trans (le_csSup hbdd ⟨u, Set.mem_univ _, rfl⟩)
+  · refine csSup_le hne ?_
+    rintro _ ⟨⟨u, hu⟩, _, rfl⟩
+    obtain ⟨x, hx, hxu⟩ := exists_mem_supportFn_eq K u
+    obtain ⟨y, hy, hyu⟩ := exists_mem_supportFn_eq K (-u)
+    have hu1 : ‖u‖ = 1 := mem_sphere_zero_iff_norm.mp hu
+    have hxy : ‖x - y‖ ≤ Metric.diam (K : Set E) := by
+      simpa [dist_eq_norm] using Metric.dist_le_diam_of_mem K.isBounded hx hy
+    calc
+      width K u = ⟪x - y, u⟫ := by rw [width, ← hxu, ← hyu, inner_sub_left, inner_neg_right]; ring
+      _ ≤ ‖x - y‖ * ‖u‖ := real_inner_le_norm _ _
+      _ = ‖x - y‖ := by rw [hu1, mul_one]
       _ ≤ Metric.diam (K : Set E) := hxy
 
 /-! ### 4. Hörmander's Isometric Embedding & Hausdorff Metric Algebra -/
@@ -533,6 +709,32 @@ theorem dist_le_iff_supportFn_sub_le [FiniteDimensional ℝ E] {K L : ConvexBody
       rcases Set.mem_add.mp hy' with ⟨x, hxK, z, hz, rfl⟩
       refine ⟨x, hxK, ?_⟩
       simpa [dist_eq_norm] using hz
+
+/-- Unit-sphere form of Hausdorff distance characterization:
+`dist K L ≤ r` iff `|h_K(u) - h_L(u)| ≤ r` for all unit vectors `‖u‖ = 1`. -/
+theorem dist_le_iff_supportFn_sub_le_sphere [FiniteDimensional ℝ E] {K L : ConvexBody E}
+    {r : ℝ} (hr : 0 ≤ r) :
+    dist K L ≤ r ↔ ∀ u : E, ‖u‖ = 1 → |supportFn K u - supportFn L u| ≤ r := by
+  rw [dist_le_iff_supportFn_sub_le hr]
+  constructor
+  · exact fun h u hu => h u hu.le
+  · intro h u hu1
+    by_cases hu0 : u = 0
+    · subst hu0; simpa using hr
+    · have hpos : 0 < ‖u‖ := norm_pos_iff.mpr hu0
+      have hunit : ‖‖u‖⁻¹ • u‖ = 1 := by
+        rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (inv_nonneg.mpr hpos.le),
+          inv_mul_cancel₀ hpos.ne']
+      have h1 := h (‖u‖⁻¹ • u) hunit
+      rw [supportFn_smul K (inv_nonneg.mpr hpos.le),
+        supportFn_smul L (inv_nonneg.mpr hpos.le), ← mul_sub, abs_mul,
+        abs_of_nonneg (inv_nonneg.mpr hpos.le)] at h1
+      calc
+        |supportFn K u - supportFn L u|
+          = ‖u‖ * (‖u‖⁻¹ * |supportFn K u - supportFn L u|) := by
+              rw [← mul_assoc, mul_inv_cancel₀ hpos.ne', one_mul]
+        _ ≤ 1 * r := mul_le_mul hu1 h1 (by positivity) zero_le_one
+        _ = r := one_mul r
 
 /-- **Hörmander's Isometric Embedding Theorem:**
 The map `K ↦ supportFnOnBall K` is an isometry from `ConvexBody E` (with the Hausdorff metric)
@@ -705,82 +907,75 @@ lemma sublinear_bounded_of_finiteDimensional [FiniteDimensional ℝ E] (h : E �
             _ ≤ M i * ‖u‖ := mul_le_mul_of_nonneg_left hcs (hM_nonneg i)
     _ = (∑ i, M i) * ‖u‖ := (Finset.sum_mul _ _ _).symm
 
-/-- **Minkowski's Representation Theorem:**
-On a finite-dimensional real inner product space `E`, every positively 1-homogeneous subadditive
-function `h : E → ℝ` is the support function of a unique convex body `K : ConvexBody E`,
-explicitly given by `K = {x | ∀ u, ⟪x, u⟫ ≤ h u}`. -/
-theorem exists_convexBody_supportFn_eq [FiniteDimensional ℝ E] (h : E → ℝ)
+/-- Helper: every direction `u₀ : E` admits a supporting point `x` in the halfspace intersection
+`{x | ∀ u, ⟪x, u⟫ ≤ h u}` attaining `⟪x, u₀⟫ = h u₀` (Hahn–Banach extension). -/
+private lemma exists_supporting_point_of_sublinear [FiniteDimensional ℝ E] (h : E → ℝ)
     (h_hom : ∀ c : ℝ, 0 ≤ c → ∀ u, h (c • u) = c * h u)
-    (h_add : ∀ u v, h (u + v) ≤ h u + h v) :
-    ∃! K : ConvexBody E, supportFn K = h := by
-  let S : Set E := {x | ∀ u, ⟪x, u⟫ ≤ h u}
-  -- Every direction `u₀` admits a supporting point `x ∈ S` with `⟪x, u₀⟫ = h u₀` via Hahn–Banach.
-  have hexists : ∀ u₀ : E, ∃ x ∈ S, ⟪x, u₀⟫ = h u₀ := by
-    intro u₀
-    have h0 : h 0 = 0 := by simpa using h_hom 0 le_rfl 0
-    by_cases hu0 : u₀ = 0
-    · -- Extend the zero functional on `{0}` dominated by `h`.
-      let f0 : E →ₗ.[ℝ] ℝ :=
-        { domain := ⊥
-          toFun := 0 }
-      obtain ⟨g, _, hgle⟩ := exists_extension_of_le_sublinear f0 h
-        (fun c hc => h_hom c hc.le) h_add (fun x => by
-          have hx0 : (x : E) = 0 := x.2
-          simp [f0, hx0, h0])
-      let gC : StrongDual ℝ E := ⟨g, g.continuous_of_finiteDimensional⟩
-      let x : E := (InnerProductSpace.toDual ℝ E).symm gC
-      refine ⟨x, fun u => ?_, by subst hu0; simp [h0]⟩
-      have hx : ⟪x, u⟫ = g u := InnerProductSpace.toDual_symm_apply
-      rw [hx]
-      exact hgle u
-    · -- Define `f(t • u₀) = t * h u₀` on `ℝ ∙ u₀` and prove `f ≤ h` on `ℝ ∙ u₀`.
-      let p : Submodule ℝ E := Submodule.span ℝ {u₀}
-      let f : E →ₗ.[ℝ] ℝ :=
-        { domain := p
-          toFun :=
-            { toFun := fun v => (⟪v.1, u₀⟫ / ‖u₀‖ ^ 2) * h u₀
-              map_add' := fun v w => by
-                simp only [Submodule.coe_add, inner_add_left, add_div, add_mul]
-              map_smul' := fun c v => by
-                simp only [SetLike.val_smul, inner_smul_left, RCLike.conj_to_real,
-                  RingHom.id_apply, smul_eq_mul]
-                ring } }
-      have hf_le : ∀ v : f.domain, f v ≤ h v.1 := by
-        rintro ⟨v, hv⟩
-        rcases Submodule.mem_span_singleton.mp hv with ⟨t, rfl⟩
-        have hnorm : ‖u₀‖ ^ 2 ≠ 0 := pow_ne_zero 2 (norm_ne_zero_iff.mpr hu0)
-        have hcoeff : ⟪t • u₀, u₀⟫ / ‖u₀‖ ^ 2 = t := by
-          rw [inner_smul_left, RCLike.conj_to_real, real_inner_self_eq_norm_sq]
-          field_simp [hnorm]
-        change (⟪t • u₀, u₀⟫ / ‖u₀‖ ^ 2) * h u₀ ≤ h (t • u₀)
-        rw [hcoeff]
-        rcases le_total 0 t with ht | ht
-        · rw [h_hom t ht]
-        · have hnt : 0 ≤ -t := neg_nonneg.mpr ht
-          have hsum : 0 ≤ h u₀ + h (-u₀) := by
-            have := h_add u₀ (-u₀)
-            rwa [add_neg_cancel, h0] at this
-          have hneg : h (t • u₀) = (-t) * h (-u₀) := by
-            have : t • u₀ = (-t) • (-u₀) := by rw [smul_neg, neg_smul, neg_neg]
-            rw [this, h_hom (-t) hnt]
-          rw [hneg]
-          nlinarith
-      obtain ⟨g, hgeq, hgle⟩ := exists_extension_of_le_sublinear f h
-        (fun c hc => h_hom c hc.le) h_add hf_le
-      let gC : StrongDual ℝ E := ⟨g, g.continuous_of_finiteDimensional⟩
-      let x : E := (InnerProductSpace.toDual ℝ E).symm gC
-      refine ⟨x, fun u => ?_, ?_⟩
-      · have hx : ⟪x, u⟫ = g u := InnerProductSpace.toDual_symm_apply
-        rw [hx]
-        exact hgle u
-      · have hx : ⟪x, u₀⟫ = g u₀ := InnerProductSpace.toDual_symm_apply
-        have hu_mem : u₀ ∈ f.domain := Submodule.subset_span (Set.mem_singleton u₀)
-        rw [hx, hgeq ⟨u₀, hu_mem⟩]
-        have hnorm : ‖u₀‖ ^ 2 ≠ 0 := pow_ne_zero 2 (norm_ne_zero_iff.mpr hu0)
-        change (⟪u₀, u₀⟫ / ‖u₀‖ ^ 2) * h u₀ = h u₀
-        rw [real_inner_self_eq_norm_sq, div_self hnorm, one_mul]
-  -- `S` is convex, closed, bounded (hence compact), and nonempty.
-  have hS_convex : Convex ℝ S := by
+    (h_add : ∀ u v, h (u + v) ≤ h u + h v) (u₀ : E) :
+    ∃ x : E, (∀ u, ⟪x, u⟫ ≤ h u) ∧ ⟪x, u₀⟫ = h u₀ := by
+  have h0 : h 0 = 0 := by simpa using h_hom 0 le_rfl 0
+  by_cases hu0 : u₀ = 0
+  · let f0 : E →ₗ.[ℝ] ℝ := { domain := ⊥, toFun := 0 }
+    obtain ⟨g, _, hgle⟩ := exists_extension_of_le_sublinear f0 h
+      (fun c hc => h_hom c hc.le) h_add (fun x => by
+        have hx0 : (x : E) = 0 := x.2
+        simp [f0, hx0, h0])
+    let gC : StrongDual ℝ E := ⟨g, g.continuous_of_finiteDimensional⟩
+    let x : E := (InnerProductSpace.toDual ℝ E).symm gC
+    refine ⟨x, fun u => ?_, by subst hu0; simp [h0]⟩
+    have hx : ⟪x, u⟫ = g u := InnerProductSpace.toDual_symm_apply
+    rw [hx]; exact hgle u
+  · let p : Submodule ℝ E := Submodule.span ℝ {u₀}
+    let f : E →ₗ.[ℝ] ℝ :=
+      { domain := p
+        toFun :=
+          { toFun := fun v => (⟪v.1, u₀⟫ / ‖u₀‖ ^ 2) * h u₀
+            map_add' := fun v w => by
+              simp only [Submodule.coe_add, inner_add_left, add_div, add_mul]
+            map_smul' := fun c v => by
+              simp only [SetLike.val_smul, inner_smul_left, RCLike.conj_to_real,
+                RingHom.id_apply, smul_eq_mul]
+              ring } }
+    have hf_le : ∀ v : f.domain, f v ≤ h v.1 := by
+      rintro ⟨v, hv⟩
+      rcases Submodule.mem_span_singleton.mp hv with ⟨t, rfl⟩
+      have hnorm : ‖u₀‖ ^ 2 ≠ 0 := pow_ne_zero 2 (norm_ne_zero_iff.mpr hu0)
+      have hcoeff : ⟪t • u₀, u₀⟫ / ‖u₀‖ ^ 2 = t := by
+        rw [inner_smul_left, RCLike.conj_to_real, real_inner_self_eq_norm_sq]
+        field_simp [hnorm]
+      change (⟪t • u₀, u₀⟫ / ‖u₀‖ ^ 2) * h u₀ ≤ h (t • u₀)
+      rw [hcoeff]
+      rcases le_total 0 t with ht | ht
+      · rw [h_hom t ht]
+      · have hnt : 0 ≤ -t := neg_nonneg.mpr ht
+        have hsum : 0 ≤ h u₀ + h (-u₀) := by
+          have := h_add u₀ (-u₀)
+          rwa [add_neg_cancel, h0] at this
+        have hneg : h (t • u₀) = (-t) * h (-u₀) := by
+          have : t • u₀ = (-t) • (-u₀) := by rw [smul_neg, neg_smul, neg_neg]
+          rw [this, h_hom (-t) hnt]
+        rw [hneg]; nlinarith
+    obtain ⟨g, hgeq, hgle⟩ := exists_extension_of_le_sublinear f h
+      (fun c hc => h_hom c hc.le) h_add hf_le
+    let gC : StrongDual ℝ E := ⟨g, g.continuous_of_finiteDimensional⟩
+    let x : E := (InnerProductSpace.toDual ℝ E).symm gC
+    refine ⟨x, fun u => ?_, ?_⟩
+    · have hx : ⟪x, u⟫ = g u := InnerProductSpace.toDual_symm_apply
+      rw [hx]; exact hgle u
+    · have hx : ⟪x, u₀⟫ = g u₀ := InnerProductSpace.toDual_symm_apply
+      have hu_mem : u₀ ∈ f.domain := Submodule.subset_span (Set.mem_singleton u₀)
+      rw [hx, hgeq ⟨u₀, hu_mem⟩]
+      have hnorm : ‖u₀‖ ^ 2 ≠ 0 := pow_ne_zero 2 (norm_ne_zero_iff.mpr hu0)
+      change (⟪u₀, u₀⟫ / ‖u₀‖ ^ 2) * h u₀ = h u₀
+      rw [real_inner_self_eq_norm_sq, div_self hnorm, one_mul]
+
+/-- Constructive Minkowski body associated to a positively 1-homogeneous subadditive function `h`:
+the halfspace intersection `{x | ∀ u, ⟪x, u⟫ ≤ h u}` packaged as a `ConvexBody E`. -/
+noncomputable def bodyOfSupportFn [FiniteDimensional ℝ E] (h : E → ℝ)
+    (h_hom : ∀ c : ℝ, 0 ≤ c → ∀ u, h (c • u) = c * h u)
+    (h_add : ∀ u v, h (u + v) ≤ h u + h v) : ConvexBody E where
+  carrier := {x | ∀ u, ⟪x, u⟫ ≤ h u}
+  convex' := by
     intro x hx y hy a b ha hb hab u
     rw [inner_add_left, inner_smul_left, inner_smul_left]
     simp only [RCLike.conj_to_real]
@@ -790,43 +985,62 @@ theorem exists_convexBody_supportFn_eq [FiniteDimensional ℝ E] (h : E → ℝ)
             (mul_le_mul_of_nonneg_left (hy u) hb)
       _ = (a + b) * h u := by ring
       _ = h u := by rw [hab, one_mul]
-  have hS_closed : IsClosed S := by
-    have heq : S = ⋂ u : E, {x : E | ⟪x, u⟫ ≤ h u} := by ext x; simp [S]
-    rw [heq]
-    exact isClosed_iInter fun u => isClosed_le (continuous_id.inner continuous_const) continuous_const
-  obtain ⟨C, hC0, hC⟩ := sublinear_bounded_of_finiteDimensional h h_hom h_add
-  have hS_sub : S ⊆ Metric.closedBall 0 C := by
-    intro x hx
-    rw [Metric.mem_closedBall, dist_zero_right]
-    by_cases hx0 : x = 0
-    · simpa [hx0] using hC0
-    · have hpos : 0 < ‖x‖ := norm_pos_iff.mpr hx0
-      have hxx : ‖x‖ ^ 2 ≤ C * ‖x‖ := by
-        rw [← real_inner_self_eq_norm_sq]
-        exact (hx x).trans (hC x)
-      nlinarith
-  have hS_compact : IsCompact S := (isCompact_closedBall (0 : E) C).of_isClosed_subset hS_closed hS_sub
-  have hS_nonempty : S.Nonempty := by
-    obtain ⟨x, hx, _⟩ := hexists 0
+  isCompact' := by
+    have hclosed : IsClosed {x : E | ∀ u, ⟪x, u⟫ ≤ h u} := by
+      have heq : {x : E | ∀ u, ⟪x, u⟫ ≤ h u} = ⋂ u : E, {x : E | ⟪x, u⟫ ≤ h u} := by
+        ext x; simp
+      rw [heq]
+      exact isClosed_iInter fun u => isClosed_le (continuous_id.inner continuous_const) continuous_const
+    obtain ⟨C, hC0, hC⟩ := sublinear_bounded_of_finiteDimensional h h_hom h_add
+    have hsub : {x : E | ∀ u, ⟪x, u⟫ ≤ h u} ⊆ Metric.closedBall 0 C := by
+      intro x hx
+      rw [Metric.mem_closedBall, dist_zero_right]
+      by_cases hx0 : x = 0
+      · simpa [hx0] using hC0
+      · have hpos : 0 < ‖x‖ := norm_pos_iff.mpr hx0
+        have hxx : ‖x‖ ^ 2 ≤ C * ‖x‖ := by
+          rw [← real_inner_self_eq_norm_sq]
+          exact (hx x).trans (hC x)
+        nlinarith
+    exact (isCompact_closedBall (0 : E) C).of_isClosed_subset hclosed hsub
+  nonempty' := by
+    obtain ⟨x, hx, _⟩ := exists_supporting_point_of_sublinear h h_hom h_add 0
     exact ⟨x, hx⟩
-  let K : ConvexBody E := ⟨S, hS_convex, hS_compact, hS_nonempty⟩
-  refine ⟨K, ?_, fun L hL => supportFn_injective (hL.trans ?_)⟩
-  · ext u
-    apply le_antisymm
-    · rw [supportFn_le_iff]
-      intro x hx
-      exact hx u
-    · obtain ⟨x, hx, hxu⟩ := hexists u
-      rw [← hxu]
-      exact inner_le_supportFn hx u
-  · ext u
-    apply le_antisymm
-    · obtain ⟨x, hx, hxu⟩ := hexists u
-      rw [← hxu]
-      exact inner_le_supportFn hx u
-    · rw [supportFn_le_iff]
-      intro x hx
-      exact hx u
+
+@[simp]
+lemma coe_bodyOfSupportFn [FiniteDimensional ℝ E] (h : E → ℝ)
+    (h_hom : ∀ c : ℝ, 0 ≤ c → ∀ u, h (c • u) = c * h u)
+    (h_add : ∀ u v, h (u + v) ≤ h u + h v) :
+    (bodyOfSupportFn h h_hom h_add : Set E) = {x | ∀ u, ⟪x, u⟫ ≤ h u} := by
+  rfl
+
+@[simp]
+theorem supportFn_bodyOfSupportFn [FiniteDimensional ℝ E] (h : E → ℝ)
+    (h_hom : ∀ c : ℝ, 0 ≤ c → ∀ u, h (c • u) = c * h u)
+    (h_add : ∀ u v, h (u + v) ≤ h u + h v) :
+    supportFn (bodyOfSupportFn h h_hom h_add) = h := by
+  ext u
+  apply le_antisymm
+  · rw [supportFn_le_iff]
+    intro x hx
+    rw [← SetLike.mem_coe, coe_bodyOfSupportFn] at hx
+    exact hx u
+  · obtain ⟨x, hx, hxu⟩ := exists_supporting_point_of_sublinear h h_hom h_add u
+    rw [← hxu]
+    have hxmem : x ∈ bodyOfSupportFn h h_hom h_add := by
+      rw [← SetLike.mem_coe, coe_bodyOfSupportFn]; exact hx
+    exact inner_le_supportFn hxmem u
+
+/-- **Minkowski's Representation Theorem (Schneider, *Convex Bodies*, Thm. 1.7.1):**
+On a finite-dimensional real inner product space `E`, every positively 1-homogeneous subadditive
+function `h : E → ℝ` is the support function of a unique convex body `K : ConvexBody E`,
+explicitly realized by `bodyOfSupportFn h h_hom h_add`. -/
+theorem exists_convexBody_supportFn_eq [FiniteDimensional ℝ E] (h : E → ℝ)
+    (h_hom : ∀ c : ℝ, 0 ≤ c → ∀ u, h (c • u) = c * h u)
+    (h_add : ∀ u v, h (u + v) ≤ h u + h v) :
+    ∃! K : ConvexBody E, supportFn K = h :=
+  ⟨bodyOfSupportFn h h_hom h_add, supportFn_bodyOfSupportFn h h_hom h_add,
+    fun _ hL => supportFn_injective (hL.trans (supportFn_bodyOfSupportFn h h_hom h_add).symm)⟩
 
 end
 
