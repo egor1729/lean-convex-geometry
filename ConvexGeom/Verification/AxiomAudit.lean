@@ -153,3 +153,13 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.banachMazurDist_polar
 #print axioms ConvexGeom.mahlerVolume_le_banachMazurDist_pow_mul
 #print axioms ConvexGeom.mahlerVolume_le_banachMazurDist_ball_pow_mul
+
+-- 15. Affine General Position and Simplicial Polytope Approximation
+#print axioms ConvexGeom.InGeneralPosition.injective
+#print axioms ConvexGeom.InGeneralPosition.affineEquiv
+#print axioms ConvexGeom.addHaar_affineSpan_image_eq_zero
+#print axioms ConvexGeom.addHaar_affineSpan_finset_eq_zero
+#print axioms ConvexGeom.exists_generalPosition_snoc
+#print axioms ConvexGeom.exists_generalPosition_dist_lt
+#print axioms ConvexGeom.exists_generalPosition_dist_lt_of_fintype
+#print axioms ConvexGeom.exists_generalPosition_polytope_dist_lt

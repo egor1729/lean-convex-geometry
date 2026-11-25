@@ -14,3 +14,4 @@ public import ConvexGeom.BrunnConcavity
 public import ConvexGeom.Isoperimetric
 public import ConvexGeom.SphericalIntegration
 public import ConvexGeom.BanachMazur
+public import ConvexGeom.GeneralPosition
