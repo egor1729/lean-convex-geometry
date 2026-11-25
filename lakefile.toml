@@ -15,3 +15,7 @@ rev = "v4.36.0"
 
 [[lean_lib]]
 name = "ConvexGeom"
+
+[[lean_exe]]
+name = "convexgeom-audit"
+root = "ConvexGeom.Verification.AuditTool"

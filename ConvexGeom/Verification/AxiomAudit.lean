@@ -3,22 +3,36 @@ module
 import ConvexGeom
 
 /-!
-# Axiom Audit
+# Axiom Audit (Spot-Check Snapshot)
 
-Verifies that every headline theorem in `ConvexGeom` depends solely on Lean's three standard
-classical axioms (`propext`, `Classical.choice`, `Quot.sound`) — with zero `sorryAx`,
-zero custom axioms, and zero `Lean.ofReduceBool`.
+Prints the axioms of headline theorems in `ConvexGeom` so `lean -DwarningAsError=true` verifies
+each depends solely on Lean's three standard classical axioms (`propext`, `Classical.choice`,
+`Quot.sound`).
+
+For the **primary exhaustive environment-wide audit** covering *every* declaration (public and
+private, in every namespace) and filesystem module completeness, run:
+
+```bash
+lake exe convexgeom-audit
+```
 -/
 
--- 1. Support Functions, Hörmander Isometry, and Minkowski Representation
+-- 1. Support Functions, Linear Transport, Hörmander Isometry, and Minkowski Representation
 #print axioms ConvexGeom.supportFn_minkowski_add
 #print axioms ConvexGeom.supportFn_le_iff_subset
 #print axioms ConvexGeom.supportFn_injective
+#print axioms ConvexGeom.mem_iff_forall_inner_le_supportFn
+#print axioms ConvexGeom.mem_iff_forall_norm_le_one_inner_le_supportFn
+#print axioms ConvexGeom.supportFn_mapLinearIsometry
+#print axioms ConvexGeom.dist_mapLinear_le
 #print axioms ConvexGeom.diam_eq_sSup_width
+#print axioms ConvexGeom.diam_eq_sSup_width_sphere
+#print axioms ConvexGeom.dist_le_iff_supportFn_sub_le_sphere
 #print axioms ConvexGeom.isometry_supportFnOnBall
 #print axioms ConvexGeom.dist_add_right
 #print axioms ConvexGeom.dist_add_le
 #print axioms ConvexGeom.dist_smul
+#print axioms ConvexGeom.supportFn_bodyOfSupportFn
 #print axioms ConvexGeom.exists_convexBody_supportFn_eq
 
 -- 2. Blaschke Selection Theorem & Completeness
@@ -44,16 +58,25 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.volume_orderSimplex
 #print axioms ConvexGeom.volume_solidSimplex
 #print axioms ConvexGeom.volume_convexHull_simplex
+#print axioms ConvexGeom.volume_convexHull_simplex_matrix
 #print axioms ConvexGeom.volume_convexHull_simplex_euclideanSpace
+#print axioms ConvexGeom.volume_convexHull_simplex_euclideanSpace_matrix
 
--- 6. Half-Ball Bounds & Continuity of Volume
+-- 6. Volume-Root Scaling, Half-Ball Bounds, Continuity, and Compact Maximizers
+#print axioms ConvexGeom.addHaar_smul_rpow_inv_finrank
+#print axioms ConvexGeom.addHaar_real_smul_rpow_inv_finrank
 #print axioms ConvexGeom.addHaar_halfBall
 #print axioms ConvexGeom.addHaar_le_half_ball
+#print axioms ConvexGeom.addHaar_le_half_closedBall_of_zero_not_mem_interior
 #print axioms ConvexGeom.upperSemicontinuous_addHaar_convexBody
 #print axioms ConvexGeom.lowerSemicontinuous_addHaar_convexBody
 #print axioms ConvexGeom.continuous_addHaar_convexBody
 #print axioms ConvexGeom.continuous_addHaarReal_convexBody
 #print axioms ConvexGeom.continuous_addHaar_convexHull_range
+#print axioms ConvexGeom.continuous_addHaarReal_convexHull_range
+#print axioms ConvexGeom.exists_max_addHaar_convexHull_of_isCompact
+#print axioms ConvexGeom.exists_max_addHaar_convexHull_sphere
+#print axioms ConvexGeom.exists_max_addHaar_convexHull_closedBall
 
 -- 7. Volumetric Covering & Packing Bounds
 #print axioms ConvexGeom.measure_le_externalCoveringNumber_mul_closedBall
@@ -87,6 +110,7 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.convex_steinerSymm
 #print axioms ConvexGeom.isCompact_steinerSymm
 #print axioms ConvexGeom.volume_steinerSymm
+#print axioms ConvexGeom.volume_bodySteinerSymm
 #print axioms ConvexGeom.steinerSymm_dist_le_diam
 
 -- 10. Metric Projection, Outer Normal Cones, and Supporting Hyperplanes
@@ -95,6 +119,7 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.lipschitzWith_metricProj
 #print axioms ConvexGeom.metricProj_mem_frontier_of_not_mem
 #print axioms ConvexGeom.mem_normalCone_iff_supportFn
+#print axioms ConvexGeom.strictNormalCone_of_notMem
 #print axioms ConvexGeom.exists_supporting_normal_of_mem_frontier
 #print axioms ConvexGeom.exists_unit_supportFn_eq_of_mem_frontier
 
@@ -103,6 +128,7 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.brunn_concavity_sections
 #print axioms ConvexGeom.concaveOn_volume_slice_rpow
 #print axioms ConvexGeom.logConcave_convolution
+#print axioms ConvexGeom.covariogram_neg
 #print axioms ConvexGeom.covariogram_lintegral
 #print axioms ConvexGeom.covariogram_rpow_concave
 #print axioms ConvexGeom.two_pow_mul_volume_le_volume_diff
@@ -117,6 +143,8 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.isoperimetric_inequality_ball
 
 -- 13. Spherical Integration, Polar Volume Formula, Mean Width, and Dual Urysohn
+#print axioms ConvexGeom.sphereProb_smul
+#print axioms ConvexGeom.sphereProb_eq_of_isAddHaarMeasure
 #print axioms ConvexGeom.measurePreserving_sphereMap_sphereProb
 #print axioms ConvexGeom.measurePreserving_sphereNeg_sphereProb
 #print axioms ConvexGeom.addHaar_eq_lintegral_gauge_inv_pow
@@ -124,14 +152,17 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.addHaar_real_polarBody_eq_integral_supportFn_inv_pow
 #print axioms ConvexGeom.meanWidth_add
 #print axioms ConvexGeom.meanWidth_smul
+#print axioms ConvexGeom.integral_width_eq_two_mul_meanWidth
 #print axioms ConvexGeom.meanWidth_translate
 #print axioms ConvexGeom.meanWidth_bodyClosedBall
 #print axioms ConvexGeom.lipschitzWith_meanWidth
 #print axioms ConvexGeom.meanWidth_linearIsometry
+#print axioms ConvexGeom.meanWidth_mapLinearIsometry
 #print axioms ConvexGeom.meanWidth_minkowskiSymm
 #print axioms ConvexGeom.meanWidth_centralSymm
 #print axioms ConvexGeom.dual_urysohn_inequality
 #print axioms ConvexGeom.urysohn_of_santalo
+#print axioms ConvexGeom.urysohn_of_santalo_at
 
 -- 14. Origin-Symmetric Bodies, Ellipsoids, Mahler Volume, and Banach–Mazur Distance
 #print axioms ConvexGeom.isOriginSymmetric_convexBody_iff_supportFn
@@ -144,6 +175,9 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.mahlerVolume_linearEquiv
 #print axioms ConvexGeom.mahlerVolume_smul
 #print axioms ConvexGeom.mahlerVolume_ellipsoid
+#print axioms ConvexGeom.mahlerVolumeAt_affineEquiv
+#print axioms ConvexGeom.santaloMahlerVolume_translate
+#print axioms ConvexGeom.santaloMahlerVolume_affineEquiv
 #print axioms ConvexGeom.one_le_banachMazurDist
 #print axioms ConvexGeom.banachMazurDist_self
 #print axioms ConvexGeom.banachMazurDist_symm
@@ -153,8 +187,16 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.banachMazurDist_polar
 #print axioms ConvexGeom.mahlerVolume_le_banachMazurDist_pow_mul
 #print axioms ConvexGeom.mahlerVolume_le_banachMazurDist_ball_pow_mul
+#print axioms ConvexGeom.banachMazurEDist_eq_top_of_empty
+#print axioms ConvexGeom.banachMazurEDist_mul_triangle
+#print axioms ConvexGeom.affineBanachMazurDist_self
+#print axioms ConvexGeom.affineBanachMazurDist_symm
+#print axioms ConvexGeom.affineBanachMazurDist_affineEquiv_left
+#print axioms ConvexGeom.affineBanachMazurDist_affineEquiv_right
+#print axioms ConvexGeom.affineBanachMazurDist_mul_triangle
+#print axioms ConvexGeom.affineBanachMazurEDist_mul_triangle
 
--- 15. Affine General Position and Simplicial Polytope Approximation
+-- 15. Affine General Position and Inscribed Polytope Approximation
 #print axioms ConvexGeom.InGeneralPosition.injective
 #print axioms ConvexGeom.InGeneralPosition.affineEquiv
 #print axioms ConvexGeom.addHaar_affineSpan_image_eq_zero
@@ -162,4 +204,6 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.exists_generalPosition_snoc
 #print axioms ConvexGeom.exists_generalPosition_dist_lt
 #print axioms ConvexGeom.exists_generalPosition_dist_lt_of_fintype
+#print axioms ConvexGeom.nonempty_interior_convexHull_of_inGeneralPosition
 #print axioms ConvexGeom.exists_generalPosition_polytope_dist_lt
+#print axioms ConvexGeom.exists_inscribed_generalPosition_polytope_dist_lt
