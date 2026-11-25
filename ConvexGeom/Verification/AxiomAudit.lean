@@ -132,3 +132,24 @@ zero custom axioms, and zero `Lean.ofReduceBool`.
 #print axioms ConvexGeom.meanWidth_centralSymm
 #print axioms ConvexGeom.dual_urysohn_inequality
 #print axioms ConvexGeom.urysohn_of_santalo
+
+-- 14. Origin-Symmetric Bodies, Ellipsoids, Mahler Volume, and Banach–Mazur Distance
+#print axioms ConvexGeom.isOriginSymmetric_convexBody_iff_supportFn
+#print axioms ConvexGeom.gauge_smul_abs_of_isOriginSymmetric
+#print axioms ConvexGeom.mem_polarBody_iff_abs_inner_le_one
+#print axioms ConvexGeom.det_adjoint_eq_det
+#print axioms ConvexGeom.polarBody_linearEquiv_image
+#print axioms ConvexGeom.polarBody_ellipsoid
+#print axioms ConvexGeom.addHaar_ellipsoid
+#print axioms ConvexGeom.mahlerVolume_linearEquiv
+#print axioms ConvexGeom.mahlerVolume_smul
+#print axioms ConvexGeom.mahlerVolume_ellipsoid
+#print axioms ConvexGeom.one_le_banachMazurDist
+#print axioms ConvexGeom.banachMazurDist_self
+#print axioms ConvexGeom.banachMazurDist_symm
+#print axioms ConvexGeom.banachMazurDist_mul_triangle
+#print axioms ConvexGeom.banachMazurDist_linearEquiv_left
+#print axioms ConvexGeom.banachMazurDist_linearEquiv_right
+#print axioms ConvexGeom.banachMazurDist_polar
+#print axioms ConvexGeom.mahlerVolume_le_banachMazurDist_pow_mul
+#print axioms ConvexGeom.mahlerVolume_le_banachMazurDist_ball_pow_mul

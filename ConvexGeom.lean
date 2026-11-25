@@ -13,3 +13,4 @@ public import ConvexGeom.Projection
 public import ConvexGeom.BrunnConcavity
 public import ConvexGeom.Isoperimetric
 public import ConvexGeom.SphericalIntegration
+public import ConvexGeom.BanachMazur
