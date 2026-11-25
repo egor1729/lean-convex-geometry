@@ -7,7 +7,7 @@ on:
 
 jobs:
   lean-build:
-    name: Lean 4 Build
+    name: Lean 4 Build & Axiom Audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,5 +17,26 @@ jobs:
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - name: Fetch Mathlib cache
         run: lake exe cache get
-      - name: Build ConvexGeom
-        run: lake build ConvexGeom
+      - name: Build ConvexGeom (fail on warnings)
+        run: lake build ConvexGeom --wfail
+      - name: Run Axiom Audit
+        run: |
+          set -euo pipefail
+          out="$(lake env lean ConvexGeom/Verification/AxiomAudit.lean 2>&1)"
+          echo "$out"
+          if echo "$out" | grep -E "sorryAx|Lean\.ofReduceBool|Lean\.trustCompiler"; then
+            echo "ERROR: Forbidden axiom detected!"
+            exit 1
+          fi
+          bad="$(echo "$out" | grep "depends on axioms:" | grep -vE 'depends on axioms: \[(propext|Classical\.choice|Quot\.sound|, )+\]$' || true)"
+          if [ -n "$bad" ]; then
+            echo "ERROR: Unexpected axiom(s) detected:"
+            echo "$bad"
+            exit 1
+          fi
+          count="$(echo "$out" | grep -c "depends on axioms:" || true)"
+          if [ "$count" -lt 1 ]; then
+            echo "ERROR: AxiomAudit produced no axiom reports!"
+            exit 1
+          fi
+          echo "Axiom audit passed ($count theorems verified)."
