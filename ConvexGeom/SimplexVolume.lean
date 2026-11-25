@@ -1,9 +1,11 @@
 module
 
 public import Mathlib.Analysis.Convex.Hull
+public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.Data.Fin.Tuple.Sort
 public import Mathlib.LinearAlgebra.Matrix.Block
 public import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
+public import Mathlib.MeasureTheory.Measure.Haar.InnerProductSpace
 public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 public import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 
@@ -436,6 +438,33 @@ theorem volume_convexHull_simplex {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)
     · intro hx; exact ⟨-v 0 + x, hx, by simp⟩
   rw [htrans, measure_preimage_add, Measure.addHaar_image_linearMap, volume_solidSimplex,
     ← ENNReal.ofReal_mul (abs_nonneg _), mul_one_div]
+
+/-- **Volume of a $d$-simplex in `EuclideanSpace ℝ (Fin d)`:**
+transfers `volume_convexHull_simplex` via the measure-preserving equivalence `WithLp.ofLp`. -/
+theorem volume_convexHull_simplex_euclideanSpace {d : ℕ}
+    (v : Fin (d + 1) → EuclideanSpace ℝ (Fin d)) :
+    volume (convexHull ℝ (Set.range v)) =
+      ENNReal.ofReal (|(simplexEdgeMap (fun i => (v i).ofLp)).det| / (d.factorial : ℝ)) := by
+  let e := EuclideanSpace.equiv (Fin d) ℝ
+  have hpre : convexHull ℝ (Set.range v) =
+      (MeasurableEquiv.toLp 2 (Fin d → ℝ)).symm ⁻¹'
+        convexHull ℝ (Set.range (fun i => (v i).ofLp)) := by
+    have hmap : e.toAffineMap '' convexHull ℝ (Set.range v) =
+        convexHull ℝ (Set.range (fun i => (v i).ofLp)) := by
+      rw [AffineMap.image_convexHull, ← Set.range_comp]
+      rfl
+    ext x
+    simp only [Set.mem_preimage, MeasurableEquiv.coe_toLp_symm]
+    rw [← hmap]
+    constructor
+    · intro hx; exact ⟨x, hx, rfl⟩
+    · rintro ⟨y, hy, hyx⟩
+      have : y = x := e.injective hyx
+      rwa [← this]
+  have hmeas : NullMeasurableSet (convexHull ℝ (Set.range (fun i => (v i).ofLp))) volume :=
+    ((Set.finite_range _).isCompact_convexHull ℝ).isClosed.measurableSet.nullMeasurableSet
+  rw [hpre, (EuclideanSpace.volume_preserving_symm_measurableEquiv_toLp (Fin d)).measure_preimage hmeas]
+  exact volume_convexHull_simplex (fun i => (v i).ofLp)
 
 end
 
