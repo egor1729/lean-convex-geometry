@@ -2,12 +2,13 @@ module
 
 public import Mathlib.Analysis.Convex.Hull
 public import Mathlib.Analysis.InnerProductSpace.PiL2
-public import Mathlib.Data.Fin.Tuple.Sort
-public import Mathlib.LinearAlgebra.Matrix.Block
 public import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
 public import Mathlib.MeasureTheory.Measure.Haar.InnerProductSpace
 public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 public import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
+
+import Mathlib.Data.Fin.Tuple.Sort
+import Mathlib.LinearAlgebra.Matrix.Block
 
 /-!
 # Volume of a $d$-Simplex via Permutation Tiling
@@ -375,6 +376,34 @@ def simplexEdgeMap {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)) :
   map_smul' c y := by
     simp [mul_smul, Finset.smul_sum]
 
+@[simp]
+lemma simplexEdgeMap_apply {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)) (y : Fin d → ℝ) :
+    simplexEdgeMap v y = ∑ j : Fin d, y j • (v j.succ - v 0) := by
+  rfl
+
+/-- The `d × d` edge matrix whose `j`-th column is `v j.succ - v 0`. -/
+def simplexEdgeMatrix {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)) : Matrix (Fin d) (Fin d) ℝ :=
+  Matrix.of fun i j => v j.succ i - v 0 i
+
+@[simp]
+lemma simplexEdgeMatrix_apply {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)) (i j : Fin d) :
+    simplexEdgeMatrix v i j = v j.succ i - v 0 i := by
+  rfl
+
+/-- `simplexEdgeMap v` has the same determinant as the explicit edge matrix `simplexEdgeMatrix v`. -/
+theorem det_simplexEdgeMap_eq_det_matrix {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)) :
+    (simplexEdgeMap v).det = (simplexEdgeMatrix v).det := by
+  rw [← LinearMap.det_toMatrix']
+  congr 1
+  ext i j
+  rw [LinearMap.toMatrix'_apply, simplexEdgeMap_apply, Finset.sum_apply]
+  simp only [Pi.smul_apply, Pi.sub_apply, smul_eq_mul, simplexEdgeMatrix_apply]
+  rw [Finset.sum_eq_single j]
+  · simp
+  · intro k _ hkj
+    simp [Pi.single_eq_of_ne hkj]
+  · intro hj; exact absurd (Finset.mem_univ j) hj
+
 /-- `convexHull ℝ (Set.range v)` is the translate by `v 0` of `simplexEdgeMap v '' solidSimplex d`. -/
 lemma convexHull_range_eq_image_solidSimplex {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)) :
     convexHull ℝ (Set.range v) = (fun x => v 0 + x) '' (simplexEdgeMap v '' solidSimplex d) := by
@@ -439,6 +468,13 @@ theorem volume_convexHull_simplex {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)
   rw [htrans, measure_preimage_add, Measure.addHaar_image_linearMap, volume_solidSimplex,
     ← ENNReal.ofReal_mul (abs_nonneg _), mul_one_div]
 
+/-- **Matrix-determinant form of $d$-simplex volume in `Fin d → ℝ`:**
+`volume (convexHull ℝ (Set.range v)) = ENNReal.ofReal (|(simplexEdgeMatrix v).det| / d!)`. -/
+theorem volume_convexHull_simplex_matrix {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)) :
+    volume (convexHull ℝ (Set.range v)) =
+      ENNReal.ofReal (|(simplexEdgeMatrix v).det| / (d.factorial : ℝ)) := by
+  rw [volume_convexHull_simplex, det_simplexEdgeMap_eq_det_matrix]
+
 /-- **Volume of a $d$-simplex in `EuclideanSpace ℝ (Fin d)`:**
 transfers `volume_convexHull_simplex` via the measure-preserving equivalence `WithLp.ofLp`. -/
 theorem volume_convexHull_simplex_euclideanSpace {d : ℕ}
@@ -465,6 +501,13 @@ theorem volume_convexHull_simplex_euclideanSpace {d : ℕ}
     ((Set.finite_range _).isCompact_convexHull ℝ).isClosed.measurableSet.nullMeasurableSet
   rw [hpre, (EuclideanSpace.volume_preserving_symm_measurableEquiv_toLp (Fin d)).measure_preimage hmeas]
   exact volume_convexHull_simplex (fun i => (v i).ofLp)
+
+/-- **Matrix-determinant form of $d$-simplex volume in `EuclideanSpace ℝ (Fin d)`.** -/
+theorem volume_convexHull_simplex_euclideanSpace_matrix {d : ℕ}
+    (v : Fin (d + 1) → EuclideanSpace ℝ (Fin d)) :
+    volume (convexHull ℝ (Set.range v)) =
+      ENNReal.ofReal (|(simplexEdgeMatrix (fun i => (v i).ofLp)).det| / (d.factorial : ℝ)) := by
+  rw [volume_convexHull_simplex_euclideanSpace, det_simplexEdgeMap_eq_det_matrix]
 
 end
 
