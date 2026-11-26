@@ -3,27 +3,30 @@ module
 public import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 public import Mathlib.Topology.MetricSpace.CoveringNumbers
 
+import Mathlib.Order.Zorn
+
 /-!
 # Volumetric Bounds for Covering and Packing Numbers
 
-This file proves the classical volumetric bounds for covering and packing numbers in any
-finite-dimensional real normed space `E` equipped with an additive Haar measure `μ`
-(Vershynin, *High-Dimensional Probability*, Proposition 4.2.12 & Corollary 4.2.13;
-Ball, *An Elementary Introduction to Modern Convex Geometry*, Lecture 2):
+Volumetric bounds for metric and translative covering/packing numbers in a finite-dimensional
+real normed space `E` with an additive Haar measure `μ`
+(Vershynin, *High-Dimensional Probability*, §4.2; Ball, Lecture 2;
+Artstein-Avidan–Giannopoulos–Milman, *Asymptotic Geometric Analysis I*, §4.1):
 
 1. **General Volumetric Lower Bound (`measure_le_externalCoveringNumber_mul_closedBall`):**
-   For `0 < ε`,
-   $$\mu(A) \le \mathcal{N}_{\mathrm{ext}}(A, \varepsilon) \cdot \mu(\overline{B}(0, \varepsilon)).$$
+   For `0 < ε`, `μ(A) ≤ N_ext(A, ε) * μ(closedBall 0 ε)`.
 2. **General Volumetric Upper Bound (`packingNumber_mul_ball_le_measure_add_ball`):**
-   $$\mathcal{P}(A, \varepsilon) \cdot \mu(B(0, \varepsilon / 2)) \le \mu(A + B(0, \varepsilon / 2)),$$
-   and hence by `Metric.coveringNumber_le_packingNumber`:
-   $$\mathcal{N}(A, \varepsilon) \cdot \mu(B(0, \varepsilon / 2)) \le \mu(A + B(0, \varepsilon / 2)).$$
-3. **Covering and Packing Numbers of the Unit Ball (for ANY norm on $\mathbb{R}^d$):**
-   For `0 < ε` and `d = Module.finrank ℝ E`:
-   - `inv_pow_le_externalCoveringNumber_closedBall`: $(1 / \varepsilon)^d \le \mathcal{N}_{\mathrm{ext}}(B, \varepsilon)$
-   - `packingNumber_closedBall_le`: $\mathcal{P}(B, \varepsilon) \le (2 / \varepsilon + 1)^d$
-   - `coveringNumber_closedBall_le`: $\mathcal{N}(B, \varepsilon) \le (2 / \varepsilon + 1)^d$
-   - `coveringNumber_closedBall_le_three_div`: for $0 < \varepsilon \le 1$, $\mathcal{N}(B, \varepsilon) \le (3 / \varepsilon)^d$.
+   `P(A, ε) * μ(ball 0 (ε / 2)) ≤ μ(A + ball 0 (ε / 2))`, and likewise for `coveringNumber`.
+3. **Unit-Ball Bounds for Any Norm (`inv_pow_le_externalCoveringNumber_closedBall`,
+   `packingNumber_closedBall_le`, `coveringNumber_closedBall_le`,
+   `coveringNumber_closedBall_le_three_div`):**
+   `(1 / ε)^d ≤ N_ext(B, ε)` and `N(B, ε) ≤ P(B, ε) ≤ (2 / ε + 1)^d`.
+4. **Translative Covering Numbers (`IsTranslativeCover`, `translativeCoveringNumber`,
+   `translativeCoveringNumber_mul_le`, `measure_le_translativeCoveringNumber_mul`,
+   `translativeCoveringNumber_sub_mul_le`, `translativeCoveringNumber_symm_smul_le`):**
+   General `N(A, T) = inf { |C| : A ⊆ C + T }`, submultiplicativity, volumetric lower bound,
+   Zorn packing bound `N(A, B - B) * μ(B) ≤ μ(A + B)`, and origin-symmetric homothet bound
+   `N(K, t • K) ≤ (2 / t + 1)^d`.
 -/
 
 open MeasureTheory Set Metric
@@ -357,6 +360,366 @@ theorem coveringNumber_closedBall_le_three_div
     have h1 : (1 : ℝ) ≤ 1 / (ε : ℝ) := (le_div_iff₀ hε_pos).mpr (by linarith)
     linarith [show (3 : ℝ) / ε = 2 / ε + 1 / ε by ring]
   exact pow_le_pow_left₀ (by positivity) hle _
+
+/-! ### 4. Translative Covering Numbers -/
+
+section TranslativeAlgebra
+
+variable {G : Type*} [AddCommGroup G]
+
+/-- A set `C ⊆ G` is a **translative cover** of `A` by `T` if `A ⊆ C + T`, i.e.,
+`A ⊆ ⋃ x ∈ C, (x +ᵥ T)`. -/
+@[expose]
+def IsTranslativeCover (A T C : Set G) : Prop :=
+  A ⊆ C + T
+
+/-- The **translative covering number** `N(A, T)`: the minimum cardinality (in `ℕ∞`) of a set `C`
+such that `A ⊆ C + T`. -/
+@[expose]
+noncomputable def translativeCoveringNumber (A T : Set G) : ℕ∞ :=
+  ⨅ (C : Set G) (_ : IsTranslativeCover A T C), C.encard
+
+lemma translativeCoveringNumber_le_encard {A T C : Set G} (hC : IsTranslativeCover A T C) :
+    translativeCoveringNumber A T ≤ C.encard :=
+  iInf_le_of_le C (iInf_le_of_le hC le_rfl)
+
+lemma le_translativeCoveringNumber_iff {A T : Set G} {n : ℕ∞} :
+    n ≤ translativeCoveringNumber A T ↔ ∀ C : Set G, IsTranslativeCover A T C → n ≤ C.encard := by
+  simp [translativeCoveringNumber]
+
+/-- When `translativeCoveringNumber A T ≠ ⊤`, the infimum is attained by some cover `C`. -/
+lemma exists_isTranslativeCover_encard_eq {A T : Set G}
+    (hfin : translativeCoveringNumber A T ≠ ⊤) :
+    ∃ C : Set G, IsTranslativeCover A T C ∧ C.encard = translativeCoveringNumber A T := by
+  have hne : {n : ℕ∞ | ∃ C : Set G, IsTranslativeCover A T C ∧ C.encard = n}.Nonempty := by
+    by_contra hemp
+    rw [Set.not_nonempty_iff_eq_empty] at hemp
+    have hnone : ∀ C : Set G, ¬ IsTranslativeCover A T C := fun C hC =>
+      Set.notMem_empty C.encard (hemp ▸ ⟨C, hC, rfl⟩)
+    exact hfin (by simp [translativeCoveringNumber, hnone])
+  obtain ⟨n, ⟨C, hC, rfl⟩, hn_min⟩ := WellFounded.has_min wellFounded_lt _ hne
+  refine ⟨C, hC, le_antisymm ?_ (translativeCoveringNumber_le_encard hC)⟩
+  exact le_translativeCoveringNumber_iff.mpr fun D hD => not_lt.mp (hn_min D.encard ⟨D, hD, rfl⟩)
+
+lemma translativeCoveringNumber_mono_left {A₁ A₂ T : Set G} (h : A₁ ⊆ A₂) :
+    translativeCoveringNumber A₁ T ≤ translativeCoveringNumber A₂ T :=
+  le_translativeCoveringNumber_iff.mpr fun _ hC =>
+    translativeCoveringNumber_le_encard (h.trans hC)
+
+lemma translativeCoveringNumber_antitone_right {A T₁ T₂ : Set G} (h : T₁ ⊆ T₂) :
+    translativeCoveringNumber A T₂ ≤ translativeCoveringNumber A T₁ :=
+  le_translativeCoveringNumber_iff.mpr fun _ hC =>
+    translativeCoveringNumber_le_encard (hC.trans (Set.add_subset_add_left h))
+
+@[simp]
+lemma translativeCoveringNumber_empty (T : Set G) :
+    translativeCoveringNumber (∅ : Set G) T = 0 :=
+  le_antisymm
+    (by
+      have h := translativeCoveringNumber_le_encard (C := (∅ : Set G)) (T := T) (Set.empty_subset _)
+      simpa using h)
+    (zero_le)
+
+lemma translativeCoveringNumber_self_le_one (A : Set G) :
+    translativeCoveringNumber A A ≤ 1 := by
+  have hcov : IsTranslativeCover A A {0} := by
+    intro a ha
+    exact ⟨0, Set.mem_singleton 0, a, ha, zero_add a⟩
+  simpa using translativeCoveringNumber_le_encard hcov
+
+lemma one_le_translativeCoveringNumber {A T : Set G} (hA : A.Nonempty) :
+    1 ≤ translativeCoveringNumber A T := by
+  refine le_translativeCoveringNumber_iff.mpr fun C hC => ?_
+  obtain ⟨a, ha⟩ := hA
+  rcases Set.mem_add.mp (hC ha) with ⟨c, hc, _, _, _⟩
+  exact Set.one_le_encard_iff_nonempty.mpr ⟨c, hc⟩
+
+private lemma translativeCoveringNumber_vadd_left_le (x : G) (A T : Set G) :
+    translativeCoveringNumber (x +ᵥ A) T ≤ translativeCoveringNumber A T := by
+  refine le_translativeCoveringNumber_iff.mpr fun C hC => ?_
+  have hcov : IsTranslativeCover (x +ᵥ A) T (x +ᵥ C) := by
+    rintro _ ⟨a, ha, rfl⟩
+    rcases Set.mem_add.mp (hC ha) with ⟨c, hc, t, ht, rfl⟩
+    exact ⟨x + c, ⟨c, hc, rfl⟩, t, ht, add_assoc x c t⟩
+  have hcard : (x +ᵥ C).encard = C.encard :=
+    (add_right_injective x).encard_image C
+  exact hcard ▸ translativeCoveringNumber_le_encard hcov
+
+@[simp]
+lemma translativeCoveringNumber_vadd_left (x : G) (A T : Set G) :
+    translativeCoveringNumber (x +ᵥ A) T = translativeCoveringNumber A T :=
+  le_antisymm (translativeCoveringNumber_vadd_left_le x A T)
+    (by simpa using translativeCoveringNumber_vadd_left_le (-x) (x +ᵥ A) T)
+
+private lemma translativeCoveringNumber_vadd_right_le (x : G) (A T : Set G) :
+    translativeCoveringNumber A (x +ᵥ T) ≤ translativeCoveringNumber A T := by
+  refine le_translativeCoveringNumber_iff.mpr fun C hC => ?_
+  have hcov : IsTranslativeCover A (x +ᵥ T) ((-x) +ᵥ C) := by
+    intro a ha
+    rcases Set.mem_add.mp (hC ha) with ⟨c, hc, t, ht, rfl⟩
+    exact ⟨-x + c, ⟨c, hc, rfl⟩, x + t, ⟨t, ht, rfl⟩, by abel_nf⟩
+  have hcard : ((-x) +ᵥ C).encard = C.encard :=
+    (add_right_injective (-x)).encard_image C
+  exact hcard ▸ translativeCoveringNumber_le_encard hcov
+
+@[simp]
+lemma translativeCoveringNumber_vadd_right (x : G) (A T : Set G) :
+    translativeCoveringNumber A (x +ᵥ T) = translativeCoveringNumber A T :=
+  le_antisymm (translativeCoveringNumber_vadd_right_le x A T)
+    (by simpa using translativeCoveringNumber_vadd_right_le (-x) A (x +ᵥ T))
+
+/-- **Submultiplicativity of translative covering numbers:**
+when `B` is nonempty, `N(A, T) ≤ N(A, B) * N(B, T)`. -/
+theorem translativeCoveringNumber_mul_le (A : Set G) {B : Set G} (hB : B.Nonempty) (T : Set G) :
+    translativeCoveringNumber A T ≤
+      translativeCoveringNumber A B * translativeCoveringNumber B T := by
+  rcases A.eq_empty_or_nonempty with rfl | hAne
+  · simp
+  have hAB_pos : translativeCoveringNumber A B ≠ 0 :=
+    (one_le_translativeCoveringNumber hAne).trans_lt' (by decide) |>.ne'
+  have hBT_pos : translativeCoveringNumber B T ≠ 0 :=
+    (one_le_translativeCoveringNumber hB).trans_lt' (by decide) |>.ne'
+  by_cases hAB : translativeCoveringNumber A B = ⊤
+  · rw [hAB, ENat.top_mul hBT_pos]; exact le_top
+  by_cases hBT : translativeCoveringNumber B T = ⊤
+  · rw [hBT, ENat.mul_top hAB_pos]; exact le_top
+  obtain ⟨C₁, hC₁, hc₁⟩ := exists_isTranslativeCover_encard_eq hAB
+  obtain ⟨C₂, hC₂, hc₂⟩ := exists_isTranslativeCover_encard_eq hBT
+  have hcov : IsTranslativeCover A T (C₁ + C₂) := by
+    intro a ha
+    rcases Set.mem_add.mp (hC₁ ha) with ⟨c₁, hc₁m, b, hb, rfl⟩
+    rcases Set.mem_add.mp (hC₂ hb) with ⟨c₂, hc₂m, t, ht, rfl⟩
+    exact ⟨c₁ + c₂, Set.add_mem_add hc₁m hc₂m, t, ht, add_assoc c₁ c₂ t⟩
+  have hadd_eq : C₁ + C₂ = (fun p : G × G => p.1 + p.2) '' (C₁ ×ˢ C₂) := by
+    ext z
+    simp only [Set.mem_add, Set.mem_image, Set.mem_prod, Prod.exists]
+    exact ⟨fun ⟨a, ha, b, hb, h⟩ => ⟨a, b, ⟨ha, hb⟩, h⟩,
+      fun ⟨a, b, ⟨ha, hb⟩, h⟩ => ⟨a, ha, b, hb, h⟩⟩
+  have hcard : (C₁ + C₂).encard ≤ C₁.encard * C₂.encard := by
+    rw [hadd_eq]
+    exact (Set.encard_image_le _ _).trans_eq Set.encard_prod
+  exact (translativeCoveringNumber_le_encard hcov).trans (by rwa [hc₁, hc₂] at hcard)
+
+end TranslativeAlgebra
+
+section TranslativeScaling
+
+variable {V : Type*} [AddCommGroup V] [Module ℝ V]
+
+private lemma translativeCoveringNumber_smul_le {c : ℝ} (hc : c ≠ 0) (A T : Set V) :
+    translativeCoveringNumber (c • A) (c • T) ≤ translativeCoveringNumber A T := by
+  refine le_translativeCoveringNumber_iff.mpr fun C hC => ?_
+  have hcov : IsTranslativeCover (c • A) (c • T) (c • C) := by
+    rintro _ ⟨a, ha, rfl⟩
+    rcases Set.mem_add.mp (hC ha) with ⟨x, hx, t, ht, rfl⟩
+    exact ⟨c • x, Set.smul_mem_smul_set hx, c • t, Set.smul_mem_smul_set ht, (smul_add c x t).symm⟩
+  have hcard : (c • C).encard = C.encard :=
+    (smul_right_injective V hc).encard_image C
+  exact hcard ▸ translativeCoveringNumber_le_encard hcov
+
+/-- Scale invariance of translative covering numbers for any nonzero scalar `c`. -/
+lemma translativeCoveringNumber_smul {c : ℝ} (hc : c ≠ 0) (A T : Set V) :
+    translativeCoveringNumber (c • A) (c • T) = translativeCoveringNumber A T := by
+  refine le_antisymm (translativeCoveringNumber_smul_le hc A T) ?_
+  have h := translativeCoveringNumber_smul_le (inv_ne_zero hc) (c • A) (c • T)
+  simpa [smul_smul, inv_mul_cancel₀ hc] using h
+
+end TranslativeScaling
+
+/-! ### 5. Volumetric Bounds for Translative Covering Numbers -/
+
+omit [NormedSpace ℝ E] [FiniteDimensional ℝ E] in
+private lemma addHaar_vadd (μ : Measure E) [μ.IsAddHaarMeasure] (x : E) (S : Set E) :
+    μ (x +ᵥ S) = μ S := by
+  have hpre : x +ᵥ S = (fun y : E => -x + y) ⁻¹' S := by
+    ext y
+    simp only [Set.mem_vadd_set, mem_preimage, vadd_eq_add]
+    exact ⟨fun ⟨s, hs, h⟩ => by rwa [← h, neg_add_cancel_left],
+      fun hy => ⟨-x + y, hy, add_neg_cancel_left x y⟩⟩
+  rw [hpre, measure_preimage_add]
+
+omit [NormedSpace ℝ E] [FiniteDimensional ℝ E] in
+/-- **Volumetric Lower Bound for Translative Covering Number:**
+whenever `μ T ≠ 0`, `μ A ≤ N(A, T) * μ T`. -/
+theorem measure_le_translativeCoveringNumber_mul (μ : Measure E) [μ.IsAddHaarMeasure]
+    (A : Set E) {T : Set E} (hT : μ T ≠ 0) :
+    μ A ≤ (translativeCoveringNumber A T : ℝ≥0∞) * μ T := by
+  by_cases htop : translativeCoveringNumber A T = ⊤
+  · rw [htop, ENat.toENNReal_top, ENNReal.top_mul hT]; exact le_top
+  obtain ⟨C, hC, hcard⟩ := exists_isTranslativeCover_encard_eq htop
+  have hfin : C.Finite := Set.encard_ne_top_iff.mp (hcard ▸ htop)
+  have hsub : A ⊆ ⋃ x ∈ hfin.toFinset, x +ᵥ T := by
+    intro a ha
+    rcases Set.mem_add.mp (hC ha) with ⟨x, hx, t, ht, rfl⟩
+    exact mem_iUnion₂.mpr ⟨x, hfin.mem_toFinset.mpr hx, ⟨t, ht, rfl⟩⟩
+  calc
+    μ A ≤ μ (⋃ x ∈ hfin.toFinset, x +ᵥ T) := measure_mono hsub
+    _ ≤ ∑ x ∈ hfin.toFinset, μ (x +ᵥ T) := measure_biUnion_finset_le _ _
+    _ = ∑ _x ∈ hfin.toFinset, μ T := Finset.sum_congr rfl fun x _ => addHaar_vadd μ x T
+    _ = (hfin.toFinset.card : ℝ≥0∞) * μ T := by simp
+    _ = (translativeCoveringNumber A T : ℝ≥0∞) * μ T := by
+          rw [← hcard, hfin.encard_eq_coe_toFinset_card]; simp
+
+/-- **Zorn Packing / Difference-Body Upper Bound (Ball / Artstein-Avidan–Giannopoulos–Milman):**
+for any `A ⊆ E` and any nonempty measurable set `B ⊆ E`,
+`N(A, B - B) * μ B ≤ μ (A + B)`. -/
+theorem translativeCoveringNumber_sub_mul_le (μ : Measure E) [μ.IsAddHaarMeasure]
+    (A : Set E) {B : Set E} (hBne : B.Nonempty) (hBm : MeasurableSet B) :
+    (translativeCoveringNumber A (B - B) : ℝ≥0∞) * μ B ≤ μ (A + B) := by
+  let ℱ : Set (Set E) := {C | C ⊆ A ∧ Set.PairwiseDisjoint C (fun x => x +ᵥ B)}
+  have hchain : ∀ c ⊆ ℱ, IsChain (· ⊆ ·) c → ∃ ub ∈ ℱ, ∀ s ∈ c, s ⊆ ub := by
+    intro c hc hch
+    refine ⟨⋃₀ c, ⟨?_, ?_⟩, fun s hs => Set.subset_sUnion_of_mem hs⟩
+    · exact Set.sUnion_subset fun s hs => (hc hs).1
+    · rintro x ⟨s₁, hs₁, hx⟩ y ⟨s₂, hs₂, hy⟩ hxy
+      rcases hch.total hs₁ hs₂ with h12 | h21
+      · exact (hc hs₂).2 (h12 hx) hy hxy
+      · exact (hc hs₁).2 hx (h21 hy) hxy
+  obtain ⟨C, hCmem, hCmax⟩ := zorn_subset ℱ hchain
+  -- Maximality implies `C` covers `A` by translates of `B - B`.
+  have hcov : IsTranslativeCover A (B - B) C := by
+    intro a ha
+    by_cases haC : a ∈ C
+    · obtain ⟨b, hb⟩ := hBne
+      exact ⟨a, haC, 0, ⟨b, hb, b, hb, sub_self b⟩, add_zero a⟩
+    · have hnot : ¬ (insert a C ∈ ℱ) := fun hins =>
+        haC (hCmax hins (Set.subset_insert a C) (Set.mem_insert a C))
+      have hnot_disj : ¬ Set.PairwiseDisjoint (insert a C) (fun x => x +ᵥ B) := fun hpd =>
+        hnot ⟨Set.insert_subset ha hCmem.1, hpd⟩
+      have hex : ∃ x ∈ C, ¬ Disjoint (a +ᵥ B) (x +ᵥ B) := by
+        by_contra hnone
+        push Not at hnone
+        apply hnot_disj
+        rintro x (rfl | hx) y (rfl | hy) hxy
+        · exact (hxy rfl).elim
+        · exact hnone y hy
+        · exact (hnone x hx).symm
+        · exact hCmem.2 hx hy hxy
+      obtain ⟨x, hxC, hnd⟩ := hex
+      rw [Set.not_disjoint_iff] at hnd
+      rcases hnd with ⟨z, ⟨b₁, hb₁, hz₁⟩, ⟨b₂, hb₂, hz₂⟩⟩
+      refine ⟨x, hxC, b₂ - b₁, Set.sub_mem_sub hb₂ hb₁, ?_⟩
+      change a + b₁ = z at hz₁
+      change x + b₂ = z at hz₂
+      rw [← hz₁] at hz₂
+      calc
+        x + (b₂ - b₁) = (x + b₂) - b₁ := (add_sub_assoc x b₂ b₁).symm
+        _ = (a + b₁) - b₁ := by rw [hz₂]
+        _ = a := add_sub_cancel_right a b₁
+  -- Every finite subset `F ⊆ C` satisfies `F.card * μ B ≤ μ (A + B)`.
+  have hfin_bound : ∀ F : Finset E, (F : Set E) ⊆ C → (F.card : ℝ≥0∞) * μ B ≤ μ (A + B) := by
+    intro F hFC
+    have hdisj : Set.PairwiseDisjoint (F : Set E) (fun x => x +ᵥ B) := hCmem.2.subset hFC
+    have hmeas : ∀ x ∈ F, MeasurableSet (x +ᵥ B) := fun x _ => by
+      have hpre : x +ᵥ B = (fun y : E => -x + y) ⁻¹' B := by
+        ext y; simp only [Set.mem_vadd_set, mem_preimage, vadd_eq_add]
+        exact ⟨fun ⟨s, hs, h⟩ => by rwa [← h, neg_add_cancel_left],
+          fun hy => ⟨-x + y, hy, add_neg_cancel_left x y⟩⟩
+      rw [hpre]
+      exact (measurable_const.add measurable_id) hBm
+    have hsub : (⋃ x ∈ F, x +ᵥ B) ⊆ A + B := by
+      intro z hz
+      rcases mem_iUnion₂.mp hz with ⟨x, hxF, b, hb, rfl⟩
+      exact Set.add_mem_add (hCmem.1 (hFC hxF)) hb
+    calc
+      (F.card : ℝ≥0∞) * μ B = ∑ _x ∈ F, μ B := by simp
+      _ = ∑ x ∈ F, μ (x +ᵥ B) := Finset.sum_congr rfl fun x _ => (addHaar_vadd μ x B).symm
+      _ = μ (⋃ x ∈ F, x +ᵥ B) := (measure_biUnion_finset hdisj hmeas).symm
+      _ ≤ μ (A + B) := measure_mono hsub
+  have hC_bound : (C.encard : ℝ≥0∞) * μ B ≤ μ (A + B) := by
+    by_cases hfin : C.Finite
+    · rw [hfin.encard_eq_coe_toFinset_card]
+      simpa using hfin_bound hfin.toFinset (by simp)
+    · rw [Set.Infinite.encard_eq hfin, ENat.toENNReal_top]
+      by_cases hB0 : μ B = 0
+      · simp [hB0]
+      by_cases hBtop : μ B = ⊤
+      · obtain ⟨x, hxC⟩ := Set.Infinite.nonempty hfin
+        have hsub : x +ᵥ B ⊆ A + B := by
+          rintro _ ⟨b, hb, rfl⟩; exact Set.add_mem_add (hCmem.1 hxC) hb
+        have htop : μ (A + B) = ⊤ :=
+          top_unique (by rw [← hBtop, ← addHaar_vadd μ x B]; exact measure_mono hsub)
+        rw [htop]; exact le_top
+      rw [ENNReal.top_mul hB0, top_le_iff]
+      by_contra hne_top
+      obtain ⟨n, hn⟩ := exists_nat_gt ((μ (A + B)).toReal / (μ B).toReal)
+      obtain ⟨F, hFC, hFcard⟩ := Set.Infinite.exists_subset_card_eq hfin n
+      have hle := hfin_bound F hFC
+      rw [hFcard] at hle
+      have hle_real := ENNReal.toReal_mono hne_top hle
+      rw [ENNReal.toReal_mul, ENNReal.toReal_natCast] at hle_real
+      have hBpos : 0 < (μ B).toReal := ENNReal.toReal_pos hB0 hBtop
+      have hlt_real : (μ (A + B)).toReal < (n : ℝ) * (μ B).toReal :=
+        (div_lt_iff₀ hBpos).mp hn
+      linarith
+  exact (mul_le_mul_left (by exact_mod_cast translativeCoveringNumber_le_encard hcov) (μ B)).trans
+    hC_bound
+
+/-- **Homothet Covering Bound for Origin-Symmetric Convex Sets:**
+for a measurable convex origin-symmetric set `K ⊆ E` with `0 < μ K < ∞` and any `t > 0`,
+`N(K, t • K) ≤ (2 / t + 1) ^ finrank ℝ E`. -/
+theorem translativeCoveringNumber_symm_smul_le (μ : Measure E) [μ.IsAddHaarMeasure]
+    {K : Set E} (hKconv : Convex ℝ K) (hKsymm : ∀ x ∈ K, -x ∈ K)
+    (hKm : MeasurableSet K) (hK0 : μ K ≠ 0) (hKtop : μ K ≠ ⊤) {t : ℝ} (ht : 0 < t) :
+    (translativeCoveringNumber K (t • K) : ℝ≥0∞) ≤
+      ENNReal.ofReal ((2 / t + 1) ^ Module.finrank ℝ E) := by
+  set d := Module.finrank ℝ E
+  have hKne : K.Nonempty := by
+    by_contra hemp
+    rw [Set.not_nonempty_iff_eq_empty] at hemp
+    exact hK0 (by simp [hemp])
+  have hhalf_pos : 0 < t / 2 := half_pos ht
+  let B : Set E := (t / 2 : ℝ) • K
+  have hBne : B.Nonempty := hKne.smul_set
+  have hBm : MeasurableSet B := by
+    have hpre : B = (fun y : E => (t / 2 : ℝ)⁻¹ • y) ⁻¹' K := by
+      ext y; simp only [B, Set.mem_smul_set, mem_preimage]
+      exact ⟨fun ⟨x, hx, h⟩ => by rw [← h, smul_smul, inv_mul_cancel₀ hhalf_pos.ne', one_smul]; exact hx,
+        fun hy => ⟨(t / 2 : ℝ)⁻¹ • y, hy, by rw [smul_smul, mul_inv_cancel₀ hhalf_pos.ne', one_smul]⟩⟩
+    rw [hpre]
+    exact (measurable_const.smul measurable_id) hKm
+  have hdiff_sub : B - B ⊆ t • K := by
+    rintro z ⟨_, ⟨x, hx, rfl⟩, _, ⟨y, hy, rfl⟩, rfl⟩
+    refine ⟨(1 / 2 : ℝ) • x + (1 / 2 : ℝ) • (-y),
+      hKconv hx (hKsymm y hy) (by norm_num) (by norm_num) (by norm_num), ?_⟩
+    dsimp only
+    rw [smul_add, smul_smul, smul_smul, smul_neg, sub_eq_add_neg]
+    ring_nf
+  have hadd_sub : K + B ⊆ (1 + t / 2) • K := by
+    rintro z ⟨x, hx, _, ⟨y, hy, rfl⟩, rfl⟩
+    have hc : 0 < 1 + t / 2 := by linarith
+    refine ⟨(1 / (1 + t / 2)) • x + ((t / 2) / (1 + t / 2)) • y,
+      hKconv hx hy (by positivity) (by positivity) (by field_simp [hc.ne']), ?_⟩
+    dsimp only
+    rw [smul_add, smul_smul, smul_smul]
+    congr 1
+    · rw [mul_one_div_cancel hc.ne', one_smul]
+    · congr 1; field_simp [hc.ne']
+  have hpack := translativeCoveringNumber_sub_mul_le μ K hBne hBm
+  have h1 : (translativeCoveringNumber K (t • K) : ℝ≥0∞) * μ B ≤ μ ((1 + t / 2) • K) := by
+    calc
+      (translativeCoveringNumber K (t • K) : ℝ≥0∞) * μ B
+        ≤ (translativeCoveringNumber K (B - B) : ℝ≥0∞) * μ B := by
+          gcongr
+          exact translativeCoveringNumber_antitone_right hdiff_sub
+      _ ≤ μ (K + B) := hpack
+      _ ≤ μ ((1 + t / 2) • K) := measure_mono hadd_sub
+  have hBvol : μ B = ENNReal.ofReal ((t / 2) ^ d) * μ K := by
+    rw [Measure.addHaar_smul, abs_of_nonneg (pow_nonneg hhalf_pos.le _)]
+  have haddvol : μ ((1 + t / 2) • K) =
+      ENNReal.ofReal ((2 / t + 1) ^ d) * μ B := by
+    have hfac : (1 + t / 2) ^ d = (2 / t + 1) ^ d * (t / 2) ^ d := by
+      rw [← mul_pow]; congr 1; field_simp [ht.ne']
+    rw [Measure.addHaar_smul, abs_of_nonneg (pow_nonneg (by positivity : (0 : ℝ) ≤ 1 + t / 2) _),
+      hfac, ENNReal.ofReal_mul (by positivity), mul_assoc, ← hBvol]
+  rw [haddvol] at h1
+  have hB0 : μ B ≠ 0 := by
+    rw [hBvol]
+    exact mul_ne_zero (ENNReal.ofReal_pos.mpr (pow_pos hhalf_pos d)).ne' hK0
+  have hBtop : μ B ≠ ⊤ := by
+    rw [hBvol]
+    exact ENNReal.mul_ne_top ENNReal.ofReal_ne_top hKtop
+  exact ennreal_le_of_mul_le_mul_right hB0 hBtop h1
 
 end
 

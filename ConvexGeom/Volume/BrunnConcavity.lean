@@ -1,6 +1,7 @@
 module
 
 public import ConvexGeom.Volume.BrunnMinkowski
+public import ConvexGeom.Volume.CoveringNumbers
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 
 import ConvexGeom.Volume.Continuity
@@ -14,28 +15,28 @@ import Mathlib.MeasureTheory.Measure.Prod
 /-!
 # Brunn's Concavity Principle, Log-Concave Convolutions, and Rogers–Shephard
 
-This file develops classical volumetric consequences of Brunn–Minkowski and Prékopa–Leindler
-(Rogers–Shephard, *The difference body of a convex body*, Arch. Math. 8 (1957), 220–233;
-Ball, *An Elementary Introduction to Modern Convex Geometry*, Lecture 5; Klartag, Lectures 1–2;
-Artstein-Avidan–Giannopoulos–Milman, *Asymptotic Geometric Analysis I*, Ch. 1–2;
+Volumetric consequences of Brunn–Minkowski and Prékopa–Leindler
+(Rogers–Shephard (1957); Ball, Lecture 5; Klartag, Lectures 1–2;
+Artstein-Avidan–Giannopoulos–Milman, *Asymptotic Geometric Analysis I*, Ch. 1–2 & §4.1;
 Schneider, *Convex Bodies*, §7.1 & §10.1):
 
-1. **Brunn's Concavity Principle for Parallel Sections:**
-   For a compact convex set `K ⊆ ℝ × E` (`d = finrank ℝ E`), the slice volume
-   `t ↦ volume {y : E | (t, y) ∈ K}` is log-concave (`logConcave_sections`), and for `d ≥ 1`,
-   `t ↦ volume {y : E | (t, y) ∈ K} ^ (1 / d : ℝ)` is concave on the projection of `K`
-   (`brunn_concavity_sections`, `concaveOn_volume_slice_rpow`).
+1. **Brunn's Concavity Principle (`logConcave_sections`, `brunn_concavity_sections`,
+   `concaveOn_volume_slice_rpow`):**
+   Parallel slice volumes of a compact convex set `K ⊆ ℝ × E` are log-concave, and their
+   `1 / d`-th roots are concave.
 2. **Log-Concavity of Convolutions (`logConcave_convolution`):**
-   If `f, g : E → ℝ≥0∞` are measurable log-concave, then `(f ⋆ g)(z) = ∫⁻ x, f x * g (z - x)`
-   is log-concave.
-3. **Covariogram (`covariogram`) & Difference Body (`covariogram_lintegral`,
-   `covariogram_rpow_concave`):**
-   `covariogram μ K x := μ {y | y ∈ K ∧ y - x ∈ K}` satisfies
-   `∫⁻ x, covariogram volume K x = volume K * volume K`, is even, supported on `K - K`,
-   and has a concave `1 / d`-th root on `K - K`.
-4. **Rogers–Shephard Inequality (`rogers_shephard`) and Lower Bound (`two_pow_mul_volume_le_volume_diff`):**
-   For every compact convex `K ⊆ E` in dimension `d = finrank ℝ E`:
-   $$2^d\,\mathrm{vol}(K) \le \mathrm{vol}(K - K) \le \binom{2d}{d}\,\mathrm{vol}(K).$$
+   The convolution of measurable log-concave functions `E → ℝ≥0∞` is log-concave.
+3. **Covariogram (`covariogram`, `covariogram_lintegral`, `covariogram_rpow_concave`):**
+   `g(x) = μ(K ∩ (x + K))` integrates to `μ(K)²`, is even, supported on `K - K`, and has a
+   concave `1 / d`-th root on `K - K`.
+4. **Rogers–Shephard Inequality (`rogers_shephard`, `two_pow_mul_volume_le_volume_diff`):**
+   `2^d * vol(K) ≤ vol(K - K) ≤ C(2d, d) * vol(K)` for compact convex `K`.
+5. **Central Intersection Lemma & Asymmetric Covering Bounds (`reflectedCovariogram`,
+   `exists_reflectedCovariogram_ge`, `translativeCoveringNumber_mul_volume_le_four_pow`,
+   `translativeCoveringNumber_convex_smul_le`):**
+   Every measurable finite-volume convex set `K` has a center `z` with
+   `vol(K) ≤ 2^d * vol(K ∩ (z - K))`, yielding Milman / Rogers–Zong's asymmetric covering bound
+   `N(A, T) * vol(T) ≤ 4^d * vol(A + (1 / 2) • T)` and `N(K, t • K) ≤ (4 / t + 2)^d`.
 -/
 
 open MeasureTheory Set
@@ -668,6 +669,278 @@ theorem rogers_shephard {K : Set E} (hKconv : Convex ℝ K) (hKc : IsCompact K) 
   rwa [mul_left_comm, hcancel, mul_one] at hmul
 
 end CovariogramAndRogersShephard
+
+/-! ### 5. Central Intersection Lemma and Asymmetric Covering Bounds -/
+
+section CentralIntersectionAndCovering
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [MeasurableSpace E] [BorelSpace E]
+
+/-- The **reflected covariogram** (or convolution of `1_K` with itself):
+`reflectedCovariogram μ K z := μ {y : E | y ∈ K ∧ z - y ∈ K} = μ (K ∩ (z - K))`. -/
+@[expose]
+noncomputable def reflectedCovariogram (μ : Measure E) (K : Set E) (z : E) : ℝ≥0∞ :=
+  μ {y : E | y ∈ K ∧ z - y ∈ K}
+
+omit [NormedSpace ℝ E] [FiniteDimensional ℝ E] [BorelSpace E] in
+lemma reflectedCovariogram_eq_zero_of_notMem_add (μ : Measure E) {K : Set E} {z : E}
+    (hz : z ∉ K + K) : reflectedCovariogram μ K z = 0 := by
+  have hemp : {y : E | y ∈ K ∧ z - y ∈ K} = ∅ := by
+    ext y
+    simp only [mem_ofPred_eq, mem_empty_iff_false, iff_false, not_and]
+    intro hy hzy
+    exact hz ⟨y, hy, z - y, hzy, add_sub_cancel y z⟩
+  simp [reflectedCovariogram, hemp]
+
+lemma measurable_reflectedCovariogram (μ : Measure E) [μ.IsAddHaarMeasure]
+    {K : Set E} (hKm : MeasurableSet K) :
+    Measurable (reflectedCovariogram μ K) := by
+  let S : Set (E × E) := {p : E × E | p.2 ∈ K ∧ p.1 - p.2 ∈ K}
+  have hSm : MeasurableSet S :=
+    (measurable_snd hKm).inter ((measurable_fst.sub measurable_snd) hKm)
+  have heq : reflectedCovariogram μ K =
+      fun z => ∫⁻ y : E, S.indicator (1 : E × E → ℝ≥0∞) (z, y) ∂μ := by
+    ext z
+    unfold reflectedCovariogram
+    have hfun : (fun y : E => S.indicator (1 : E × E → ℝ≥0∞) (z, y)) =
+        {y : E | y ∈ K ∧ z - y ∈ K}.indicator 1 := by
+      ext y; by_cases hy : y ∈ K ∧ z - y ∈ K <;> simp [S, hy]
+    have hzm : MeasurableSet {y : E | y ∈ K ∧ z - y ∈ K} :=
+      hKm.inter ((measurable_const.sub measurable_id) hKm)
+    rw [hfun, lintegral_indicator_one hzm]
+  rw [heq]
+  exact Measurable.lintegral_prod_right' (measurable_const.indicator hSm)
+
+/-- **Reflected covariogram integral identity:**
+for any measurable `K ⊆ E` and additive Haar measure `μ`,
+`∫⁻ z, reflectedCovariogram μ K z ∂μ = μ K * μ K`. -/
+theorem reflectedCovariogram_lintegral (μ : Measure E) [μ.IsAddHaarMeasure]
+    {K : Set E} (hKm : MeasurableSet K) :
+    ∫⁻ z : E, reflectedCovariogram μ K z ∂μ = μ K * μ K := by
+  let S : Set (E × E) := {p : E × E | p.2 ∈ K ∧ p.1 - p.2 ∈ K}
+  have hSm : MeasurableSet S :=
+    (measurable_snd hKm).inter ((measurable_fst.sub measurable_snd) hKm)
+  have hslice_z : ∀ z : E,
+      reflectedCovariogram μ K z = ∫⁻ y : E, S.indicator 1 (z, y) ∂μ := fun z => by
+    unfold reflectedCovariogram
+    have heq : (fun y : E => S.indicator (1 : E × E → ℝ≥0∞) (z, y)) =
+        {y : E | y ∈ K ∧ z - y ∈ K}.indicator 1 := by
+      ext y; by_cases hy : y ∈ K ∧ z - y ∈ K <;> simp [S, hy]
+    have hzm : MeasurableSet {y : E | y ∈ K ∧ z - y ∈ K} :=
+      hKm.inter ((measurable_const.sub measurable_id) hKm)
+    rw [heq, lintegral_indicator_one hzm]
+  simp_rw [hslice_z]
+  rw [lintegral_lintegral_swap (f := fun z y => S.indicator (1 : E × E → ℝ≥0∞) (z, y))
+    (measurable_const.indicator hSm).aemeasurable]
+  have hslice_y : ∀ y : E, ∫⁻ z : E, S.indicator 1 (z, y) ∂μ = K.indicator (fun _ => μ K) y := by
+    intro y
+    by_cases hy : y ∈ K
+    · have heq : (fun z : E => S.indicator (1 : E × E → ℝ≥0∞) (z, y)) =
+          {z : E | z - y ∈ K}.indicator 1 := by
+        ext z; by_cases hz : z - y ∈ K <;> simp [S, hy, hz]
+      have hym : MeasurableSet {z : E | z - y ∈ K} := (measurable_id.sub measurable_const) hKm
+      rw [heq, lintegral_indicator_one hym, indicator_of_mem hy]
+      have hpre : {z : E | z - y ∈ K} = (fun z : E => -y + z) ⁻¹' K := by
+        ext z; simp [sub_eq_add_neg, add_comm]
+      rw [hpre, measure_preimage_add]
+    · have heq : ∀ z : E, S.indicator (1 : E × E → ℝ≥0∞) (z, y) = 0 := fun z => by
+        simp [S, hy]
+      simp [heq, hy]
+  simp_rw [hslice_y]
+  rw [lintegral_indicator hKm, lintegral_const, Measure.restrict_apply_univ, mul_comm]
+
+/-- **Central Intersection Lemma (Milman / Rogers–Zong):**
+for every measurable convex set `K ⊆ E` with finite Haar measure in dimension `d = finrank ℝ E`,
+there exists a center `z : E` such that `μ K ≤ 2 ^ d * μ (K ∩ (z - K))`. -/
+theorem exists_reflectedCovariogram_ge (μ : Measure E) [μ.IsAddHaarMeasure]
+    {K : Set E} (hKconv : Convex ℝ K) (hKm : MeasurableSet K) (hKfin : μ K ≠ ⊤) :
+    ∃ z : E, μ K ≤ (2 : ℝ≥0∞) ^ Module.finrank ℝ E * reflectedCovariogram μ K z := by
+  set d := Module.finrank ℝ E
+  by_cases hK0 : μ K = 0
+  · exact ⟨0, by simp [hK0]⟩
+  have h2d_ne0 : (2 : ℝ≥0∞) ^ d ≠ 0 := pow_ne_zero d (by norm_num)
+  have h2d_top : (2 : ℝ≥0∞) ^ d ≠ ⊤ := ENNReal.pow_ne_top (by norm_num)
+  have hKK_eq : K + K = (2 : ℝ) • K := by
+    ext z
+    simp only [Set.mem_add, Set.mem_smul_set]
+    constructor
+    · rintro ⟨x, hx, y, hy, rfl⟩
+      refine ⟨(1 / 2 : ℝ) • x + (1 / 2 : ℝ) • y,
+        hKconv hx hy (by norm_num) (by norm_num) (by norm_num), ?_⟩
+      rw [smul_add, smul_smul, smul_smul]; norm_num
+    · rintro ⟨x, hx, rfl⟩
+      exact ⟨x, hx, x, hx, (two_smul ℝ x).symm⟩
+  have hKKm : MeasurableSet (K + K) := by
+    rw [hKK_eq]
+    have hpre : (2 : ℝ) • K = (fun y : E => (2 : ℝ)⁻¹ • y) ⁻¹' K := by
+      ext y; simp only [Set.mem_smul_set, mem_preimage]
+      exact ⟨fun ⟨x, hx, h⟩ => by rw [← h, smul_smul]; norm_num; exact hx,
+        fun hy => ⟨(2 : ℝ)⁻¹ • y, hy, by rw [smul_smul]; norm_num⟩⟩
+    rw [hpre]
+    exact (measurable_const.smul measurable_id) hKm
+  have hKK_vol : μ (K + K) = (2 : ℝ≥0∞) ^ d * μ K := by
+    rw [hKK_eq, Measure.addHaar_smul, abs_of_nonneg (pow_nonneg (by norm_num : (0 : ℝ) ≤ 2) _),
+      ENNReal.ofReal_pow (by norm_num : (0 : ℝ) ≤ 2)]
+    simp [d]
+  by_contra hcontra
+  push Not at hcontra
+  let f : E → ℝ≥0∞ := reflectedCovariogram μ K
+  let c : ℝ≥0∞ := μ K / (2 : ℝ≥0∞) ^ d
+  have hf_meas : Measurable f := measurable_reflectedCovariogram μ hKm
+  have hflt : ∀ z : E, f z < c := fun z => by
+    rw [ENNReal.lt_div_iff_mul_lt (Or.inl h2d_ne0) (Or.inl h2d_top), mul_comm]
+    exact hcontra z
+  have hrestrict_eq : ∫⁻ z in K + K, f z ∂μ = μ K * μ K := by
+    rw [← lintegral_indicator hKKm]
+    have hind : (K + K).indicator f = f := by
+      ext z
+      by_cases hz : z ∈ K + K
+      · simp [hz]
+      · simp [hz, f, reflectedCovariogram_eq_zero_of_notMem_add μ hz]
+    rw [hind]
+    exact reflectedCovariogram_lintegral μ hKm
+  have hc_mul : c * μ (K + K) = μ K * μ K := by
+    rw [hKK_vol, ← mul_assoc, ENNReal.div_mul_cancel h2d_ne0 h2d_top]
+  have hadd : (∫⁻ z in K + K, f z ∂μ) + (∫⁻ z in K + K, (c - f z) ∂μ) = c * μ (K + K) := by
+    rw [← lintegral_add_left hf_meas]
+    refine (setLIntegral_congr_fun hKKm fun z _ => add_tsub_cancel_of_le (hflt z).le).trans ?_
+    simp
+  rw [hrestrict_eq, hc_mul] at hadd
+  have hzero : ∫⁻ z in K + K, (c - f z) ∂μ = 0 := by
+    have hfin_sq : μ K * μ K ≠ ⊤ := ENNReal.mul_ne_top hKfin hKfin
+    have := (ENNReal.add_right_inj hfin_sq).mp (hadd.trans (add_zero _).symm)
+    exact this
+  have hzero_ae : ∀ᵐ z ∂(μ.restrict (K + K)), c - f z = 0 :=
+    (lintegral_eq_zero_iff (f := fun z => c - f z) (measurable_const.sub hf_meas)).mp hzero
+  have hfalse : ∀ᵐ z ∂(μ.restrict (K + K)), False := by
+    filter_upwards [hzero_ae] with z hz
+    exact (tsub_pos_iff_lt.mpr (hflt z)).ne' hz
+  have hKK0 : μ (K + K) = 0 := by
+    simpa [Measure.restrict_apply_univ] using ae_iff.mp hfalse
+  rw [hKK_vol] at hKK0
+  exact mul_ne_zero h2d_ne0 hK0 hKK0
+
+/-- **Asymmetric Volumetric Covering Bound (Milman / Rogers–Zong):**
+for any set `A ⊆ E` and any measurable convex set `T ⊆ E` with finite Haar measure in dimension
+`d = finrank ℝ E`:
+`N(A, T) * μ T ≤ 4 ^ d * μ (A + (1 / 2) • T)`. -/
+theorem translativeCoveringNumber_mul_volume_le_four_pow (μ : Measure E) [μ.IsAddHaarMeasure]
+    (A : Set E) {T : Set E} (hTconv : Convex ℝ T) (hTm : MeasurableSet T) (hTfin : μ T ≠ ⊤) :
+    (translativeCoveringNumber A T : ℝ≥0∞) * μ T ≤
+      (4 : ℝ≥0∞) ^ Module.finrank ℝ E * μ (A + (1 / 2 : ℝ) • T) := by
+  set d := Module.finrank ℝ E
+  by_cases hT0 : μ T = 0
+  · simp [hT0]
+  obtain ⟨z, hz⟩ := exists_reflectedCovariogram_ge μ hTconv hTm hTfin
+  let B₀ : Set E := {y : E | y ∈ T ∧ z - y ∈ T}
+  let B : Set E := (1 / 2 : ℝ) • B₀
+  have hB₀m : MeasurableSet B₀ := hTm.inter ((measurable_const.sub measurable_id) hTm)
+  have hBm : MeasurableSet B := by
+    have hpre : B = (fun y : E => (2 : ℝ) • y) ⁻¹' B₀ := by
+      ext y; simp only [B, Set.mem_smul_set, mem_preimage]
+      exact ⟨fun ⟨x, hx, h⟩ => by rw [← h, smul_smul]; norm_num; exact hx,
+        fun hy => ⟨(2 : ℝ) • y, hy, by rw [smul_smul]; norm_num⟩⟩
+    rw [hpre]
+    exact (measurable_const.smul measurable_id) hB₀m
+  have h4B : μ T ≤ (4 : ℝ≥0∞) ^ d * μ B := by
+    have hBvol : μ B = ENNReal.ofReal ((1 / 2 : ℝ) ^ d) * μ B₀ := by
+      rw [Measure.addHaar_smul, abs_of_nonneg (pow_nonneg (by norm_num : (0 : ℝ) ≤ 1 / 2) _)]
+    have h4mul : (4 : ℝ≥0∞) ^ d * ENNReal.ofReal ((1 / 2 : ℝ) ^ d) = (2 : ℝ≥0∞) ^ d := by
+      have h4of : (4 : ℝ≥0∞) ^ d = ENNReal.ofReal ((4 : ℝ) ^ d) := by
+        rw [ENNReal.ofReal_pow (by norm_num : (0 : ℝ) ≤ 4)]; simp
+      have h2of : (2 : ℝ≥0∞) ^ d = ENNReal.ofReal ((2 : ℝ) ^ d) := by
+        rw [ENNReal.ofReal_pow (by norm_num : (0 : ℝ) ≤ 2)]; simp
+      rw [h4of, h2of, ← ENNReal.ofReal_mul (by positivity), ← mul_pow]
+      norm_num
+    calc
+      μ T ≤ (2 : ℝ≥0∞) ^ d * μ B₀ := hz
+      _ = (4 : ℝ≥0∞) ^ d * (ENNReal.ofReal ((1 / 2 : ℝ) ^ d) * μ B₀) := by
+            rw [← mul_assoc, h4mul]
+      _ = (4 : ℝ≥0∞) ^ d * μ B := by rw [← hBvol]
+  have hBne : B.Nonempty := by
+    by_contra hemp
+    rw [Set.not_nonempty_iff_eq_empty] at hemp
+    rw [hemp, measure_empty, mul_zero] at h4B
+    exact hT0 (le_antisymm h4B zero_le)
+  have hB_sub : B ⊆ (1 / 2 : ℝ) • T := Set.smul_set_mono fun _ hy => hy.1
+  have hdiff_sub : B - B ⊆ (-(1 / 2 : ℝ) • z) +ᵥ T := by
+    rintro _ ⟨_, ⟨x, hx, rfl⟩, _, ⟨y, hy, rfl⟩, rfl⟩
+    refine ⟨(1 / 2 : ℝ) • x + (1 / 2 : ℝ) • (z - y),
+      hTconv hx.1 hy.2 (by norm_num) (by norm_num) (by norm_num), ?_⟩
+    change -(1 / 2 : ℝ) • z + ((1 / 2 : ℝ) • x + (1 / 2 : ℝ) • (z - y)) =
+      (1 / 2 : ℝ) • x - (1 / 2 : ℝ) • y
+    module
+  calc
+    (translativeCoveringNumber A T : ℝ≥0∞) * μ T
+      ≤ (translativeCoveringNumber A T : ℝ≥0∞) * ((4 : ℝ≥0∞) ^ d * μ B) := by gcongr
+    _ = (4 : ℝ≥0∞) ^ d * ((translativeCoveringNumber A T : ℝ≥0∞) * μ B) := by ring
+    _ = (4 : ℝ≥0∞) ^ d *
+          ((translativeCoveringNumber A ((-(1 / 2 : ℝ) • z) +ᵥ T) : ℝ≥0∞) * μ B) := by
+          rw [translativeCoveringNumber_vadd_right]
+    _ ≤ (4 : ℝ≥0∞) ^ d * ((translativeCoveringNumber A (B - B) : ℝ≥0∞) * μ B) := by
+          gcongr
+          exact translativeCoveringNumber_antitone_right hdiff_sub
+    _ ≤ (4 : ℝ≥0∞) ^ d * μ (A + B) := by
+          gcongr
+          exact translativeCoveringNumber_sub_mul_le μ A hBne hBm
+    _ ≤ (4 : ℝ≥0∞) ^ d * μ (A + (1 / 2 : ℝ) • T) := by gcongr
+
+/-- **Asymmetric Homothet Covering Bound:**
+for any measurable convex set `K ⊆ E` with `0 < μ K < ∞` (without symmetry assumptions) and any
+`t > 0`, `N(K, t • K) ≤ (4 / t + 2) ^ finrank ℝ E`. -/
+theorem translativeCoveringNumber_convex_smul_le (μ : Measure E) [μ.IsAddHaarMeasure]
+    {K : Set E} (hKconv : Convex ℝ K) (hKm : MeasurableSet K) (hK0 : μ K ≠ 0) (hKfin : μ K ≠ ⊤)
+    {t : ℝ} (ht : 0 < t) :
+    (translativeCoveringNumber K (t • K) : ℝ≥0∞) ≤
+      ENNReal.ofReal ((4 / t + 2) ^ Module.finrank ℝ E) := by
+  set d := Module.finrank ℝ E
+  have htK_m : MeasurableSet (t • K) := by
+    have hpre : t • K = (fun y : E => t⁻¹ • y) ⁻¹' K := by
+      ext y; simp only [Set.mem_smul_set, mem_preimage]
+      exact ⟨fun ⟨x, hx, h⟩ => by rw [← h, smul_smul, inv_mul_cancel₀ ht.ne', one_smul]; exact hx,
+        fun hy => ⟨t⁻¹ • y, hy, by rw [smul_smul, mul_inv_cancel₀ ht.ne', one_smul]⟩⟩
+    rw [hpre]
+    exact (measurable_const.smul measurable_id) hKm
+  have htK_vol : μ (t • K) = ENNReal.ofReal (t ^ d) * μ K := by
+    rw [Measure.addHaar_smul, abs_of_nonneg (pow_nonneg ht.le _)]
+  have htK_fin : μ (t • K) ≠ ⊤ := by
+    rw [htK_vol]; exact ENNReal.mul_ne_top ENNReal.ofReal_ne_top hKfin
+  have htK_pos : μ (t • K) ≠ 0 := by
+    rw [htK_vol]; exact mul_ne_zero (ENNReal.ofReal_pos.mpr (pow_pos ht d)).ne' hK0
+  have hadd_sub : K + (1 / 2 : ℝ) • (t • K) ⊆ (1 + t / 2) • K := by
+    rintro z ⟨x, hx, _, ⟨_, ⟨y, hy, rfl⟩, rfl⟩, rfl⟩
+    have hc : 0 < 1 + t / 2 := by linarith
+    refine ⟨(1 / (1 + t / 2)) • x + ((t / 2) / (1 + t / 2)) • y,
+      hKconv hx hy (by positivity) (by positivity) (by field_simp [hc.ne']), ?_⟩
+    dsimp only
+    rw [smul_add, smul_smul, smul_smul, smul_smul]
+    congr 1
+    · rw [mul_one_div_cancel hc.ne', one_smul]
+    · congr 1; field_simp [hc.ne']
+  have h1 := (translativeCoveringNumber_mul_volume_le_four_pow μ K (hKconv.smul t) htK_m htK_fin).trans
+    (mul_le_mul_right (measure_mono hadd_sub) _)
+  have hrhs : (4 : ℝ≥0∞) ^ d * μ ((1 + t / 2) • K) =
+      ENNReal.ofReal ((4 / t + 2) ^ d) * μ (t • K) := by
+    have h4of : (4 : ℝ≥0∞) ^ d = ENNReal.ofReal ((4 : ℝ) ^ d) := by
+      rw [ENNReal.ofReal_pow (by norm_num : (0 : ℝ) ≤ 4)]; simp
+    have hfac : (4 : ℝ) ^ d * (1 + t / 2) ^ d = (4 / t + 2) ^ d * t ^ d := by
+      rw [← mul_pow, ← mul_pow]; congr 1; field_simp [ht.ne']; ring
+    rw [Measure.addHaar_smul, abs_of_nonneg (pow_nonneg (by positivity : (0 : ℝ) ≤ 1 + t / 2) _),
+      h4of, ← mul_assoc, ← ENNReal.ofReal_mul (by positivity), hfac,
+      ENNReal.ofReal_mul (by positivity), mul_assoc, ← htK_vol]
+  rw [hrhs] at h1
+  calc
+    (translativeCoveringNumber K (t • K) : ℝ≥0∞)
+      = (translativeCoveringNumber K (t • K) : ℝ≥0∞) * (μ (t • K) * (μ (t • K))⁻¹) := by
+          rw [ENNReal.mul_inv_cancel htK_pos htK_fin, mul_one]
+    _ = ((translativeCoveringNumber K (t • K) : ℝ≥0∞) * μ (t • K)) * (μ (t • K))⁻¹ :=
+          (mul_assoc _ _ _).symm
+    _ ≤ (ENNReal.ofReal ((4 / t + 2) ^ d) * μ (t • K)) * (μ (t • K))⁻¹ := by gcongr
+    _ = ENNReal.ofReal ((4 / t + 2) ^ d) := by
+          rw [mul_assoc, ENNReal.mul_inv_cancel htK_pos htK_fin, mul_one]
+
+end CentralIntersectionAndCovering
 
 end
 
