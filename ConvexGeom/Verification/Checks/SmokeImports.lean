@@ -36,4 +36,22 @@ example (K : ConvexBody ℝ) (hKint : (interior (K : Set ℝ)).Nonempty) :
       dist (bodyConvexHull S hS) K < 1 :=
   exists_inscribed_generalPosition_polytope_dist_lt K hKint zero_lt_one
 
+example (K : ConvexBody ℝ) : steinerPoint K ∈ (K : Set ℝ) :=
+  steinerPoint_mem K
+
+example (u : ℝ) (hu : ‖u‖ = 1) :
+    sphericalCap u 1 = Metric.closedBall u 0 ∩ Metric.sphere (0 : ℝ) 1 := by
+  simpa using sphericalCap_eq_closedBall_inter_sphere hu le_rfl
+
+example (A : Set ℝ) : translativeCoveringNumber A A ≤ 1 :=
+  translativeCoveringNumber_self_le_one A
+
+example (K : ConvexBody ℝ) :
+    symmDiffVol MeasureTheory.volume (K : Set ℝ) (K : Set ℝ) = 0 :=
+  symmDiffVol_self _ _
+
+example (K : ConvexBody ℝ) :
+    convexHull ℝ ((K : Set ℝ).extremePoints ℝ) = (K : Set ℝ) :=
+  convexHull_extremePoints_eq K.isCompact K.convex
+
 end ConvexGeomChecks
