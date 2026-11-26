@@ -5,3 +5,4 @@ public import ConvexGeom.Asymptotic.BanachMazur
 public import ConvexGeom.Asymptotic.SteinerPoint
 public import ConvexGeom.Asymptotic.JohnEllipsoid
 public import ConvexGeom.Asymptotic.BrascampLieb
+public import ConvexGeom.Asymptotic.GaussianConcentration
