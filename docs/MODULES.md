@@ -13,24 +13,28 @@ Directory layout, internal dependencies, and main declarations in `lean-convex-g
 │   │   ├── SupportFunction.lean            # Support calculus, mapLinear, Hörmander isometry, bodyOfSupportFn
 │   │   ├── Blaschke.lean                   # Completeness of ConvexBody and Blaschke Selection Theorem
 │   │   ├── Projection.lean                 # Metric projection, normal cones, supporting hyperplanes
-│   │   └── Polarity.lean                   # Polar bodies, Bipolar Theorem, gauge–support duality
+│   │   ├── Polarity.lean                   # Polar bodies, Bipolar Theorem, gauge–support duality
+│   │   └── SphericalTrig.lean              # Spherical laws of cosines/sines, dihedral angles, spherical caps
 │   ├── Polytope.lean                       # Layer barrel for ConvexGeom.Polytope.*
 │   ├── Polytope/
-│   │   ├── Basic.lean                      # Finite convex hulls and inscribed polytope approximation
+│   │   ├── Basic.lean                      # Finite convex hulls, inscribed approximation, vertex push-out
 │   │   ├── SimplexVolume.lean              # d-simplex volume |det|/d! (linear map & matrix det)
-│   │   └── GeneralPosition.lean            # Affine general position density & inscribed approximation
+│   │   ├── GeneralPosition.lean            # Affine & spherical general position density
+│   │   ├── Combinatorial.lean              # Radon, Helly, Minkowski–Carathéodory, Straszewicz, Jung
+│   │   └── Faces.lean                      # Weyl–Minkowski V→H duality, simplicial facets, facet-cone tiling
 │   ├── Volume.lean                         # Layer barrel for ConvexGeom.Volume.*
 │   ├── Volume/
-│   │   ├── Continuity.lean                 # Volume-root scaling, half-ball bounds, volume continuity & maximizers
-│   │   ├── CoveringNumbers.lean            # Volumetric covering and packing bounds for arbitrary norms
+│   │   ├── Continuity.lean                 # Volume scaling, half-ball bounds, continuity, maximizers, symmDiffVol
+│   │   ├── CoveringNumbers.lean            # Metric & translative covering/packing volumetric bounds
 │   │   ├── BrunnMinkowski.lean             # Prékopa–Leindler, Brunn–Minkowski, isodiametric inequality
-│   │   ├── BrunnConcavity.lean             # Brunn concavity, log-concave convolutions, covariogram, Rogers–Shephard
+│   │   ├── BrunnConcavity.lean             # Brunn concavity, convolutions, Rogers–Shephard, central intersection
 │   │   ├── Isoperimetric.lean              # Minkowski's first inequality and Euclidean isoperimetry
 │   │   └── Symmetrization.lean             # Reflection, Minkowski, central, and Steiner symmetrization
 │   ├── Asymptotic.lean                     # Layer barrel for ConvexGeom.Asymptotic.*
 │   ├── Asymptotic/
 │   │   ├── SphericalIntegration.lean       # sphereProb, polar volume, mean width, Dual Urysohn
-│   │   └── BanachMazur.lean                # Symmetric bodies, ellipsoids, Mahler/Santaló volume, BM distances
+│   │   ├── BanachMazur.lean                # Symmetric bodies, ellipsoids, Mahler/Santaló volume, BM distances
+│   │   └── SteinerPoint.lean               # Spherical isotropic identity and Steiner point
 │   └── Verification/                       # Axiom audit tool, headline snapshot, internal checks
 ├── docs/
 │   ├── MODULES.md                          # This file
@@ -53,6 +57,7 @@ flowchart LR
         BL["Blaschke"]
         PR["Projection"]
         PO["Polarity"]
+        ST["SphericalTrig"]
         SF --> BL
         SF --> PR
         SF --> PO
@@ -61,8 +66,12 @@ flowchart LR
     subgraph Polytope["Polytope Layer"]
         PY["Basic"]
         GP["GeneralPosition"]
+        CB["Combinatorial"]
+        FA["Faces"]
         SV["SimplexVolume"]
         PY --> GP
+        PY --> CB
+        GP --> FA
     end
 
     subgraph Volume["Volume Layer"]
@@ -73,6 +82,7 @@ flowchart LR
         ISO["Isoperimetric"]
         SY["Symmetrization"]
         BM --> BC
+        CN --> BC
         BM --> ISO
         BM --> SY
         VC -.-> BC
@@ -82,11 +92,15 @@ flowchart LR
     subgraph Asymptotic["Asymptotic Layer"]
         SI["SphericalIntegration"]
         BMA["BanachMazur"]
+        SP["SteinerPoint"]
+        SI --> SP
     end
 
     SF --> PY
+    PR --> CB
+    PO --> FA
     SF --> VC
-    PY --> VC
+    GP --> VC
     SF --> SY
     PO --> SI
     SY --> SI
@@ -127,15 +141,21 @@ One-sided polarity $S^\circ = \{y \mid \forall x \in S,\; \langle x, y \rangle \
 - **Bipolar Theorem:** `polarBody_polarBody`
 - **Gauge–support duality:** `gauge_polarBody_eq_supportFn`, `supportFn_bodyPolar_eq_gauge`
 
+### [`ConvexGeom/Metric/SphericalTrig.lean`](../ConvexGeom/Metric/SphericalTrig.lean)
+Dimension-independent spherical trigonometry, dihedral angles, and spherical caps in any real inner product space.
+
+- **Spherical angles & laws:** `sphericalTangent`, `sphericalAngle`, `spherical_law_of_cosines`, `spherical_triangle_inequality`, `gramDet3`, `gramDet3_eq_sq_sin_mul`, `spherical_law_of_sines`
+- **Dihedral angles & caps:** `dihedralAngle`, `sphericalCap`, `sphericalCap_eq_closedBall_inter_sphere`, `sphericalCap_cos_eq_angle_le`, `image_sphericalCap_linearIsometry`, `sphericalCap_zero_union_neg`
+
 ---
 
 ## Polytope Layer (`ConvexGeom.Polytope`)
 
 ### [`ConvexGeom/Polytope/Basic.lean`](../ConvexGeom/Polytope/Basic.lean)
-Finite convex hulls as `ConvexBody E` and Hausdorff approximation.
+Finite convex hulls as `ConvexBody E`, Hausdorff approximation, and radial vertex push-out to $S^{d-1}$.
 
-- **Polytopes:** `bodyConvexHull`, `supportFn_bodyConvexHull`
-- **Approximation:** `hausdorffDist_convexHull_range_le`, `exists_polytope_dist_lt`
+- **Polytopes & approximation:** `bodyConvexHull`, `supportFn_bodyConvexHull`, `hausdorffDist_convexHull_range_le`, `exists_polytope_dist_lt`
+- **Vertex push-out:** `exists_ray_mem_sphere`, `exists_pushOut_vertex_sphere`, `exists_pushOut_range_sphere`
 
 ### [`ConvexGeom/Polytope/SimplexVolume.lean`](../ConvexGeom/Polytope/SimplexVolume.lean)
 Lebesgue volume of a $d$-simplex via permutation tiling of $[0, 1]^d$ and a unit-determinant shear.
@@ -145,27 +165,42 @@ Lebesgue volume of a $d$-simplex via permutation tiling of $[0, 1]^d$ and a unit
 - **General $d$-simplices:** `volume_convexHull_simplex`, `volume_convexHull_simplex_matrix`, `volume_convexHull_simplex_euclideanSpace`, `volume_convexHull_simplex_euclideanSpace_matrix`
 
 ### [`ConvexGeom/Polytope/GeneralPosition.lean`](../ConvexGeom/Polytope/GeneralPosition.lean)
-Affine general position in finite-dimensional normed spaces and general-position polytope approximation.
+Affine and spherical general position density and inscribed general-position approximation.
 
-- **General position:** `InGeneralPosition`, `InGeneralPosition.injective`, `InGeneralPosition.comp_injective`, `InGeneralPosition.affineEquiv`
-- **Density:** `addHaar_affineSpan_image_eq_zero`, `addHaar_affineSpan_finset_eq_zero`, `exists_generalPosition_snoc`, `exists_generalPosition_dist_lt`, `exists_generalPosition_dist_lt_of_fintype`
+- **Affine general position:** `InGeneralPosition`, `InGeneralPosition.injective`, `InGeneralPosition.affineEquiv`, `exists_generalPosition_dist_lt`, `exists_generalPosition_dist_lt_of_fintype`
+- **Spherical general position:** `InSphericalGeneralPosition`, `not_ball_inter_sphere_subset_affineSubspace`, `exists_sphericalGeneralPosition_snoc`, `exists_sphericalGeneralPosition_dist_lt`, `exists_sphericalGeneralPosition_dist_lt_of_fintype`
 - **Approximation:** `nonempty_interior_convexHull_of_inGeneralPosition`, `exists_generalPosition_polytope_dist_lt`, `exists_inscribed_generalPosition_polytope_dist_lt`
+
+### [`ConvexGeom/Polytope/Combinatorial.lean`](../ConvexGeom/Polytope/Combinatorial.lean)
+Finite-dimensional combinatorial and extremal convex geometry.
+
+- **Radon & Helly:** `radon_partition_card_ge`, `radon_partition_fin`, `helly_convexBody`, `helly_convexBody_finset`
+- **Minkowski–Carathéodory & Straszewicz:** `isCompact_convexHull_of_isCompact`, `convexHull_extremePoints_eq`, `mem_exposedPoints_of_isMaxOn_norm_sub`, `extremePoints_subset_closure_exposedPoints`, `closure_convexHull_exposedPoints`
+- **Jung's theorem:** `jung_circumradius_finset`, `jung_circumradius`, `jung_circumradius_convexBody`
+
+### [`ConvexGeom/Polytope/Faces.lean`](../ConvexGeom/Polytope/Faces.lean)
+Weyl–Minkowski $V \to H$ duality via polarity, facet simpliciality, and radial facet-cone tiling.
+
+- **Weyl–Minkowski duality:** `tightVertices`, `finite_extremePoints_polarBody`, `facetNormals`, `polarBody_eq_convexHull_facetNormals`, `weyl_minkowski_halfspaces`, `facetNormals_irredundant`
+- **Facets & simpliciality:** `polytopeFacet`, `polytopeFacet_eq_convexHull_tightVertices`, `affineSpan_polytopeFacet`, `card_tightVertices_eq_finrank_of_inGeneralPosition`
+- **Facet-cone tiling:** `facetCone`, `iUnion_facetCone_eq`, `pairwise_aedisjoint_facetCone`, `addHaar_convexHull_eq_sum_facetCone`
 
 ---
 
 ## Volume Layer (`ConvexGeom.Volume`)
 
 ### [`ConvexGeom/Volume/Continuity.lean`](../ConvexGeom/Volume/Continuity.lean)
-Volume-root scaling, half-ball bounds, Hausdorff continuity of additive Haar measures, and inscribed volume maximizers.
+Volume-root scaling, half-ball bounds, Hausdorff continuity of volume, polytope supremum reductions, and symmetric-difference volume.
 
-- **Scaling & half-balls:** `addHaar_smul_rpow_inv_finrank`, `addHaar_real_smul_rpow_inv_finrank`, `addHaar_hyperplane_eq_zero`, `addHaar_halfBall`, `addHaar_le_half_ball`, `addHaar_le_half_closedBall_of_zero_not_mem_interior`
-- **Continuity & maximizers:** `upperSemicontinuous_addHaar_convexBody`, `lowerSemicontinuous_addHaar_convexBody`, `continuous_addHaar_convexBody`, `continuous_addHaarReal_convexBody`, `continuous_addHaar_convexHull_range`, `continuous_addHaarReal_convexHull_range`, `exists_max_addHaar_convexHull_of_isCompact`, `exists_max_addHaar_convexHull_sphere`, `exists_max_addHaar_convexHull_closedBall`
+- **Scaling & half-balls:** `addHaar_smul_rpow_inv_finrank`, `addHaar_halfBall`, `addHaar_le_half_ball`, `addHaar_le_half_closedBall_of_zero_not_mem_interior`, `zero_mem_interior_of_addHaar_gt_half_closedBall`
+- **Continuity & maximizers:** `continuous_addHaar_convexBody`, `continuous_addHaarReal_convexBody`, `continuous_addHaar_convexHull_range`, `exists_max_addHaar_convexHull_of_isCompact`, `strict_addHaar_convexHull_insert_of_notMem`, `iSup_addHaar_convexHull_closedBall_eq_sphere`, `mem_sphere_of_max_addHaar_convexHull_closedBall`, `iSup_addHaar_convexHull_sphere_eq_generalPosition`
+- **Symmetric-difference metric:** `symmDiffVol`, `symmDiffVolReal`, `symmDiffVol_triangle`, `abs_measureReal_sub_le_symmDiffVolReal`, `symmDiffVol_vadd`, `symmDiffVol_smul`, `tendsto_symmDiffVol_self`, `continuous_symmDiffVolReal_convexBody`, `continuous_symmDiffVol_convexBody`
 
 ### [`ConvexGeom/Volume/CoveringNumbers.lean`](../ConvexGeom/Volume/CoveringNumbers.lean)
-Volumetric covering and packing bounds for arbitrary finite-dimensional norms.
+Metric and translative covering/packing volumetric bounds in finite-dimensional normed spaces.
 
-- **General add-Haar bounds:** `measure_le_externalCoveringNumber_mul_closedBall`, `packingNumber_mul_ball_le_measure_add_ball`, `coveringNumber_mul_ball_le_measure_add_ball`
-- **Unit-ball bounds:** `inv_pow_le_externalCoveringNumber_closedBall`, `packingNumber_closedBall_le`, `coveringNumber_closedBall_le_three_div`
+- **Metric covering & packing:** `measure_le_externalCoveringNumber_mul_closedBall`, `packingNumber_mul_ball_le_measure_add_ball`, `inv_pow_le_externalCoveringNumber_closedBall`, `packingNumber_closedBall_le`, `coveringNumber_closedBall_le_three_div`
+- **Translative covering:** `IsTranslativeCover`, `translativeCoveringNumber`, `translativeCoveringNumber_mul_le`, `measure_le_translativeCoveringNumber_mul`, `translativeCoveringNumber_sub_mul_le`, `translativeCoveringNumber_symm_smul_le`
 
 ### [`ConvexGeom/Volume/BrunnMinkowski.lean`](../ConvexGeom/Volume/BrunnMinkowski.lean)
 Prékopa–Leindler (layer-cake + Tonelli induction), Brunn–Minkowski, and corollaries.
@@ -175,10 +210,11 @@ Prékopa–Leindler (layer-cake + Tonelli induction), Brunn–Minkowski, and cor
 - **Corollaries:** `isodiametric_inequality`, `logConcave_marginal_prod`
 
 ### [`ConvexGeom/Volume/BrunnConcavity.lean`](../ConvexGeom/Volume/BrunnConcavity.lean)
-Hyperplane sections, log-concave convolutions, covariograms, and Rogers–Shephard.
+Hyperplane sections, log-concave convolutions, covariograms, Rogers–Shephard, and asymmetric covering bounds.
 
 - **Sections & convolutions:** `slice`, `logConcave_sections`, `brunn_concavity_sections`, `concaveOn_volume_slice_rpow`, `logConcave_convolution`
 - **Covariogram & Rogers–Shephard:** `covariogram`, `covariogram_lintegral`, `covariogram_rpow_concave`, `two_pow_mul_volume_le_volume_diff`, `rogers_shephard`
+- **Central intersection & asymmetric covering:** `reflectedCovariogram`, `reflectedCovariogram_lintegral`, `exists_reflectedCovariogram_ge`, `translativeCoveringNumber_mul_volume_le_four_pow`, `translativeCoveringNumber_convex_smul_le`
 
 ### [`ConvexGeom/Volume/Isoperimetric.lean`](../ConvexGeom/Volume/Isoperimetric.lean)
 First variation of volume, Minkowski's first inequality, and Euclidean isoperimetry (lower outer Minkowski content).
@@ -210,6 +246,12 @@ Origin-symmetric bodies, ellipsoids, Mahler volume, and Banach–Mazur distances
 - **Symmetry & ellipsoids:** `IsOriginSymmetric`, `det_adjoint_eq_det`, `polarBody_linearEquiv_image`, `ellipsoid`, `polarBody_ellipsoid`, `addHaar_ellipsoid`
 - **Mahler volume:** `mahlerVolume`, `mahlerVolume_linearEquiv`, `mahlerVolume_ellipsoid`, `mahlerVolumeAt`, `mahlerVolumeAt_affineEquiv`, `santaloMahlerVolume`, `santaloMahlerVolume_translate`, `santaloMahlerVolume_affineEquiv`
 - **Banach–Mazur distances:** `banachMazurDist`, `banachMazurEDist`, `banachMazurEDist_mul_triangle`, `banachMazurDist_polar`, `affineBanachMazurDist`, `affineBanachMazurEDist`, `affineBanachMazurDist_affineEquiv_left`, `affineBanachMazurDist_affineEquiv_right`, `affineBanachMazurEDist_mul_triangle`
+
+### [`ConvexGeom/Asymptotic/SteinerPoint.lean`](../ConvexGeom/Asymptotic/SteinerPoint.lean)
+Spherical second-moment isotropy and the Steiner point of a convex body.
+
+- **Spherical isotropy:** `integral_sphereProb_id`, `integral_inner_sq_sphereProb`, `integral_inner_mul_inner_sphereProb`, `finrank_smul_integral_inner_smul_sphereProb`
+- **Steiner point:** `steinerPoint`, `steinerPoint_bodySingleton`, `steinerPoint_add`, `steinerPoint_smul`, `steinerPoint_translate`, `steinerPoint_neg_one_smul`, `steinerPoint_mapLinearIsometry`, `steinerPoint_bodyClosedBall`, `steinerPoint_mem`, `dist_steinerPoint_le`, `lipschitzWith_steinerPoint`, `continuous_steinerPoint`
 
 ---
 

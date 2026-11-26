@@ -9,10 +9,10 @@ It focuses on analytic and geometric foundations complementing algebraic polyhed
 
 ## Highlights
 
-- **Metric & Duality (`ConvexGeom.Metric`):** Support functions, linear transport, Minkowski's representation theorem, Hörmander's isometry, Blaschke Selection Theorem, metric projection, outer normal cones, supporting hyperplanes, polar bodies, Bipolar Theorem, and gauge–support duality.
-- **Polytopes (`ConvexGeom.Polytope`):** Inscribed and full-dimensional general-position polytope approximation, density of affine general position, and $d$-simplex volume $|\det|/d!$.
-- **Volume & Symmetrization (`ConvexGeom.Volume`):** Half-ball bounds, Hausdorff continuity of volume, inscribed polytope maximizers, volumetric covering/packing bounds, Prékopa–Leindler, Brunn–Minkowski, Brunn's concavity principle, log-concave convolutions, covariograms, Bieberbach's isodiametric inequality, Rogers–Shephard, Minkowski's first inequality, Euclidean isoperimetry (lower outer Minkowski content), and Minkowski / central / Steiner symmetrization.
-- **Spherical & Affine Geometry (`ConvexGeom.Asymptotic`):** Spherical cone probability measure, polar-coordinate volume formula, mean width, Dual Urysohn inequality, ellipsoids, origin-centered and Santaló Mahler volume, and linear / affine Banach–Mazur distances.
+- **Metric & Duality (`ConvexGeom.Metric`):** Support functions, linear transport, Minkowski's representation theorem, Hörmander's isometry, Blaschke Selection Theorem, metric projection, outer normal cones, supporting hyperplanes, polar bodies, Bipolar Theorem, gauge–support duality, spherical laws of cosines/sines, dihedral angles, and spherical caps.
+- **Polytopes & Combinatorial Convexity (`ConvexGeom.Polytope`):** Inscribed and spherical general-position density, vertex push-out to $S^{d-1}$, $d$-simplex volume $|\det|/d!$, Radon, Helly, Minkowski–Carathéodory, Straszewicz, Jung's theorem, Weyl–Minkowski $V \to H$ duality, simplicial facets, and radial facet-cone tiling.
+- **Volume & Symmetrization (`ConvexGeom.Volume`):** Half-ball bounds, Hausdorff continuity of volume and symmetric-difference volume, polytope maximizer reductions, metric and translative covering bounds, Prékopa–Leindler, Brunn–Minkowski, Brunn's concavity principle, log-concave convolutions, covariograms, Rogers–Shephard, central intersection lemma, isodiametric inequality, Minkowski's first inequality, Euclidean isoperimetry, and Minkowski / central / Steiner symmetrization.
+- **Spherical & Affine Geometry (`ConvexGeom.Asymptotic`):** Spherical cone probability measure, isotropic identities, Steiner point, polar-coordinate volume formula, mean width, Dual Urysohn inequality, ellipsoids, origin-centered and Santaló Mahler volume, and linear / affine Banach–Mazur distances.
 
 ## Quick Start
 

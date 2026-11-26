@@ -14,24 +14,18 @@ Planned directions and contribution guidelines for `lean-convex-geometry`.
 
 ## Near-Term $n$-Dimensional Targets
 
-- **Spherical General Position & Vertex Push-Out to $S^{d-1}$** *(`Polytope.GeneralPosition`, `Volume.Continuity`)*
-  - Density of general position on $S^{d-1}$ (including linear independence with the origin).
-  - Half-ball reflection dichotomy and radial vertex push-out to $S^{d-1}$.
-- **Polytope Face/Facet Theory & Triangulation** *(Gruber; Ziegler; `Polytope.*`, `Metric.Projection`)*
-  - Weyl–Minkowski $V \leftrightarrow H$ duality, supporting facets, and simplicial-facet characterization for general-position polytopes.
-  - Radial facet-cone tiling (`AEDisjoint`), ridge/diamond adjacency, and pulling/fan triangulation of non-simplicial facets.
-- **General Dihedral & Spherical Trigonometry on $S^{d-1}$** *(`Metric.SupportFunction`, `Polytope.SimplexVolume`)*
-  - Dihedral angles between half-spaces, spherical wedges, and $n$-dimensional spherical trigonometry.
-- **Steiner Point & Minkowski Valuations** *(Schneider, Ch. 1 & 6; `Asymptotic.SphericalIntegration`, `Metric.SupportFunction`)*
-  - Steiner point $s(K) = d \int_{S^{d-1}} h_K(u)\,u\,d\sigma(u)$, additivity, rigid-motion equivariance, $s(K) \in K$, and Lipschitz continuity.
+- **Polytope Face Lattice & Triangulation** *(Gruber; Ziegler; `Polytope.Faces`)*
+  - Ridge / diamond adjacency (every $(d-2)$-ridge lies in exactly two facets), $H \to V$ duality, and pulling / fan triangulation of non-simplicial facets.
+- **Spherical Volume, Wedges & Solid Angles** *(`Metric.SphericalTrig`, `Asymptotic.SphericalIntegration`)*
+  - Surface measure of spherical caps and wedges, solid angles of polyhedral cones, and spherical cap concentration bounds.
 - **Centroid, Isotropic Position & Grünbaum's Inequality** *(Brazitikos et al., Ch. 1–2; Klartag & Lehec; `Volume.BrunnConcavity`, `Asymptotic.BanachMazur`)*
   - Barycenter, covariance operator, isotropic position, isotropic constant $L_K$, and Grünbaum's halfspace inequality $\mathrm{vol}(K \cap H^+) \ge \left(\frac{d}{d+1}\right)^d \mathrm{vol}(K)$.
 - **Gaussian Width & Covering–Width Bridges** *(Vershynin, Ch. 7; Artstein-Avidan–Giannopoulos–Milman, Ch. 4 & 7; `Asymptotic.SphericalIntegration`, `Volume.CoveringNumbers`)*
   - Gaussian mean width $w_G(K)$, proportionality to `meanWidth`, and Sudakov / dual Sudakov minoration.
 - **Functional Polarity & Legendre–Fenchel Duality** *(Artstein-Avidan–Giannopoulos–Milman, Ch. 1–2; `Metric.Polarity`, `Volume.BrunnMinkowski`)*
   - Legendre transform, infimal convolution, and polarity of log-concave functions.
-- **Combinatorial Convexity: Radon, Helly, Jung & Kirchberger** *(Gruber; Schneider, Ch. 1; Mathlib's `Radon` & `Caratheodory`)*
-  - Ergonomic Radon bridge, Helly wrappers for `ConvexBody`, Jung's theorem $R(K) \le \sqrt{\frac{d}{2(d+1)}}\,\mathrm{diam}(K)$, and Kirchberger's theorem.
+- **Combinatorial Convexity Extensions** *(Gruber; Schneider, Ch. 1; `Polytope.Combinatorial`)*
+  - Kirchberger's theorem, colorful Carathéodory, and Tverberg-type refinements.
 - **Loomis–Whitney & Coordinate Section/Projection Bounds** *(Ball, Lec. 6; Schneider, §9.3; `Volume.BrunnConcavity`, `Volume.BrunnMinkowski`)*
   - General $d$-dimensional Loomis–Whitney inequality and Meyer's dual section inequality.
 - **Borell's Lemma & Reverse Hölder Inequalities** *(Brazitikos et al., Ch. 2; Artstein-Avidan–Giannopoulos–Milman, Ch. 2)*
@@ -54,7 +48,7 @@ Planned directions and contribution guidelines for `lean-convex-geometry`.
 
 ## Downstream Specialized Targets
 
-- **3D Spherical Geometry & Polyhedral Topology** *([`sphere-max-volume`](https://github.com/egor1729/sphere-max-volume))* — 3D Girard's theorem (solid angle = spherical excess), spherical laws of sines/cosines in $\mathbb{R}^3$, and 3D Euler's formula $V - E + F = 2$.
+- **3D Spherical Geometry & Polyhedral Topology** *([`sphere-max-volume`](https://github.com/egor1729/sphere-max-volume))* — 3D Girard's theorem (solid angle = spherical excess), 3D tangent-cone cyclic angle sums, and 3D Euler's formula $V - E + F = 2$.
 
 ---
 
