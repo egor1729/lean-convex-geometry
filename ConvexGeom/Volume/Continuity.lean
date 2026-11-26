@@ -10,33 +10,30 @@ import Mathlib.Analysis.LocallyConvex.Separation
 import Mathlib.MeasureTheory.Measure.Continuity
 
 /-!
-# Continuity and Stability of Volume on Convex Bodies
+# Continuity, Stability, and Symmetric-Difference Metric of Volume
 
-This file proves metric-measure foundations for `ConvexBody E` in a finite-dimensional real
-inner product space `E` equipped with an additive Haar measure `μ` (in particular, Lebesgue
-`volume`; see Schneider, *Convex Bodies*, §1.8):
+Metric-measure foundations for `ConvexBody E` in a finite-dimensional real inner product space `E`
+equipped with an additive Haar measure `μ` (Schneider, *Convex Bodies*, §1.8):
 
 1. **Volume-Root Scaling & Half-Ball Identities (`addHaar_smul_rpow_inv_finrank`,
    `addHaar_halfBall`, `addHaar_le_half_ball`,
    `addHaar_le_half_closedBall_of_zero_not_mem_interior`):**
-   - `μ (c • A) ^ (1 / d) = ENNReal.ofReal c * μ A ^ (1 / d)` for `c ≥ 0` in dimension `d ≥ 1`.
-   - For any nonzero vector `u : E`, the half-ball `closedBall 0 r ∩ {x | 0 ≤ ⟪x, u⟫}` has
-     exactly half the volume of `closedBall 0 r`.
-   - Any convex set `K ⊆ closedBall 0 r` with `0 ∉ interior K` has `μ K ≤ μ (closedBall 0 r) / 2`.
+   `μ (c • A) ^ (1 / d) = c * μ A ^ (1 / d)` and the half-ball origin-in-interior criterion.
 2. **Hausdorff Continuity of Volume (`continuous_addHaar_convexBody`,
    `continuous_addHaarReal_convexBody`):**
-   `K ↦ μ (K : Set E)` (and `K ↦ (μ (K : Set E)).toReal`) is **continuous** on `ConvexBody E`
-   with respect to the Hausdorff metric:
-   - *Upper semicontinuity* follows from monotone downward continuity of measure on
-     `⋂ n, K + closedBall 0 (1 / (n + 1)) = K`.
-   - *Lower semicontinuity* is proved cleanly via support functions: if `closedBall x₀ r ⊆ K`,
-     then `dist L K < (1 - t) * r` implies `x₀ + t • (K - x₀) ⊆ L` in three lines via
-     `supportFn_le_iff_subset`.
-3. **Continuity and Compactness of Polytope Hull Volume (`continuous_addHaar_convexHull_range`,
-   `exists_max_addHaar_convexHull_of_isCompact`):**
-   For finite point configurations `v : ι → E`, `v ↦ μ (convexHull ℝ (Set.range v))` is
-   continuous, hence attains its maximum over any compact nonempty vertex domain `S ⊆ E`
-   (in particular `sphere 0 r` and `closedBall 0 r`).
+   `K ↦ μ (K : Set E)` and `K ↦ μ.real (K : Set E)` are continuous on `ConvexBody E`.
+3. **Polytope Hull Volume Continuity & Supremum Reductions (`continuous_addHaar_convexHull_range`,
+   `exists_max_addHaar_convexHull_of_isCompact`, `iSup_addHaar_convexHull_closedBall_eq_sphere`,
+   `mem_sphere_of_max_addHaar_convexHull_closedBall`,
+   `iSup_addHaar_convexHull_sphere_eq_generalPosition`):**
+   Continuity, compactness attainment, closed-ball-to-sphere reduction, and general-position
+   density for polytope volume.
+4. **Symmetric-Difference Volume Metric (`symmDiffVol`, `symmDiffVolReal`,
+   `symmDiffVol_triangle`, `abs_measureReal_sub_le_symmDiffVolReal`,
+   `tendsto_symmDiffVol_self`, `continuous_symmDiffVolReal_convexBody`,
+   `continuous_symmDiffVol_convexBody`):**
+   Algebraic/metric properties of `μ (A Δ B)`, Haar equivariance, and joint continuity on
+   `ConvexBody E × ConvexBody E` with respect to the Hausdorff metric.
 -/
 
 open MeasureTheory Set Filter
@@ -706,6 +703,360 @@ theorem iSup_addHaar_convexHull_sphere_eq_generalPosition
     exact le_of_tendsto' hvol_tend fun n => le_iSup₂_of_le (w n) (hw_gp n) le_rfl
   · refine iSup₂_le fun v hv => ?_
     exact le_iSup₂_of_le v hv.1 le_rfl
+
+/-! ### 4. Symmetric-Difference Volume Metric -/
+
+section SymmDiffBasic
+
+variable {α : Type*} [MeasurableSpace α]
+
+/-- The **symmetric-difference volume** (Nikodym pseudometric) in `ℝ≥0∞`:
+`symmDiffVol μ A B := μ (symmDiff A B)`. -/
+@[expose]
+noncomputable def symmDiffVol (μ : Measure α) (A B : Set α) : ℝ≥0∞ :=
+  μ (symmDiff A B)
+
+/-- The real-valued **symmetric-difference volume**: `(μ (symmDiff A B)).toReal`. -/
+@[expose]
+noncomputable def symmDiffVolReal (μ : Measure α) (A B : Set α) : ℝ :=
+  (symmDiffVol μ A B).toReal
+
+@[simp]
+lemma symmDiffVol_self (μ : Measure α) (A : Set α) :
+    symmDiffVol μ A A = 0 := by
+  simp [symmDiffVol]
+
+lemma symmDiffVol_comm (μ : Measure α) (A B : Set α) :
+    symmDiffVol μ A B = symmDiffVol μ B A := by
+  rw [symmDiffVol, symmDiffVol, symmDiff_comm]
+
+theorem symmDiffVol_triangle (μ : Measure α) (A B C : Set α) :
+    symmDiffVol μ A C ≤ symmDiffVol μ A B + symmDiffVol μ B C := by
+  unfold symmDiffVol
+  have hsub : symmDiff A C ⊆ symmDiff A B ∪ symmDiff B C := by
+    intro x hx
+    simp only [Set.mem_symmDiff, mem_union] at hx ⊢
+    by_cases hB : x ∈ B <;> tauto
+  exact (measure_mono hsub).trans (measure_union_le _ _)
+
+lemma symmDiffVol_of_subset (μ : Measure α) {A B : Set α} (hAB : A ⊆ B) :
+    symmDiffVol μ A B = μ (B \ A) := by
+  rw [symmDiffVol, symmDiff_of_le hAB]
+
+lemma symmDiffVol_eq_add_sdiff (μ : Measure α) {A B : Set α}
+    (hAm : MeasurableSet A) (hBm : MeasurableSet B) :
+    symmDiffVol μ A B = μ (A \ B) + μ (B \ A) := by
+  unfold symmDiffVol
+  rw [Set.symmDiff_def]
+  exact measure_union (Set.disjoint_left.mpr fun x h1 h2 => h1.2 h2.1) (hBm.diff hAm)
+
+lemma symmDiffVol_le_add (μ : Measure α) (A B : Set α) :
+    symmDiffVol μ A B ≤ μ A + μ B := by
+  unfold symmDiffVol
+  rw [Set.symmDiff_def]
+  exact (measure_union_le _ _).trans (add_le_add (measure_mono Set.sdiff_subset)
+    (measure_mono Set.sdiff_subset))
+
+lemma symmDiffVol_ne_top (μ : Measure α) {A B : Set α} (hA : μ A ≠ ⊤) (hB : μ B ≠ ⊤) :
+    symmDiffVol μ A B ≠ ⊤ :=
+  ne_top_of_le_ne_top (ENNReal.add_ne_top.mpr ⟨hA, hB⟩) (symmDiffVol_le_add μ A B)
+
+lemma symmDiffVolReal_nonneg (μ : Measure α) (A B : Set α) :
+    0 ≤ symmDiffVolReal μ A B :=
+  ENNReal.toReal_nonneg
+
+@[simp]
+lemma symmDiffVolReal_self (μ : Measure α) (A : Set α) :
+    symmDiffVolReal μ A A = 0 := by
+  simp [symmDiffVolReal]
+
+lemma symmDiffVolReal_comm (μ : Measure α) (A B : Set α) :
+    symmDiffVolReal μ A B = symmDiffVolReal μ B A := by
+  rw [symmDiffVolReal, symmDiffVolReal, symmDiffVol_comm]
+
+theorem symmDiffVolReal_triangle (μ : Measure α) {A B C : Set α}
+    (hAB : symmDiffVol μ A B ≠ ⊤) (hBC : symmDiffVol μ B C ≠ ⊤) :
+    symmDiffVolReal μ A C ≤ symmDiffVolReal μ A B + symmDiffVolReal μ B C := by
+  unfold symmDiffVolReal
+  rw [← ENNReal.toReal_add hAB hBC]
+  exact ENNReal.toReal_mono (ENNReal.add_ne_top.mpr ⟨hAB, hBC⟩) (symmDiffVol_triangle μ A B C)
+
+/-- Volume difference is controlled by symmetric-difference volume:
+`|μ.real A - μ.real B| ≤ symmDiffVolReal μ A B` for finite-measure sets `A, B`. -/
+theorem abs_measureReal_sub_le_symmDiffVolReal (μ : Measure α) {A B : Set α}
+    (hA : μ A ≠ ⊤) (hB : μ B ≠ ⊤) :
+    |μ.real A - μ.real B| ≤ symmDiffVolReal μ A B := by
+  have hAB : symmDiffVol μ A B ≠ ⊤ := symmDiffVol_ne_top μ hA hB
+  have h1 : μ A ≤ μ B + symmDiffVol μ A B := by
+    have hsub : A ⊆ B ∪ symmDiff A B := fun x hx => by
+      by_cases hxB : x ∈ B
+      · exact Or.inl hxB
+      · exact Or.inr (Or.inl ⟨hx, hxB⟩)
+    exact (measure_mono hsub).trans (measure_union_le _ _)
+  have h2 : μ B ≤ μ A + symmDiffVol μ A B := by
+    have hsub : B ⊆ A ∪ symmDiff A B := fun x hx => by
+      by_cases hxA : x ∈ A
+      · exact Or.inl hxA
+      · exact Or.inr (Or.inr ⟨hx, hxA⟩)
+    exact (measure_mono hsub).trans (measure_union_le _ _)
+  have h1r := ENNReal.toReal_mono (ENNReal.add_ne_top.mpr ⟨hB, hAB⟩) h1
+  have h2r := ENNReal.toReal_mono (ENNReal.add_ne_top.mpr ⟨hA, hAB⟩) h2
+  rw [ENNReal.toReal_add hB hAB] at h1r
+  rw [ENNReal.toReal_add hA hAB] at h2r
+  rw [Measure.real, Measure.real, symmDiffVolReal, abs_sub_le_iff]
+  exact ⟨by linarith, by linarith⟩
+
+end SymmDiffBasic
+
+omit [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] in
+/-- Translation invariance of symmetric-difference volume. -/
+theorem symmDiffVol_vadd (μ : Measure E) [μ.IsAddHaarMeasure] (x : E) (A B : Set E) :
+    symmDiffVol μ (x +ᵥ A) (x +ᵥ B) = symmDiffVol μ A B := by
+  unfold symmDiffVol
+  have hpre : symmDiff (x +ᵥ A) (x +ᵥ B) = (fun y : E => -x + y) ⁻¹' symmDiff A B := by
+    ext y
+    simp only [Set.mem_symmDiff, Set.mem_vadd_set, mem_preimage, vadd_eq_add]
+    have hiff : ∀ S : Set E, (∃ a ∈ S, x + a = y) ↔ -x + y ∈ S := fun S =>
+      ⟨fun ⟨a, ha, h⟩ => by rwa [← h, neg_add_cancel_left],
+        fun hy => ⟨-x + y, hy, add_neg_cancel_left x y⟩⟩
+    rw [hiff A, hiff B]
+  rw [hpre, measure_preimage_add]
+
+/-- Scaling equivariance of symmetric-difference volume for `c ≠ 0`. -/
+theorem symmDiffVol_smul (μ : Measure E) [μ.IsAddHaarMeasure] {c : ℝ} (hc : c ≠ 0) (A B : Set E) :
+    symmDiffVol μ (c • A) (c • B) =
+      ENNReal.ofReal (|c| ^ Module.finrank ℝ E) * symmDiffVol μ A B := by
+  unfold symmDiffVol
+  have heq : symmDiff (c • A) (c • B) = c • symmDiff A B := by
+    ext y
+    simp only [Set.mem_symmDiff, Set.mem_smul_set]
+    have hiff : ∀ S : Set E, (∃ a ∈ S, c • a = y) ↔ c⁻¹ • y ∈ S := fun S =>
+      ⟨fun ⟨a, ha, h⟩ => by rw [← h, smul_smul, inv_mul_cancel₀ hc, one_smul]; exact ha,
+        fun hy => ⟨c⁻¹ • y, hy, by rw [smul_smul, mul_inv_cancel₀ hc, one_smul]⟩⟩
+    rw [hiff A, hiff B]
+    constructor
+    · rintro (⟨h1, h2⟩ | ⟨h1, h2⟩)
+      · exact ⟨c⁻¹ • y, Or.inl ⟨h1, h2⟩, by rw [smul_smul, mul_inv_cancel₀ hc, one_smul]⟩
+      · exact ⟨c⁻¹ • y, Or.inr ⟨h1, h2⟩, by rw [smul_smul, mul_inv_cancel₀ hc, one_smul]⟩
+    · rintro ⟨a, ha, rfl⟩
+      rw [smul_smul, inv_mul_cancel₀ hc, one_smul]
+      exact ha
+  rw [heq, Measure.addHaar_smul, abs_pow]
+
+/-- **Hausdorff-to-Nikodym Continuity at the Diagonal:**
+as `L → K` in the Hausdorff metric on `ConvexBody E`, `μ (K Δ L) → 0`. -/
+theorem tendsto_symmDiffVol_self (μ : Measure E) [μ.IsAddHaarMeasure] (K : ConvexBody E) :
+    Tendsto (fun L : ConvexBody E => symmDiffVol μ (K : Set E) (L : Set E)) (𝓝 K) (𝓝 0) := by
+  rw [ENNReal.tendsto_nhds_zero]
+  intro ε hε
+  let δ : ℝ≥0∞ := min (ε / 2) 1
+  have hδ_pos : 0 < δ := lt_min (ENNReal.half_pos hε.ne') zero_lt_one
+  have hδ_top : δ ≠ ⊤ := ne_top_of_le_ne_top ENNReal.one_ne_top (min_le_right _ _)
+  have h2δ : δ + δ ≤ ε := by
+    calc
+      δ + δ ≤ ε / 2 + ε / 2 := add_le_add (min_le_left _ _) (min_le_left _ _)
+      _ = ε := ENNReal.add_halves ε
+  have hK_fin : μ (K : Set E) ≠ ⊤ := K.isCompact.measure_lt_top.ne
+  -- Part 1: `μ (L \ K) ≤ δ` for `L` sufficiently close to `K` (outer parallel-body approximation).
+  have houter : ∀ᶠ L : ConvexBody E in 𝓝 K, μ ((L : Set E) \ (K : Set E)) ≤ δ := by
+    let r : ℕ → ℝ := fun n => 1 / ((n : ℝ) + 1)
+    have hr_pos : ∀ n, 0 < r n := fun n => by positivity
+    let S : ℕ → Set E := fun n => (K : Set E) + Metric.closedBall (0 : E) (r n)
+    have hS_anti : Antitone S := by
+      intro m n hmn x hx
+      rcases Set.mem_add.mp hx with ⟨y, hy, z, hz, rfl⟩
+      refine Set.add_mem_add hy (Metric.closedBall_subset_closedBall ?_ hz)
+      dsimp only [r]; gcongr
+    have hS_compact : ∀ n, IsCompact (S n) := fun n =>
+      K.isCompact.add (isCompact_closedBall (0 : E) (r n))
+    have hS_meas : ∀ n, NullMeasurableSet (S n) μ := fun n =>
+      (hS_compact n).isClosed.measurableSet.nullMeasurableSet
+    have hInter : (⋂ n : ℕ, S n) = (K : Set E) := by
+      ext x
+      simp only [mem_iInter]
+      constructor
+      · intro hx
+        have hdist : ∀ n, ∃ y ∈ K, dist x y ≤ r n := fun n => by
+          rcases Set.mem_add.mp (hx n) with ⟨y, hy, z, hz, hxyz⟩
+          refine ⟨y, hy, ?_⟩
+          rw [← hxyz, dist_eq_norm, add_sub_cancel_left]
+          simpa [Metric.mem_closedBall, dist_zero_right] using hz
+        choose yn hyn hdist_yn using hdist
+        have htend : Tendsto yn atTop (𝓝 x) := by
+          rw [Metric.tendsto_atTop]
+          intro η hη
+          obtain ⟨N, hN⟩ := exists_nat_one_div_lt hη
+          refine ⟨N, fun n hn => ?_⟩
+          rw [dist_comm]
+          have hrle : r n ≤ 1 / ((N : ℝ) + 1) := by dsimp only [r]; gcongr
+          exact (hdist_yn n).trans_lt (hrle.trans_lt hN)
+        exact K.isClosed.mem_of_tendsto htend (Eventually.of_forall hyn)
+      · intro hx n
+        exact ⟨x, hx, 0, Metric.mem_closedBall_self (hr_pos n).le, add_zero x⟩
+    have htend_meas : Tendsto (fun n => μ (S n)) atTop (𝓝 (μ (K : Set E))) := by
+      rw [← hInter]
+      exact tendsto_measure_iInter_atTop hS_meas hS_anti ⟨0, (hS_compact 0).measure_lt_top.ne⟩
+    have hlt : μ (K : Set E) < μ (K : Set E) + δ := ENNReal.lt_add_right hK_fin hδ_pos.ne'
+    obtain ⟨N, hN⟩ := (htend_meas.eventually (gt_mem_nhds hlt)).exists
+    rw [Metric.eventually_nhds_iff]
+    refine ⟨r N, hr_pos N, fun L hLK => ?_⟩
+    have hLsub : (L : Set E) ⊆ S N := by
+      intro x hxL
+      obtain ⟨y, hyK, hinf⟩ := K.isCompact.exists_infDist_eq_dist K.nonempty x
+      have hxy : dist x y ≤ r N := by
+        rw [← hinf]
+        have h1 : Metric.infDist x (K : Set E) ≤ dist L K := by
+          rw [← ConvexBody.hausdorffDist_coe]
+          exact Metric.infDist_le_hausdorffDist_of_mem hxL ConvexBody.hausdorffEDist_ne_top
+        exact h1.trans hLK.le
+      refine ⟨y, hyK, x - y, ?_, by abel_nf⟩
+      simpa [Metric.mem_closedBall, dist_zero_right, dist_eq_norm] using hxy
+    have hKsub : (K : Set E) ⊆ S N := fun x hx =>
+      ⟨x, hx, 0, Metric.mem_closedBall_self (hr_pos N).le, add_zero x⟩
+    calc
+      μ ((L : Set E) \ (K : Set E)) ≤ μ (S N \ (K : Set E)) :=
+        measure_mono (Set.sdiff_subset_sdiff_left hLsub)
+      _ = μ (S N) - μ (K : Set E) :=
+        measure_sdiff hKsub K.isClosed.measurableSet.nullMeasurableSet hK_fin
+      _ ≤ δ := tsub_le_iff_left.mpr hN.le
+  -- Part 2: `μ (K \ L) ≤ δ` for `L` sufficiently close to `K` (inner homothety approximation).
+  have hinner : ∀ᶠ L : ConvexBody E in 𝓝 K, μ ((K : Set E) \ (L : Set E)) ≤ δ := by
+    by_cases hK0 : μ (K : Set E) = 0
+    · exact Eventually.of_forall fun L => by
+        rw [measure_mono_null Set.sdiff_subset hK0]; exact zero_le
+    have hint_ne : (interior (K : Set E)).Nonempty := by
+      by_contra hemp
+      rw [Set.not_nonempty_iff_eq_empty] at hemp
+      have hKsub : (K : Set E) ⊆ frontier (K : Set E) := by
+        rw [frontier, K.isClosed.closure_eq, hemp, sdiff_empty]
+      exact hK0 (measure_mono_null hKsub (K.convex.addHaar_frontier μ))
+    obtain ⟨x₀, hx₀⟩ := hint_ne
+    obtain ⟨r, hr, hball⟩ := Metric.mem_nhds_iff.mp (mem_interior_iff_mem_nhds.mp hx₀)
+    have hcb : Metric.closedBall x₀ (r / 2) ⊆ K :=
+      (Metric.closedBall_subset_ball (by linarith)).trans hball
+    set d := Module.finrank ℝ E
+    have htend : Tendsto (fun t : ℝ => ENNReal.ofReal (t ^ d) * μ (K : Set E)) (𝓝 1)
+        (𝓝 (μ (K : Set E))) := by
+      have h1 : Tendsto (fun t : ℝ => ENNReal.ofReal (t ^ d)) (𝓝 1) (𝓝 1) := by
+        have hpow : Tendsto (fun t : ℝ => t ^ d) (𝓝 1) (𝓝 (1 : ℝ)) := by
+          simpa using (continuous_pow d).tendsto (1 : ℝ)
+        simpa [Function.comp_def] using (ENNReal.continuous_ofReal.tendsto 1).comp hpow
+      simpa [one_mul] using (ENNReal.Tendsto.mul_const h1 (Or.inr hK_fin))
+    have hsub_lt : μ (K : Set E) - δ < μ (K : Set E) :=
+      ENNReal.sub_lt_self hK_fin hK0 hδ_pos.ne'
+    have hev_t : ∀ᶠ t : ℝ in 𝓝[<] 1,
+        μ (K : Set E) - δ < ENNReal.ofReal (t ^ d) * μ (K : Set E) ∧ 0 < t := by
+      have h1 : ∀ᶠ t : ℝ in 𝓝[<] 1,
+          μ (K : Set E) - δ < ENNReal.ofReal (t ^ d) * μ (K : Set E) :=
+        nhdsWithin_le_nhds (htend.eventually (lt_mem_nhds hsub_lt))
+      have h2 : ∀ᶠ t : ℝ in 𝓝[<] 1, (0 : ℝ) < t :=
+        nhdsWithin_le_nhds (lt_mem_nhds zero_lt_one)
+      exact h1.and h2
+    obtain ⟨t, ⟨ht_meas, ht_pos⟩, ht_lt1⟩ := (hev_t.and self_mem_nhdsWithin).exists
+    have hδ_r : 0 < (1 - t) * (r / 2) := mul_pos (sub_pos.mpr ht_lt1) (by linarith)
+    rw [Metric.eventually_nhds_iff]
+    refine ⟨(1 - t) * (r / 2), hδ_r, fun L hLK => ?_⟩
+    let H : ConvexBody E := (1 - t) • bodySingleton x₀ + t • K
+    have hH_sub_L : (H : Set E) ⊆ (L : Set E) :=
+      homothety_subset_of_dist_le (by linarith) ht_pos.le ht_lt1.le hcb hLK.le
+    have hH_sub_K : (H : Set E) ⊆ (K : Set E) := by
+      intro z hz
+      rw [ConvexBody.coe_add, ConvexBody.coe_smul, ConvexBody.coe_smul, coe_bodySingleton] at hz
+      rcases Set.mem_add.mp hz with ⟨_, ⟨_, rfl, rfl⟩, _, ⟨y, hy, rfl⟩, rfl⟩
+      exact K.convex (interior_subset hx₀) hy (sub_nonneg.mpr ht_lt1.le) ht_pos.le (sub_add_cancel 1 t)
+    have hvol_H : μ (H : Set E) = ENNReal.ofReal (t ^ d) * μ (K : Set E) := by
+      have hset : (H : Set E) = (fun x => -((1 - t) • x₀) + x) ⁻¹' (t • (K : Set E)) := by
+        ext x
+        rw [ConvexBody.coe_add, ConvexBody.coe_smul, ConvexBody.coe_smul, coe_bodySingleton]
+        simp only [Set.mem_add, Set.mem_smul_set, Set.mem_singleton_iff, Set.mem_preimage]
+        constructor
+        · rintro ⟨_, ⟨_, rfl, rfl⟩, _, ⟨y, hy, rfl⟩, rfl⟩
+          exact ⟨y, hy, by abel⟩
+        · rintro ⟨y, hy, hxy⟩
+          refine ⟨(1 - t) • x₀, ⟨x₀, rfl, rfl⟩, t • y, ⟨y, hy, rfl⟩, ?_⟩
+          calc
+            (1 - t) • x₀ + t • y = (1 - t) • x₀ + (-((1 - t) • x₀) + x) := by rw [← hxy]
+            _ = x := by abel
+      rw [hset, measure_preimage_add, Measure.addHaar_smul, abs_of_nonneg (pow_nonneg ht_pos.le _)]
+    have hH_fin : μ (H : Set E) ≠ ⊤ := H.isCompact.measure_lt_top.ne
+    calc
+      μ ((K : Set E) \ (L : Set E)) ≤ μ ((K : Set E) \ (H : Set E)) :=
+        measure_mono (Set.sdiff_subset_sdiff_right hH_sub_L)
+      _ = μ (K : Set E) - μ (H : Set E) :=
+        measure_sdiff hH_sub_K H.isClosed.measurableSet.nullMeasurableSet hH_fin
+      _ = μ (K : Set E) - ENNReal.ofReal (t ^ d) * μ (K : Set E) := by rw [hvol_H]
+      _ ≤ δ := by
+        rw [tsub_le_iff_left]
+        simpa [add_comm] using tsub_le_iff_left.mp ht_meas.le
+  filter_upwards [hinner, houter] with L hL_in hL_out
+  rw [symmDiffVol_eq_add_sdiff μ K.isClosed.measurableSet L.isClosed.measurableSet]
+  exact (add_le_add hL_in hL_out).trans h2δ
+
+/-- Real-valued diagonal continuity: `symmDiffVolReal μ K L → 0` as `L → K`. -/
+theorem tendsto_symmDiffVolReal_self (μ : Measure E) [μ.IsAddHaarMeasure] (K : ConvexBody E) :
+    Tendsto (fun L : ConvexBody E => symmDiffVolReal μ (K : Set E) (L : Set E)) (𝓝 K) (𝓝 0) := by
+  have h := (ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp (tendsto_symmDiffVol_self μ K)
+  simpa [symmDiffVolReal, Function.comp_def] using h
+
+/-- **Joint Continuity of Real Symmetric-Difference Volume on `ConvexBody E`:**
+`(K, L) ↦ symmDiffVolReal μ K L` is continuous with respect to the Hausdorff metric. -/
+theorem continuous_symmDiffVolReal_convexBody (μ : Measure E) [μ.IsAddHaarMeasure] :
+    Continuous (fun p : ConvexBody E × ConvexBody E =>
+      symmDiffVolReal μ (p.1 : Set E) (p.2 : Set E)) := by
+  rw [continuous_iff_continuousAt]
+  rintro ⟨K, L⟩
+  rw [Metric.continuousAt_iff]
+  intro ε hε
+  have hK_ev : ∀ᶠ K' : ConvexBody E in 𝓝 K,
+      symmDiffVolReal μ (K : Set E) (K' : Set E) < ε / 2 := by
+    have ht := Metric.tendsto_nhds.mp (tendsto_symmDiffVolReal_self μ K) (ε / 2) (half_pos hε)
+    filter_upwards [ht] with K' hK'
+    rwa [Real.dist_eq, sub_zero, abs_of_nonneg (symmDiffVolReal_nonneg μ _ _)] at hK'
+  have hL_ev : ∀ᶠ L' : ConvexBody E in 𝓝 L,
+      symmDiffVolReal μ (L : Set E) (L' : Set E) < ε / 2 := by
+    have ht := Metric.tendsto_nhds.mp (tendsto_symmDiffVolReal_self μ L) (ε / 2) (half_pos hε)
+    filter_upwards [ht] with L' hL'
+    rwa [Real.dist_eq, sub_zero, abs_of_nonneg (symmDiffVolReal_nonneg μ _ _)] at hL'
+  obtain ⟨δ₁, hδ₁, hK_ball⟩ := Metric.eventually_nhds_iff.mp hK_ev
+  obtain ⟨δ₂, hδ₂, hL_ball⟩ := Metric.eventually_nhds_iff.mp hL_ev
+  refine ⟨min δ₁ δ₂, lt_min hδ₁ hδ₂, ?_⟩
+  rintro ⟨K', L'⟩ hdist
+  have hK' : symmDiffVolReal μ (K : Set E) (K' : Set E) < ε / 2 :=
+    hK_ball (lt_of_le_of_lt (le_max_left _ _) (hdist.trans_le (min_le_left _ _)))
+  have hL' : symmDiffVolReal μ (L : Set E) (L' : Set E) < ε / 2 :=
+    hL_ball (lt_of_le_of_lt (le_max_right _ _) (hdist.trans_le (min_le_right _ _)))
+  have hfin : ∀ A B : ConvexBody E, symmDiffVol μ (A : Set E) (B : Set E) ≠ ⊤ := fun A B =>
+    symmDiffVol_ne_top μ A.isCompact.measure_lt_top.ne B.isCompact.measure_lt_top.ne
+  have htri1 : symmDiffVolReal μ (K' : Set E) (L' : Set E) ≤
+      symmDiffVolReal μ (K' : Set E) (K : Set E) + symmDiffVolReal μ (K : Set E) (L : Set E) +
+        symmDiffVolReal μ (L : Set E) (L' : Set E) := by
+    have t1 := symmDiffVolReal_triangle μ (hfin K' K) (hfin K L')
+    have t2 := symmDiffVolReal_triangle μ (hfin K L) (hfin L L')
+    linarith
+  have htri2 : symmDiffVolReal μ (K : Set E) (L : Set E) ≤
+      symmDiffVolReal μ (K : Set E) (K' : Set E) + symmDiffVolReal μ (K' : Set E) (L' : Set E) +
+        symmDiffVolReal μ (L' : Set E) (L : Set E) := by
+    have t1 := symmDiffVolReal_triangle μ (hfin K K') (hfin K' L)
+    have t2 := symmDiffVolReal_triangle μ (hfin K' L') (hfin L' L)
+    linarith
+  rw [symmDiffVolReal_comm μ (K' : Set E) (K : Set E)] at htri1
+  rw [symmDiffVolReal_comm μ (L' : Set E) (L : Set E)] at htri2
+  rw [Real.dist_eq, abs_lt]
+  constructor <;> linarith
+
+/-- **Joint Continuity of `ℝ≥0∞` Symmetric-Difference Volume on `ConvexBody E`:**
+`(K, L) ↦ symmDiffVol μ K L` is continuous with respect to the Hausdorff metric. -/
+theorem continuous_symmDiffVol_convexBody (μ : Measure E) [μ.IsAddHaarMeasure] :
+    Continuous (fun p : ConvexBody E × ConvexBody E =>
+      symmDiffVol μ (p.1 : Set E) (p.2 : Set E)) := by
+  have heq : (fun p : ConvexBody E × ConvexBody E =>
+        symmDiffVol μ (p.1 : Set E) (p.2 : Set E)) =
+      fun p => ENNReal.ofReal (symmDiffVolReal μ (p.1 : Set E) (p.2 : Set E)) := by
+    ext ⟨K, L⟩
+    exact (ENNReal.ofReal_toReal (symmDiffVol_ne_top μ
+      K.isCompact.measure_lt_top.ne L.isCompact.measure_lt_top.ne)).symm
+  rw [heq]
+  exact ENNReal.continuous_ofReal.comp (continuous_symmDiffVolReal_convexBody μ)
 
 end
 
