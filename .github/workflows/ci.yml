@@ -71,12 +71,12 @@ jobs:
       - name: Build Solution with --wfail
         run: lake build Solution --wfail
 
-      - name: Replay every library module and Solution through leanchecker
-        # Run leanchecker per leaf module to avoid a Lean v4.36.0 SIGSEGV when
-        # replaying multiple modules in one leanchecker process.
+      - name: Replay every library leaf module and Solution through leanchecker
+        # Run leanchecker per leaf module (mindepth 2) to avoid a Lean v4.36.0
+        # SIGSEGV on import-only barrel files or multi-module invocations.
         run: |
           set -euo pipefail
-          for f in $(find ConvexGeom/* -name '*.lean' | sort); do
+          for f in $(find ConvexGeom -mindepth 2 -name '*.lean' | sort); do
             mod="${f%.lean}"
             mod="${mod//\//.}"
             echo "leanchecker: $mod"

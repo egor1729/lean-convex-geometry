@@ -32,8 +32,8 @@ lake lint
 # Verify ConvexGeom.lean imports every module in ConvexGeom/
 lake exe mk_all --check --lib ConvexGeom
 
-# Replay compiled module environments through Lean's bundled leanchecker
-for f in $(find ConvexGeom/* -name '*.lean' | sort); do
+# Replay compiled leaf module environments through Lean's bundled leanchecker
+for f in $(find ConvexGeom -mindepth 2 -name '*.lean' | sort); do
   mod="${f%.lean}"; lake env leanchecker "${mod//\//.}"
 done
 
