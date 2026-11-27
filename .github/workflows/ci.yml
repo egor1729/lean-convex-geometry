@@ -109,10 +109,13 @@ jobs:
 
       - name: Install bubblewrap for lake comparator sandbox
         # Ubuntu 24.04 restricts unprivileged user namespaces via AppArmor;
-        # the CI runner is disposable.
+        # the CI runner is disposable. Tolerate transient 403s from unrelated
+        # third-party apt repos preinstalled on GitHub-hosted runners.
         run: |
-          sudo apt-get update -qq >/dev/null
-          sudo apt-get install -y -qq bubblewrap >/dev/null
+          if ! command -v bwrap >/dev/null 2>&1; then
+            sudo apt-get update -qq >/dev/null || true
+            sudo apt-get install -y -qq bubblewrap >/dev/null
+          fi
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
       - name: Run sandboxed lake comparator (Lean + nanoda + con-ron)
