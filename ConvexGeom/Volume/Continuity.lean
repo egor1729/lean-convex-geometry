@@ -37,7 +37,8 @@ equipped with an additive Haar measure `μ`.
   `ConvexGeom.iSup_addHaar_convexHull_closedBall_eq_sphere`,
   `ConvexGeom.iSup_addHaar_convexHull_sphere_eq_generalPosition`: polytope volume continuity,
   attainment, sphere reduction, and general-position density.
-* `ConvexGeom.continuous_symmDiffVolReal_convexBody`, `ConvexGeom.continuous_symmDiffVol_convexBody`:
+* `ConvexGeom.continuous_symmDiffVolReal_convexBody` ,
+  `ConvexGeom.continuous_symmDiffVol_convexBody` :
   joint continuity of symmetric-difference volume in the Hausdorff metric.
 
 ## References
@@ -116,9 +117,11 @@ theorem addHaar_halfBall (μ : Measure E) [μ.IsAddHaarMeasure] {u : E} (hu : u 
   let P := B ∩ {x : E | 0 ≤ ⟪x, u⟫}
   let Q := B ∩ {x : E | ⟪x, u⟫ ≤ 0}
   have hP_meas : MeasurableSet P :=
-    measurableSet_closedBall.inter (isClosed_le continuous_const (continuous_id.inner continuous_const)).measurableSet
+    measurableSet_closedBall.inter
+      (isClosed_le continuous_const (continuous_id.inner continuous_const)).measurableSet
   have hQ_meas : MeasurableSet Q :=
-    measurableSet_closedBall.inter (isClosed_le (continuous_id.inner continuous_const) continuous_const).measurableSet
+    measurableSet_closedBall.inter
+      (isClosed_le (continuous_id.inner continuous_const) continuous_const).measurableSet
   have hunion : P ∪ Q = B := by
     ext x
     simp only [P, Q, mem_union, mem_inter_iff, mem_ofPred_eq]
@@ -275,7 +278,8 @@ theorem upperSemicontinuous_addHaar_convexBody (μ : Measure E) [μ.IsAddHaarMea
 
 omit [MeasurableSpace E] [BorelSpace E] in
 /-- Key geometric inclusion via support functions: if `closedBall x₀ r ⊆ K` (`r > 0`) and
-`dist L K ≤ (1 - t) * r` for `0 < t < 1`, then the contracted copy `x₀ + t • (K - x₀)` lies in `L`. -/
+`dist L K ≤ (1 - t) * r` for `0 < t < 1` , then the contracted copy `x₀ + t • (K - x₀)` lies in `L`
+. -/
 lemma homothety_subset_of_dist_le {K L : ConvexBody E} {x₀ : E} {r t : ℝ}
     (hr : 0 < r) (ht0 : 0 ≤ t) (ht1 : t ≤ 1)
     (hball : Metric.closedBall x₀ r ⊆ K)
@@ -557,7 +561,8 @@ theorem strict_addHaar_convexHull_insert_of_notMem (μ : Measure E) [μ.IsAddHaa
     exact hdisj_ball hz_w hzP
   have hP_sub : P ⊆ convexHull ℝ (insert w P) :=
     (Set.subset_insert w P).trans (subset_convexHull ℝ _)
-  have hU_pos : 0 < μ U := Metric.isOpen_ball.measure_pos μ ⟨c, Metric.mem_ball_self (by positivity)⟩
+  have hU_pos : 0 < μ U :=
+    Metric.isOpen_ball.measure_pos μ ⟨c, Metric.mem_ball_self (by positivity)⟩
   have hunion : μ P + μ U ≤ μ (convexHull ℝ (insert w P)) := by
     rw [← measure_union hU_disj measurableSet_ball]
     exact measure_mono (Set.union_subset hP_sub hU_sub)
@@ -583,7 +588,9 @@ theorem iSup_addHaar_convexHull_closedBall_eq_sphere [Nontrivial E]
       have hsub : Subsingleton ι := Fintype.card_le_one_iff_subsingleton.mp (by omega)
       have hrange : Set.range v = {v (Classical.arbitrary ι)} := by
         ext x; simp only [Set.mem_range, Set.mem_singleton_iff]
-        exact ⟨fun ⟨i, hi⟩ => by rw [Subsingleton.elim i (Classical.arbitrary ι)] at hi; exact hi.symm,
+        exact ⟨fun ⟨i, hi⟩ => by
+            rw [Subsingleton.elim i (Classical.arbitrary ι)] at hi
+            exact hi.symm,
           fun h => ⟨Classical.arbitrary ι, h.symm⟩⟩
       rw [hrange, convexHull_singleton, measure_singleton]
       exact zero_le
@@ -605,11 +612,13 @@ theorem mem_sphere_of_max_addHaar_convexHull_closedBall [Nontrivial E]
   by_contra hnot_sph
   set P : Set E := convexHull ℝ (Set.range v)
   have hPc : IsCompact P := (Set.finite_range v).isCompact_convexHull ℝ
-  -- Since `interior P` is nonempty and `E` is nontrivial, `P` is not a singleton, so some `v j ≠ v i`.
+  -- Since `interior P` is nonempty and `E` is nontrivial, `P` is not a singleton, so some
+  -- `v j ≠ v i` .
   have hdiff : ∃ j : ι, v j ≠ v i := by
     by_contra hall
     push Not at hall
-    have hsub : Set.range v ⊆ {v i} := by rintro _ ⟨j, rfl⟩; exact Set.mem_singleton_iff.mpr (hall j)
+    have hsub : Set.range v ⊆ {v i} := by
+      rintro _ ⟨j, rfl⟩; exact Set.mem_singleton_iff.mpr (hall j)
     have hPsub : P ⊆ {v i} := convexHull_min hsub (convex_singleton (v i))
     obtain ⟨x, hx⟩ := hint
     obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.mp isOpen_interior x hx
@@ -976,7 +985,8 @@ theorem tendsto_symmDiffVol_self (μ : Measure E) [μ.IsAddHaarMeasure] (K : Con
       intro z hz
       rw [ConvexBody.coe_add, ConvexBody.coe_smul, ConvexBody.coe_smul, coe_bodySingleton] at hz
       rcases Set.mem_add.mp hz with ⟨_, ⟨_, rfl, rfl⟩, _, ⟨y, hy, rfl⟩, rfl⟩
-      exact K.convex (interior_subset hx₀) hy (sub_nonneg.mpr ht_lt1.le) ht_pos.le (sub_add_cancel 1 t)
+      exact K.convex (interior_subset hx₀) hy (sub_nonneg.mpr ht_lt1.le)
+        ht_pos.le (sub_add_cancel 1 t)
     have hvol_H : μ (H : Set E) = ENNReal.ofReal (t ^ d) * μ (K : Set E) := by
       have hset : (H : Set E) = (fun x => -((1 - t) • x₀) + x) ⁻¹' (t • (K : Set E)) := by
         ext x

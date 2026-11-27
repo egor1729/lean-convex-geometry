@@ -26,7 +26,8 @@ example :
   norm_num
 
 /-- Dimension 2 standard triangle `(0, 0), (1, 0), (0, 1)` in `EuclideanSpace ℝ (Fin 2)`
-has volume `1 / 2`, computed via the public `volume_convexHull_simplex_euclideanSpace_matrix` API. -/
+has volume `1 / 2` , computed via the public `volume_convexHull_simplex_euclideanSpace_matrix` API.
+-/
 example :
     let v : Fin 3 → EuclideanSpace ℝ (Fin 2) :=
       ![WithLp.toLp 2 ![0, 0], WithLp.toLp 2 ![1, 0], WithLp.toLp 2 ![0, 1]]

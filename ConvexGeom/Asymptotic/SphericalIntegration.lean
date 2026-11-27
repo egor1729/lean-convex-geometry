@@ -186,7 +186,8 @@ theorem measurePreserving_sphereMap_toSphere
       exact ⟨t, ht, U u, ⟨U u, by simpa [mem_sphere_zero_iff_norm] using hu, hUs, rfl⟩,
         by rw [map_smul]⟩
     · rintro ⟨t, ht, _, ⟨v, hv, hvs, rfl⟩, hUx⟩
-      refine ⟨t, ht, U.symm v, ⟨U.symm v, by simpa [mem_sphere_zero_iff_norm] using hv, ?_, rfl⟩, ?_⟩
+      refine ⟨t, ht, U.symm v, ⟨U.symm v, by simpa [mem_sphere_zero_iff_norm] using hv, ?_, rfl⟩,
+        ?_⟩
       · show sphereMap U ⟨U.symm v, _⟩ ∈ s
         have heq : sphereMap U ⟨U.symm v, by simpa [mem_sphere_zero_iff_norm] using hv⟩ =
             ⟨v, hv⟩ := by ext; simp
@@ -359,7 +360,8 @@ theorem addHaar_eq_lintegral_gauge_inv_pow [Nontrivial E]
     have hmp := μ.measurePreserving_homeomorphUnitSphereProd
     rw [← hmp.measure_preimage hAm.nullMeasurableSet, hpre,
       Measure.comap_apply _ Subtype.val_injective
-        (fun s hs => (MeasurableEmbedding.subtype_coe (measurableSet_singleton (0 : E)).compl).measurableSet_image.mpr hs)
+        (fun s hs => (MeasurableEmbedding.subtype_coe
+          (measurableSet_singleton (0 : E)).compl).measurableSet_image.mpr hs)
         _ ((K.isClosed.preimage continuous_subtype_val).measurableSet),
       show Subtype.val '' ((Subtype.val : ({0}ᶜ : Set E) → E) ⁻¹' (K : Set E)) =
         (K : Set E) \ {0} by ext x; simp [Set.sdiff_eq, and_comm],
@@ -391,7 +393,8 @@ theorem addHaar_eq_lintegral_gauge_inv_pow [Nontrivial E]
     have hsingle : Measure.volumeIoiPow (d - 1) {r₀} = 0 := by
       have hzero : (Measure.comap (Subtype.val : Ioi (0 : ℝ) → ℝ) volume) {r₀} = 0 := by
         rw [Measure.comap_apply _ Subtype.val_injective
-          (fun s hs => (MeasurableEmbedding.subtype_coe measurableSet_Ioi).measurableSet_image.mpr hs)
+          (fun s hs =>
+            (MeasurableEmbedding.subtype_coe measurableSet_Ioi).measurableSet_image.mpr hs)
           _ (measurableSet_singleton r₀), image_singleton, measure_singleton]
       rw [Measure.volumeIoiPow, withDensity_apply _ (measurableSet_singleton r₀),
         Measure.restrict_eq_zero.mpr hzero, lintegral_zero_measure]
@@ -687,7 +690,8 @@ private lemma convexOn_inv_pow {r : ℝ} (hr : 0 < r) (d : ℕ) :
         a * x⁻¹ + b * y⁻¹ := by
       field_simp [hxy_pos.ne', hx_pos.ne', hy_pos.ne']
     linarith
-  have hpow_conv := (convexOn_pow d).2 (inv_nonneg.mpr hx_pos.le) (inv_nonneg.mpr hy_pos.le) ha hb hab
+  have hpow_conv :=
+    (convexOn_pow d).2 (inv_nonneg.mpr hx_pos.le) (inv_nonneg.mpr hy_pos.le) ha hb hab
   simpa [smul_eq_mul, inv_pow] using
     (pow_le_pow_left₀ (inv_nonneg.mpr hxy_pos.le) hinv d).trans hpow_conv
 
@@ -745,7 +749,8 @@ theorem dual_urysohn_inequality [Nontrivial E]
       0 < r / 2 := hr2_pos
       _ = ∫ _u : sphere (0 : E) 1, r / 2 ∂(sphereProb (volume : Measure E)) := by
           simp [integral_const]
-      _ ≤ meanWidth K := integral_mono (integrable_const _) (integrable_supportFn_sphereProb K) hsup_ge
+      _ ≤ meanWidth K :=
+        integral_mono (integrable_const _) (integrable_supportFn_sphereProb K) hsup_ge
   have hpol_ratio : (meanWidth K ^ d)⁻¹ ≤
       volume.real (polarBody (K : Set E)) / volume.real (closedBall (0 : E) 1) := by
     rw [hpol, mul_div_cancel_left₀ _ hvB_pos.ne']
@@ -762,7 +767,8 @@ theorem dual_urysohn_inequality [Nontrivial E]
   calc
     (volume.real (closedBall (0 : E) 1) / volume.real (polarBody (K : Set E))) ^ (1 / (d : ℝ))
       ≤ (meanWidth K ^ d) ^ (1 / (d : ℝ)) :=
-        Real.rpow_le_rpow (div_nonneg hvB_pos.le hvpol_pos.le) hle_pow (one_div_nonneg.mpr hd_rpos.le)
+        Real.rpow_le_rpow (div_nonneg hvB_pos.le hvpol_pos.le)
+          hle_pow (one_div_nonneg.mpr hd_rpos.le)
     _ = meanWidth K := by
         rw [← Real.rpow_natCast, ← Real.rpow_mul hmw_pos.le,
           mul_one_div_cancel hd_rpos.ne', Real.rpow_one]

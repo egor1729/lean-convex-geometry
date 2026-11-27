@@ -108,7 +108,8 @@ theorem logConcave_sections {K : Set (ℝ × E)} (hKconv : Convex ℝ K) (hKc : 
 /-- **Brunn's Concavity Principle (`ℝ≥0∞` form):**
 for compact convex `K ⊆ ℝ × E` (`d = finrank ℝ E ≥ 1`), whenever `slice K s` and `slice K t` are
 nonempty and `a, b ≥ 0` with `a + b = 1`:
-`a * volume (slice K s) ^ (1 / d) + b * volume (slice K t) ^ (1 / d) ≤ volume (slice K (a*s + b*t)) ^ (1 / d)`. -/
+`a * volume (slice K s) ^ (1 / d) + b * volume (slice K t) ^ (1 / d)`
+`≤ volume (slice K (a*s + b*t)) ^ (1 / d)`. -/
 theorem brunn_concavity_sections [Nontrivial E]
     {K : Set (ℝ × E)} (hKconv : Convex ℝ K) (hKc : IsCompact K)
     {s t : ℝ} (hs : (slice K s).Nonempty) (ht : (slice K t).Nonempty)
@@ -139,7 +140,8 @@ theorem concaveOn_volume_slice_rpow [Nontrivial E]
       (Set.add_mem_add (Set.smul_mem_smul_set hy₁) (Set.smul_mem_smul_set hy₂))⟩
   · intro s hs t ht a b ha hb hab
     have hbrunn := brunn_concavity_sections hKconv hKc hs ht ha hb hab
-    have hfin : ∀ u : ℝ, volume (slice K u) ≠ ⊤ := fun u => (isCompact_slice hKc u).measure_lt_top.ne
+    have hfin : ∀ u : ℝ, volume (slice K u) ≠ ⊤ :=
+      fun u => (isCompact_slice hKc u).measure_lt_top.ne
     have htoReal_rpow : ∀ u : ℝ,
         ENNReal.ofReal ((volume (slice K u)).toReal ^ (1 / (d : ℝ))) =
           volume (slice K u) ^ (1 / (d : ℝ)) := fun u => by
@@ -176,7 +178,8 @@ theorem logConcave_convolution {E : Type*} [NormedAddCommGroup E] [InnerProductS
       ∫⁻ x : E, f x * g (((1 - t) • z₁ + t • z₂) - x) := by
   have h1t : 0 < 1 - t := sub_pos.mpr ht1
   let F : E × E → ℝ≥0∞ := fun p => f p.2 * g (p.1 - p.2)
-  have hFm : Measurable F := (hf.comp measurable_snd).mul (hg.comp (measurable_fst.sub measurable_snd))
+  have hFm : Measurable F :=
+    (hf.comp measurable_snd).mul (hg.comp (measurable_fst.sub measurable_snd))
   refine logConcave_marginal_prod hFm ht0 ht1 (fun u₁ u₂ x₁ x₂ => ?_) z₁ z₂
   dsimp only [F]
   have hsub : (1 - t) • (u₁ - x₁) + t • (u₂ - x₂) =
@@ -408,7 +411,8 @@ private lemma volume_sub_eq_zero_of_volume_eq_zero {K : Set E} (hKconv : Convex 
   rcases K.eq_empty_or_nonempty with rfl | hKne
   · simp
   by_cases htop : affineSpan ℝ K = ⊤
-  · -- A nonempty convex set with full affine span has nonempty interior, contradicting `volume K = 0`.
+  · -- A nonempty convex set with full affine span has nonempty interior,
+    -- contradicting `volume K = 0`.
     exfalso
     obtain ⟨y, hy⟩ := hKne.intrinsicInterior hKconv
     rw [mem_intrinsicInterior] at hy
@@ -461,7 +465,8 @@ theorem two_pow_mul_volume_le_volume_diff {K : Set E} (hKc : IsCompact K) :
       exact ⟨x, hx, y, hy, by rw [neg_smul, one_smul, sub_eq_add_neg]⟩
     · rintro ⟨x, hx, y, hy, rfl⟩
       exact ⟨x, hx, (-1 : ℝ) • y, ⟨y, hy, rfl⟩, by rw [neg_smul, one_smul, sub_eq_add_neg]⟩
-  rw [hset, Measure.addHaar_smul, abs_of_nonneg (pow_nonneg (by norm_num : (0 : ℝ) ≤ 1 / 2) _)] at hbm
+  rw [hset, Measure.addHaar_smul,
+    abs_of_nonneg (pow_nonneg (by norm_num : (0 : ℝ) ≤ 1 / 2) _)] at hbm
   have hmul : ENNReal.ofReal ((2 : ℝ) ^ Module.finrank ℝ E) * volume K ≤
       ENNReal.ofReal ((2 : ℝ) ^ Module.finrank ℝ E) *
         (ENNReal.ofReal ((1 / 2 : ℝ) ^ Module.finrank ℝ E) * volume (K - K)) := by gcongr
@@ -470,7 +475,8 @@ theorem two_pow_mul_volume_le_volume_diff {K : Set E} (hKc : IsCompact K) :
   simpa [ENNReal.ofReal_pow (by norm_num : (0 : ℝ) ≤ 2)] using hmul
 
 /-- Helper for Rogers–Shephard: if `s ∈ (0, 1)` and `(1 - s)⁻¹ • x ∈ K - K` for convex `K`, then
-a translate of `s • K` fits inside `K ∩ (x + K)`, yielding `s ^ d * volume K ≤ covariogram volume K x`. -/
+a translate of `s • K` fits inside `K ∩ (x + K)` , yielding
+`s ^ d * volume K ≤ covariogram volume K x` . -/
 private lemma rogers_shephard_homothety_volume {K : Set E} (hKconv : Convex ℝ K)
     {x : E} {s : ℝ} (hs0 : 0 < s) (hs1 : s < 1) (hmem : (1 - s)⁻¹ • x ∈ K - K) :
     ENNReal.ofReal (s ^ Module.finrank ℝ E) * volume K ≤ covariogram volume K x := by
@@ -588,7 +594,8 @@ theorem rogers_shephard {K : Set E} (hKconv : Convex ℝ K) (hKc : IsCompact K) 
     have heq : K - K = K + (-1 : ℝ) • K := by
       ext z; simp only [Set.mem_sub, Set.mem_add, Set.mem_smul_set]
       exact ⟨fun ⟨x, hx, y, hy, h⟩ => ⟨x, hx, -y, ⟨y, hy, by simp⟩, by rw [← h, sub_eq_add_neg]⟩,
-        fun ⟨x, hx, _, ⟨y, hy, rfl⟩, h⟩ => ⟨x, hx, y, hy, by rw [← h, neg_smul, one_smul, sub_eq_add_neg]⟩⟩
+        fun ⟨x, hx, _, ⟨y, hy, rfl⟩, h⟩ =>
+          ⟨x, hx, y, hy, by rw [← h, neg_smul, one_smul, sub_eq_add_neg]⟩⟩
     rw [heq]
     exact hKc.add (hKc.smul (-1 : ℝ))
   have hKKm : MeasurableSet (K - K) := hKKc.isClosed.measurableSet
@@ -658,7 +665,8 @@ theorem rogers_shephard {K : Set E} (hKconv : Convex ℝ K) (hKc : IsCompact K) 
       ← intervalIntegral.integral_of_le (by norm_num : (0 : ℝ) ≤ 1),
       integral_rogers_shephard_weight hd_pos]
   -- Side 2: integrate `s` first, then `x`, using `rogers_shephard_radial_bound`.
-  have hswap : volume (K - K) * ENNReal.ofReal (1 / ((Nat.choose (2 * d) d : ℕ) : ℝ)) ≤ volume K := by
+  have hswap : volume (K - K) * ENNReal.ofReal (1 / ((Nat.choose (2 * d) d : ℕ) : ℝ)) ≤
+    volume K := by
     calc
       volume (K - K) * ENNReal.ofReal (1 / ((Nat.choose (2 * d) d : ℕ) : ℝ))
         = ∫⁻ s : ℝ, ∫⁻ x : E, F x s := hlhs.symm
@@ -932,7 +940,8 @@ theorem translativeCoveringNumber_convex_smul_le (μ : Measure E) [μ.IsAddHaarM
     congr 1
     · rw [mul_one_div_cancel hc.ne', one_smul]
     · congr 1; field_simp [hc.ne']
-  have h1 := (translativeCoveringNumber_mul_volume_le_four_pow μ K (hKconv.smul t) htK_m htK_fin).trans
+  have h1 :=
+    (translativeCoveringNumber_mul_volume_le_four_pow μ K (hKconv.smul t) htK_m htK_fin).trans
     (mul_le_mul_right (measure_mono hadd_sub) _)
   have hrhs : (4 : ℝ≥0∞) ^ d * μ ((1 + t / 2) • K) =
       ENNReal.ofReal ((4 / t + 2) ^ d) * μ (t • K) := by

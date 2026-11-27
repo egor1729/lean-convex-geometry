@@ -39,7 +39,8 @@ asymptotic geometric analysis, including Mathlib bridges between `IsOriginSymmet
 
 ## Main statements
 
-* `ConvexGeom.isOriginSymmetric_iff_balanced`, `ConvexGeom.isOriginSymmetric_convexBody_iff_supportFn`,
+* `ConvexGeom.isOriginSymmetric_iff_balanced` ,
+  `ConvexGeom.isOriginSymmetric_convexBody_iff_supportFn` ,
   `ConvexGeom.gauge_smul_abs_of_isOriginSymmetric`, `ConvexGeom.mem_polarBody_iff_abs_inner_le_one`.
 * `ConvexGeom.det_adjoint_eq_det`, `ConvexGeom.polarBody_linearEquiv_image`,
   `ConvexGeom.mahlerVolume_linearEquiv`, `ConvexGeom.santaloMahlerVolume_affineEquiv`.
@@ -365,7 +366,8 @@ theorem addHaar_ellipsoid [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSp
 
 Note: `mahlerVolume` is `GL(E)`-invariant (`mahlerVolume_linearEquiv`) but depends on the choice
 of origin (e.g., on `[-1, ε] ⊂ ℝ` with `0 < ε < 1`, `mahlerVolume volume [-1, ε] > 4`). For the
-translation- and affine-invariant volume product over interior centers, see `santaloMahlerVolume`. -/
+translation- and affine-invariant volume product over interior centers, see `santaloMahlerVolume` .
+-/
 @[expose]
 noncomputable def mahlerVolume [MeasurableSpace E] (μ : Measure E) (S : Set E) : ℝ≥0∞ :=
   μ S * μ (polarBody S)
@@ -443,7 +445,8 @@ lemma mahlerVolumeAt_translate [MeasurableSpace E] (μ : Measure E) (S : Set E) 
   · rintro ⟨x, hx, rfl⟩
     exact ⟨x + a, ⟨x, hx, rfl⟩, by abel⟩
 
-/-- Covariant transformation of centered Mahler volume under any affine equivalence `A : E ≃ᵃ[ℝ] E`. -/
+/-- Covariant transformation of centered Mahler volume under any affine equivalence `A : E ≃ᵃ[ℝ] E`
+. -/
 theorem mahlerVolumeAt_affineEquiv [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
     (μ : Measure E) [μ.IsAddHaarMeasure] (A : E ≃ᵃ[ℝ] E) (S : Set E) (z : E) :
     mahlerVolumeAt μ (A '' S) (A z) = mahlerVolumeAt μ S z := by
@@ -534,7 +537,8 @@ def banachMazurSet (K L : Set E) : Set ℝ :=
   {r : ℝ | 1 ≤ r ∧ ∃ T : E ≃ₗ[ℝ] E, K ⊆ T '' L ∧ T '' L ⊆ r • K}
 
 /-- The **origin-fixed (linear) multiplicative Banach–Mazur distance** between sets `K, L ⊆ E`:
-$$d_{\mathrm{BM}}(K, L) := \inf \{ r \ge 1 \mid \exists T \in \mathrm{GL}(E),\; K \subseteq T(L) \subseteq r K \}.$$
+$$d_{\mathrm{BM}}(K, L) :=
+  \inf \{ r \ge 1 \mid \exists T \in \mathrm{GL}(E),\; K \subseteq T(L) \subseteq r K \}.$$
 
 This matches the classical Banach–Mazur distance for origin-symmetric bodies. On infeasible pairs
 (when `banachMazurSet K L = ∅`), `Real.sInf_empty` returns `0`; use `banachMazurEDist` for
@@ -598,7 +602,8 @@ lemma banachMazurSet_nonempty {K L : Set E}
       have hcb_le : c * b₂ ≤ r * a₁ := (div_le_iff₀ ha₁).mp hrge
       calc
         r⁻¹ * (c * ‖z‖) ≤ r⁻¹ * (c * b₂) :=
-          mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_left hznorm hc.le) (inv_nonneg.mpr hr_pos.le)
+          mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_left hznorm hc.le)
+            (inv_nonneg.mpr hr_pos.le)
         _ ≤ r⁻¹ * (r * a₁) := mul_le_mul_of_nonneg_left hcb_le (inv_nonneg.mpr hr_pos.le)
         _ = a₁ := by field_simp [hr_pos.ne']
     · dsimp only
@@ -921,7 +926,9 @@ def affineBanachMazurSet (K L : Set E) : Set ℝ :=
     T '' ((fun z => z - y) '' L) ⊆ r • ((fun z => z - x) '' K)}
 
 /-- The **affine multiplicative Banach–Mazur distance** between sets `K, L ⊆ E`:
-$$d_{\mathrm{BM}}^{\mathrm{aff}}(K, L) := \inf \{ r \ge 1 \mid \exists T \in \mathrm{GL}(E),\, x, y \in E,\; K - x \subseteq T(L - y) \subseteq r (K - x) \}.$$
+$$d_{\mathrm{BM}}^{\mathrm{aff}}(K, L) :=
+  \inf \{ r \ge 1 \mid \exists T \in \mathrm{GL}(E),\, x, y \in E,\;
+    K - x \subseteq T(L - y) \subseteq r (K - x) \}.$$
 This is the standard Banach–Mazur distance for general (non-symmetric) convex bodies, where
 Fritz John's theorem gives `d_BM^aff(K, B₂^d) ≤ d`. On infeasible pairs, `Real.sInf_empty`
 returns `0`; use `affineBanachMazurEDist` for `ℝ≥0∞`-valued semantics returning `⊤`. -/

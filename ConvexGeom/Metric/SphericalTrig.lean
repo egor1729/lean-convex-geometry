@@ -103,7 +103,8 @@ lemma sin_sphericalAngle_nonneg (u w v : E) : 0 ≤ Real.sin (sphericalAngle u w
 
 /-- **Spherical Law of Cosines:**
 For any three unit vectors `u, v, w` in a real inner product space,
-`cos(angle u v) = cos(angle w u) * cos(angle w v) + sin(angle w u) * sin(angle w v) * cos(sphericalAngle u w v)`. -/
+`cos(angle u v) = cos(angle w u) * cos(angle w v) +`
+`sin(angle w u) * sin(angle w v) * cos(sphericalAngle u w v)`. -/
 theorem spherical_law_of_cosines {u v w : E} (hu : ‖u‖ = 1) (hv : ‖v‖ = 1) (hw : ‖w‖ = 1) :
     Real.cos (InnerProductGeometry.angle u v) =
       Real.cos (InnerProductGeometry.angle w u) * Real.cos (InnerProductGeometry.angle w v) +

@@ -27,7 +27,8 @@ example :
       (le_csSup ⟨1, fun t ht => by rcases ht with rfl | rfl <;> norm_num⟩ (by simp))
   have hlo0 : steinerLower K 0 = -1 := by
     rw [steinerLower, hfib0]
-    exact le_antisymm (csInf_le ⟨-1, fun t ht => by rcases ht with rfl | rfl <;> norm_num⟩ (by simp))
+    exact le_antisymm (csInf_le ⟨-1,
+      fun t ht => by rcases ht with rfl | rfl <;> norm_num⟩ (by simp))
       (le_csInf (by simp) fun t ht => by rcases ht with rfl | rfl <;> norm_num)
   ext ⟨t, y⟩
   simp only [steinerSymm, mem_ofPred_eq, mem_prod, mem_Icc, mem_singleton_iff]
@@ -44,7 +45,8 @@ example :
     linarith
 
 /-- Contract regression test: Mathlib equips `ℝ × ℝ` with the product max-norm (`‖(1, 1)‖ = 1`),
-whereas `steinerSymm_dist_le_diam` uses explicit Euclidean squared distance `(t₁ - t₂)² + ‖y₁ - y₂‖²`. -/
+whereas `steinerSymm_dist_le_diam` uses explicit Euclidean squared distance
+`(t₁ - t₂)² + ‖y₁ - y₂‖²` . -/
 example : ‖((1 : ℝ), (1 : ℝ))‖ = 1 := by
   simp [Prod.norm_def]
 
@@ -72,7 +74,9 @@ example :
 example :
     volume (Icc (0 : ℝ) 1) ≤ volume (closedBall (0 : ℝ) 1) / 2 :=
   addHaar_le_half_closedBall_of_zero_not_mem_interior volume (convex_Icc 0 1)
-    (fun x hx => by rw [mem_closedBall_zero_iff, Real.norm_eq_abs, abs_le]; constructor <;> linarith [hx.1, hx.2])
+    (fun x hx => by
+      rw [mem_closedBall_zero_iff, Real.norm_eq_abs, abs_le]
+      constructor <;> linarith [hx.1, hx.2])
     (by rw [interior_Icc]; simp)
 
 /-- In dimension 1, the outer Minkowski surface area of `closedBall c r` (`r > 0`) is `2`

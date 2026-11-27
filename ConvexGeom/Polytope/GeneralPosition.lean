@@ -270,7 +270,7 @@ theorem exists_generalPosition_dist_lt {m : ℕ} (v : Fin m → E) {ε : ℝ} (h
     · simpa [Fin.snoc_last] using Metric.mem_ball.mp hq_ball
     · simpa [Fin.snoc_castSucc, Fin.init] using hw_dist j
 
-/-- **Density of Affine General Position (arbitrary `Fintype` index set):**
+/-- **Density of Affine General Position (arbitrary `Finite` index set):**
 for any finite-indexed family `v : ι → E` and `ε > 0`, there exists `w : ι → E` in general
 position with `dist (w i) (v i) < ε` for every `i : ι`. -/
 theorem exists_generalPosition_dist_lt_of_fintype {ι : Type*} [Finite ι]
@@ -340,7 +340,8 @@ within `< ε` in the Hausdorff metric by the convex hull of a nonempty finite se
 whose points `w : Fin m → E` are in affine general position.
 
 Note: this theorem does not guarantee `P ⊆ K` or full-dimensionality (which are impossible when
-`interior K = ∅`). For full-dimensional bodies, see `exists_inscribed_generalPosition_polytope_dist_lt`. -/
+`interior K = ∅` ). For full-dimensional bodies, see
+`exists_inscribed_generalPosition_polytope_dist_lt` . -/
 theorem exists_generalPosition_polytope_dist_lt (K : ConvexBody E) {ε : ℝ} (hε : 0 < ε) :
     ∃ (m : ℕ) (w : Fin m → E) (S : Finset E) (hS : S.Nonempty),
       InGeneralPosition w ∧ (S : Set E) = Set.range w ∧
@@ -638,7 +639,8 @@ theorem not_ball_inter_sphere_subset_affineSubspace
       have := A.direction.smul_mem (2 * (c - 1))⁻¹ hsum
       rwa [smul_smul, inv_mul_cancel₀ hne, one_smul] at this
     exact ⟨hv_dir, hq_dir⟩
-  -- Pick one unit vector orthogonal to `q` (exists since `2 ≤ finrank ℝ E`) to get `q ∈ A.direction`.
+  -- Pick one unit vector orthogonal to `q` (exists since `2 ≤ finrank ℝ E` ) to get
+  -- `q ∈ A.direction` .
   have hq_dir : q ∈ A.direction := by
     have hspan_le : Module.finrank ℝ (Submodule.span ℝ ({q} : Set E)) ≤ 1 :=
       finrank_span_le_card ({q} : Set E)
@@ -703,7 +705,8 @@ theorem exists_mem_ball_sphere_notMem_biUnion_affineSubspace
       ih fun B hB => hF B (Finset.mem_insert_of_mem hB)
     have hU_open : IsOpen (Metric.ball p ε \ ⋃ B ∈ F, (B : Set E)) := by
       refine Metric.isOpen_ball.sdiff ?_
-      exact F.finite_toSet.isClosed_biUnion fun B _ => AffineSubspace.isClosed_of_finiteDimensional B
+      exact F.finite_toSet.isClosed_biUnion fun B _ =>
+        AffineSubspace.isClosed_of_finiteDimensional B
     have hq₀_U : q₀ ∈ Metric.ball p ε \ ⋃ B ∈ F, (B : Set E) := by
       refine ⟨hq₀_ball, ?_⟩
       simp only [Set.mem_iUnion, exists_prop, not_exists, not_and]
@@ -805,7 +808,8 @@ theorem exists_sphericalGeneralPosition_snoc
   let F_aff : Finset (AffineSubspace ℝ E) :=
     affSets.image fun (t : Finset (Fin m)) => affineSpan ℝ (w '' (t : Set (Fin m)))
   let F_lin : Finset (AffineSubspace ℝ E) :=
-    linSets.image fun (t : Finset (Fin m)) => (Submodule.span ℝ (w '' (t : Set (Fin m)))).toAffineSubspace
+    linSets.image fun (t : Finset (Fin m)) =>
+      (Submodule.span ℝ (w '' (t : Set (Fin m)))).toAffineSubspace
   let F : Finset (AffineSubspace ℝ E) := F_aff ∪ F_lin
   have hF : ∀ A ∈ F, A ≠ ⊤ := by
     intro A hA
@@ -835,10 +839,12 @@ theorem exists_sphericalGeneralPosition_snoc
     · simpa [Fin.snoc_castSucc] using hw.1 j
   · refine inGeneralPosition_snoc_of_notMem_affineSpan hw.2.1 fun t ht => ?_
     exact hq_avoid _ (Finset.mem_union_left _
-      (Finset.mem_image_of_mem _ (Finset.mem_filter.mpr ⟨Finset.mem_powerset.mpr (Finset.subset_univ _), ht⟩)))
+      (Finset.mem_image_of_mem _
+        (Finset.mem_filter.mpr ⟨Finset.mem_powerset.mpr (Finset.subset_univ _), ht⟩)))
   · refine linearIndepOn_snoc_of_notMem_span hw.2.2 fun t ht => ?_
     exact hq_avoid _ (Finset.mem_union_right _
-      (Finset.mem_image_of_mem _ (Finset.mem_filter.mpr ⟨Finset.mem_powerset.mpr (Finset.subset_univ _), ht⟩)))
+      (Finset.mem_image_of_mem _
+        (Finset.mem_filter.mpr ⟨Finset.mem_powerset.mpr (Finset.subset_univ _), ht⟩)))
 
 /-- **Density of Spherical General Position on `S(0, r)` (`Fin m`):**
 In dimension `≥ 2` and for `r > 0`, any finite configuration on `sphere 0 r` can be perturbed
@@ -864,7 +870,7 @@ theorem exists_sphericalGeneralPosition_dist_lt
     · simpa [Fin.snoc_last] using Metric.mem_ball.mp hq_ball
     · simpa [Fin.snoc_castSucc, Fin.init] using hw_dist j
 
-/-- **Density of Spherical General Position on `S(0, r)` (arbitrary `Fintype`):**
+/-- **Density of Spherical General Position on `S(0, r)` (arbitrary `Finite`):**
 generalizes `exists_sphericalGeneralPosition_dist_lt` to any finite index type `ι`. -/
 theorem exists_sphericalGeneralPosition_dist_lt_of_fintype
     (hd : 2 ≤ Module.finrank ℝ E) {r : ℝ} (hr : 0 < r)

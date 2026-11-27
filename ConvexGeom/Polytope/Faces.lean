@@ -265,7 +265,8 @@ theorem facetNormals_irredundant [Nontrivial E] {S : Finset E}
           (Finset.mem_erase.mp hv').1⟩
     exact (convexHull_min hsub_sdiff hconv_sdiff huC).2 rfl
   have hbip : polarBody (polarBody C) = C :=
-    polarBody_polarBody (convex_convexHull ℝ _) hC_closed (subset_convexHull ℝ _ (Set.mem_insert 0 _))
+    polarBody_polarBody (convex_convexHull ℝ _) hC_closed
+      (subset_convexHull ℝ _ (Set.mem_insert 0 _))
   rw [← hbip] at hu_not_C
   simp only [polarBody, Set.mem_ofPred_eq, not_forall, not_le] at hu_not_C
   obtain ⟨x, hx_pol, hxu⟩ := hu_not_C
@@ -366,11 +367,13 @@ theorem affineSpan_polytopeFacet [Nontrivial E] {S : Finset E} {u : E}
       rw [Submodule.mem_orthogonal_singleton_iff_inner_left] at hw
       have hspan_top :=
         span_tightVertices_eq_top_of_mem_extremePoints_polarBody (mem_facetNormals.mp hu)
-      have hw_mem : w ∈ Submodule.span ℝ (tightVertices S u : Set E) := hspan_top ▸ Submodule.mem_top
+      have hw_mem : w ∈ Submodule.span ℝ (tightVertices S u : Set E) :=
+        hspan_top ▸ Submodule.mem_top
       rw [Finsupp.mem_span_iff_linearCombination] at hw_mem
       obtain ⟨c, hc⟩ := hw_mem
       have hsum_zero : ∑ s ∈ c.support, c s = 0 := by
-        have h1 : ⟪Finsupp.linearCombination ℝ (fun x : (tightVertices S u : Set E) => (x : E)) c, u⟫ = 0 := by
+        have h1 : ⟪Finsupp.linearCombination ℝ (fun x : (tightVertices S u : Set E) => (x : E)) c,
+          u⟫ = 0 := by
           rw [hc, hw]
         rw [Finsupp.linearCombination_apply, Finsupp.sum, sum_inner] at h1
         have h2 : ∑ s ∈ c.support, ⟪c s • (s : E), u⟫ = ∑ s ∈ c.support, c s := by
@@ -403,7 +406,8 @@ theorem affineSpan_polytopeFacet [Nontrivial E] {S : Finset E} {u : E}
     simpa using this
 
 /-- **Simplicial Facet Theorem under General Position:**
-If the elements of `S : Finset E` are in affine general position (`InGeneralPosition ((↑) : S → E)`),
+If the elements of `S : Finset E` are in affine general position (`InGeneralPosition ((↑) : S →
+E)`),
 then for every `u ∈ facetNormals S` (`Nontrivial E`), the facet `polytopeFacet S u` has **exactly**
 `finrank ℝ E` affinely independent vertices — i.e., every facet is a `(d - 1)`-simplex. -/
 theorem card_tightVertices_eq_finrank_of_inGeneralPosition [Nontrivial E]
@@ -496,7 +500,8 @@ lemma facetCone_subset_convexHull {S : Finset E}
   · exact hxF.1
 
 omit [FiniteDimensional ℝ E] in
-/-- Every element of `facetCone S u` has the form `t • y` with `t ∈ [0, 1]` and `y ∈ polytopeFacet S u`
+/-- Every element of `facetCone S u` has the form `t • y` with `t ∈ [0, 1]` and
+`y ∈ polytopeFacet S u`
 (whenever `polytopeFacet S u` is nonempty). -/
 lemma mem_facetCone_iff {S : Finset E} {u : E} (hu : u ∈ polarBody (S : Set E))
     (hFne : (polytopeFacet S u).Nonempty) {x : E} :
@@ -506,7 +511,8 @@ lemma mem_facetCone_iff {S : Finset E} {u : E} (hu : u ∈ polarBody (S : Set E)
     exact convex_convexHull ℝ _
   constructor
   · intro hx
-    have hset_conv : Convex ℝ {z : E | ∃ t ∈ Set.Icc (0 : ℝ) 1, ∃ y ∈ polytopeFacet S u, z = t • y} := by
+    have hset_conv : Convex ℝ {z : E | ∃ t ∈ Set.Icc (0 : ℝ) 1, ∃ y ∈ polytopeFacet S u,
+      z = t • y} := by
       rintro z₁ ⟨t₁, ⟨ht₁0, ht₁1⟩, y₁, hy₁, rfl⟩ z₂ ⟨t₂, ⟨ht₂0, ht₂1⟩, y₂, hy₂, rfl⟩
         a b ha hb hab
       let t : ℝ := a * t₁ + b * t₂
@@ -599,7 +605,8 @@ theorem iUnion_facetCone_eq {S : Finset E}
           exact inv_mul_cancel₀ ht_pos.ne'
       have hx_cone : x ∈ facetCone S u := by
         rw [mem_facetCone_iff (facetNormals_subset_polarBody S hu) ⟨y, hy_F⟩]
-        exact ⟨t, ⟨ht_pos.le, ht_le_one⟩, y, hy_F, by simp [y, smul_smul, mul_inv_cancel₀ ht_pos.ne']⟩
+        exact ⟨t, ⟨ht_pos.le, ht_le_one⟩, y, hy_F,
+          by simp [y, smul_smul, mul_inv_cancel₀ ht_pos.ne']⟩
       exact Set.mem_biUnion hu hx_cone
 
 /-- **Pairwise `AEDisjoint` Facet Cones:**
@@ -665,7 +672,8 @@ theorem addHaar_convexHull_eq_sum_facetCone [MeasurableSpace E] [BorelSpace E]
     intro u
     have hF_eq : polytopeFacet S u.1 = convexHull ℝ (tightVertices S u.1 : Set E) :=
       polytopeFacet_eq_convexHull_tightVertices (facetNormals_subset_polarBody S u.2)
-    have hcone_eq : facetCone S u.1 = convexHull ℝ (insert (0 : E) (tightVertices S u.1 : Set E)) := by
+    have hcone_eq : facetCone S u.1 =
+      convexHull ℝ (insert (0 : E) (tightVertices S u.1 : Set E)) := by
       unfold facetCone
       rw [hF_eq]
       apply Set.Subset.antisymm
@@ -683,7 +691,8 @@ theorem addHaar_convexHull_eq_sum_facetCone [MeasurableSpace E] [BorelSpace E]
       rw [hcone_eq]
       exact ((tightVertices S u.1).finite_toSet.insert (0 : E)).isCompact_convexHull ℝ
     exact hcomp.isClosed.measurableSet.nullMeasurableSet
-  have hpw : Pairwise (Function.onFun (AEDisjoint μ) (fun u : facetNormals S => facetCone S u.1)) := by
+  have hpw : Pairwise (Function.onFun (AEDisjoint μ) (fun u : facetNormals S =>
+    facetCone S u.1)) := by
     intro u₁ u₂ hne
     exact pairwise_aedisjoint_facetCone μ u₁.2 u₂.2 (fun h => hne (Subtype.ext h))
   have hunion : (⋃ u ∈ facetNormals S, facetCone S u) =

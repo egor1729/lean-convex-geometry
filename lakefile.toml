@@ -14,6 +14,7 @@ pp.unicode.fun = true # pretty-prints `fun a ↦ b`
 autoImplicit = false
 relaxedAutoImplicit = false
 maxSynthPendingDepth = 3
+weak.linter.mathlibStandardSet = true
 
 [[require]]
 name = "mathlib"

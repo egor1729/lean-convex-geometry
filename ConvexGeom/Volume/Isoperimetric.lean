@@ -106,7 +106,8 @@ theorem volume_add_smul_ge [Nontrivial E]
   have hpow : (volume K ^ (1 / (d : ℝ)) + ENNReal.ofReal t * volume L ^ (1 / (d : ℝ))) ^ d ≤
       (volume (K + t • L) ^ (1 / (d : ℝ))) ^ d := pow_le_pow_left' hbm d
   have hcancel : ∀ x : ℝ≥0∞, (x ^ (1 / (d : ℝ))) ^ d = x := fun x => by
-    rw [← ENNReal.rpow_natCast, ← ENNReal.rpow_mul, one_div_mul_cancel hd_rpos.ne', ENNReal.rpow_one]
+    rw [← ENNReal.rpow_natCast, ← ENNReal.rpow_mul, one_div_mul_cancel hd_rpos.ne',
+      ENNReal.rpow_one]
   have hpow_pred : (volume K ^ (1 / (d : ℝ))) ^ (d - 1) =
       volume K ^ (((d - 1 : ℕ) : ℝ) / (d : ℝ)) := by
     rw [← ENNReal.rpow_natCast, ← ENNReal.rpow_mul, one_div_mul_eq_div]
@@ -253,7 +254,8 @@ theorem minkowskiSurfaceArea_closedBall (c : E) {r : ℝ} (hr : 0 < r) :
   have hball_vol : ∀ s : ℝ, 0 ≤ s →
       volume (Metric.closedBall c s) = ENNReal.ofReal (s ^ d) * vB := fun s hs => by
     have heq : Metric.closedBall c s = (fun x => -c + x) ⁻¹' (s • Metric.closedBall (0 : E) 1) := by
-      ext x; simp only [mem_preimage, Set.mem_smul_set, Metric.mem_closedBall, dist_eq_norm, sub_zero]
+      ext x;
+      simp only [mem_preimage, Set.mem_smul_set, Metric.mem_closedBall, dist_eq_norm, sub_zero]
       constructor
       · intro hx
         rcases hs.eq_or_lt with rfl | hs_pos
@@ -318,7 +320,8 @@ theorem isoperimetric_inequality_ball [Nontrivial E]
   have hKvol : volume K = ENNReal.ofReal (r ^ d) * vB := by
     rw [← hvol]
     have heq : Metric.closedBall c r = (fun x => -c + x) ⁻¹' (r • Metric.closedBall (0 : E) 1) := by
-      ext x; simp only [mem_preimage, Set.mem_smul_set, Metric.mem_closedBall, dist_eq_norm, sub_zero]
+      ext x;
+      simp only [mem_preimage, Set.mem_smul_set, Metric.mem_closedBall, dist_eq_norm, sub_zero]
       constructor
       · intro hx
         refine ⟨r⁻¹ • (-c + x), ?_, by rw [smul_smul, mul_inv_cancel₀ hr.ne', one_smul]⟩

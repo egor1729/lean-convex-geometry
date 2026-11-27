@@ -247,7 +247,8 @@ private lemma exists_extreme_face_finrank_lt {E : Type*} [NormedAddCommGroup E]
   let W : Submodule ℝ E := vectorSpan ℝ K
   let KW : Set W := {w : W | y + (w : E) ∈ K}
   have hKW_comp : IsCompact KW := by
-    have hcont : Continuous (fun w : W => y + (w : E)) := continuous_const.add continuous_subtype_val
+    have hcont : Continuous (fun w : W => y + (w : E)) :=
+      continuous_const.add continuous_subtype_val
     have hclosed : IsClosed KW := hKc.isClosed.preimage hcont
     obtain ⟨R, hR⟩ := hKc.isBounded.subset_closedBall y
     have hsub : KW ⊆ Metric.closedBall (0 : W) R := fun w hw => by
@@ -367,7 +368,8 @@ theorem convexHull_extremePoints_eq {E : Type*} [NormedAddCommGroup E] [InnerPro
         have hclosed : IsClosed T := hSc.isClosed.preimage hcont
         obtain ⟨R, hR⟩ := hSc.isBounded.subset_closedBall x
         have hsub : T ⊆ Set.Icc (-(R / ‖v‖)) (R / ‖v‖) := fun t ht => by
-          have hmem : ‖(x + t • v) - x‖ ≤ R := by simpa [Metric.mem_closedBall, dist_eq_norm] using hR ht
+          have hmem : ‖(x + t • v) - x‖ ≤ R := by
+            simpa [Metric.mem_closedBall, dist_eq_norm] using hR ht
           rw [add_sub_cancel_left, norm_smul, Real.norm_eq_abs] at hmem
           have hle : |t| ≤ R / ‖v‖ := (le_div_iff₀ (norm_pos_iff.mpr hv_ne)).mpr hmem
           exact abs_le.mp hle
@@ -392,7 +394,8 @@ theorem convexHull_extremePoints_eq {E : Type*} [NormedAddCommGroup E] [InnerPro
       have htMax_mem : tMax ∈ T := hT_comp.sSup_mem ⟨0, h0T⟩
       have htMin_mem : tMin ∈ T := hT_comp.sInf_mem ⟨0, h0T⟩
       have htMax_pos : 0 < tMax := lt_of_lt_of_le hα (le_csSup hT_comp.bddAbove hposT)
-      have htMin_neg : tMin < 0 := lt_of_le_of_lt (csInf_le hT_comp.bddBelow hnegT) (neg_lt_zero.mpr hβ)
+      have htMin_neg : tMin < 0 :=
+        lt_of_le_of_lt (csInf_le hT_comp.bddBelow hnegT) (neg_lt_zero.mpr hβ)
       set y₁ : E := x + tMin • v
       set y₂ : E := x + tMax • v
       have hray₂ : ∀ t : ℝ, 0 < t → y₂ + t • v ∉ S := fun t ht hmem => by
@@ -583,7 +586,8 @@ theorem jung_circumradius_finset {T : Finset E} (hTne : T.Nonempty)
     (hTcard : T.card ≤ Module.finrank ℝ E + 1) {D : ℝ} (hD : 0 ≤ D)
     (hdiam : ∀ x ∈ T, ∀ y ∈ T, ‖x - y‖ ≤ D) :
     ∃ c ∈ convexHull ℝ (T : Set E),
-      ∀ x ∈ T, ‖x - c‖ ≤ Real.sqrt ((Module.finrank ℝ E : ℝ) / (2 * (Module.finrank ℝ E + 1))) * D := by
+      ∀ x ∈ T,
+        ‖x - c‖ ≤ Real.sqrt ((Module.finrank ℝ E : ℝ) / (2 * (Module.finrank ℝ E + 1))) * D := by
   classical
   set d : ℕ := Module.finrank ℝ E
   set R_bound : ℝ := Real.sqrt ((d : ℝ) / (2 * (d + 1))) * D
@@ -677,7 +681,8 @@ theorem jung_circumradius_finset {T : Finset E} (hTne : T.Nonempty)
           have hstrict : t ^ 2 * ‖u‖ ^ 2 < 2 * (t * ‖u‖ ^ 2) := by nlinarith
           linarith
         nlinarith [norm_nonneg (x - c')]
-      · have hx₁ : x ∈ T₁ := Finset.mem_filter.mpr ⟨hx, fun heq => hx₀ (Finset.mem_filter.mpr ⟨hx, heq⟩)⟩
+      · have hx₁ : x ∈ T₁ :=
+          Finset.mem_filter.mpr ⟨hx, fun heq => hx₀ (Finset.mem_filter.mpr ⟨hx, heq⟩)⟩
         have hle : ‖x - c'‖ ≤ ‖x - c‖ + t * ‖u‖ := by
           rw [hdiff]
           calc
@@ -685,7 +690,8 @@ theorem jung_circumradius_finset {T : Finset E} (hTne : T.Nonempty)
             _ = ‖x - c‖ + t * ‖u‖ := by rw [norm_smul, Real.norm_eq_abs, abs_of_pos ht_pos]
         have htu : t * ‖u‖ ≤ δ := by
           calc
-            t * ‖u‖ ≤ (δ / ‖u‖) * ‖u‖ := mul_le_mul_of_nonneg_right (min_le_right _ _) (norm_nonneg u)
+            t * ‖u‖ ≤ (δ / ‖u‖) * ‖u‖ :=
+              mul_le_mul_of_nonneg_right (min_le_right _ _) (norm_nonneg u)
             _ = δ := div_mul_cancel₀ δ (norm_ne_zero_iff.mpr hu_ne)
         linarith [hδ_lt x hx₁]
     exact hc'_lt.not_ge (hc_min hc'_conv)

@@ -455,7 +455,8 @@ theorem bodySteinerSymmDir_translate_orth {u : E} (hu : ‖u‖ = 1) (K : Convex
   · intro hx
     refine ⟨x - v, ?_, v, rfl, sub_add_cancel x v⟩
     rw [mem_steinerSymmDir_iff] at hx ⊢
-    have hxv : orthoSplitProd hu (x - v) = ((orthoSplitProd hu x).1, (orthoSplitProd hu x).2 - vH) := by
+    have hxv : orthoSplitProd hu (x - v) =
+      ((orthoSplitProd hu x).1, (orthoSplitProd hu x).2 - vH) := by
       rw [map_sub, hsplit_v, Prod.mk_sub_mk, sub_zero]
     rw [hxv]
     have hfib := hfib_shift (orthoSplitProd hu x).2
@@ -463,7 +464,8 @@ theorem bodySteinerSymmDir_translate_orth {u : E} (hu : ‖u‖ = 1) (K : Convex
   · rintro ⟨w, hw, z, hzv, rfl⟩
     rw [hzv]
     rw [mem_steinerSymmDir_iff] at hw ⊢
-    have hwv : orthoSplitProd hu (w + v) = ((orthoSplitProd hu w).1, (orthoSplitProd hu w).2 + vH) := by
+    have hwv : orthoSplitProd hu (w + v) =
+      ((orthoSplitProd hu w).1, (orthoSplitProd hu w).2 + vH) := by
       rw [map_add, hsplit_v, Prod.mk_add_mk, add_zero]
     rw [hwv]
     have hfib := hfib_shift ((orthoSplitProd hu w).2 + vH)
@@ -527,7 +529,8 @@ theorem continuous_secondMoment : Continuous (secondMoment (E := E)) := by
         (symmDiff (K : Set E) (L : Set E)).indicator (fun _ => R ^ 2) x := fun x => by
     by_cases hxL : x ∈ (L : Set E) <;> by_cases hxK : x ∈ (K : Set E)
     · simp [indicator_of_mem hxL, indicator_of_mem hxK,
-        indicator_of_notMem (show x ∉ symmDiff (K : Set E) (L : Set E) by simp [symmDiff, hxK, hxL])]
+        indicator_of_notMem (show x ∉ symmDiff (K : Set E) (L : Set E) by simp [symmDiff, hxK,
+          hxL])]
     · have hxS : x ∈ symmDiff (K : Set E) (L : Set E) := Or.inr ⟨hxL, hxK⟩
       rw [indicator_of_mem hxL, indicator_of_notMem hxK, indicator_of_mem hxS, sub_zero,
         abs_of_nonneg (sq_nonneg _)]
@@ -537,14 +540,16 @@ theorem continuous_secondMoment : Continuous (secondMoment (E := E)) := by
         abs_of_nonneg (sq_nonneg _)]
       exact pow_le_pow_left₀ (norm_nonneg x) (mem_closedBall_zero_iff.mp (hKR hxK)) 2
     · simp [indicator_of_notMem hxL, indicator_of_notMem hxK,
-        indicator_of_notMem (show x ∉ symmDiff (K : Set E) (L : Set E) by simp [symmDiff, hxK, hxL])]
+        indicator_of_notMem (show x ∉ symmDiff (K : Set E) (L : Set E) by simp [symmDiff, hxK,
+          hxL])]
   have hSD_meas : MeasurableSet (symmDiff (K : Set E) (L : Set E)) :=
     (K.isClosed.measurableSet.diff L.isClosed.measurableSet).union
       (L.isClosed.measurableSet.diff K.isClosed.measurableSet)
   have hSD_fin : volume (symmDiff (K : Set E) (L : Set E)) < ⊤ :=
     (measure_mono (symmDiff_subset_union)).trans_lt
       (K.isCompact.union L.isCompact).measure_lt_top
-  have hint_rhs : Integrable ((symmDiff (K : Set E) (L : Set E)).indicator fun _ : E => R ^ 2) volume :=
+  have hint_rhs : Integrable ((symmDiff (K : Set E) (L : Set E)).indicator fun _ : E =>
+    R ^ 2) volume :=
     (integrable_indicator_iff hSD_meas).mpr (integrableOn_const (C := R ^ 2) hSD_fin.ne)
   have hvol_lt : symmDiffVolReal (volume : Measure E) (K : Set E) (L : Set E) < ε / R ^ 2 := by
     have h1 := hδ (hLK.trans_le (min_le_left _ _))
@@ -563,12 +568,14 @@ theorem continuous_secondMoment : Continuous (secondMoment (E := E)) := by
     _ < R ^ 2 * (ε / R ^ 2) := mul_lt_mul_of_pos_left hvol_lt hR2_pos
     _ = ε := mul_div_cancel₀ ε hR2_pos.ne'
 
-/-- Exact 1D fiber identity: `∫ t in Icc a b, t² - ∫ t in Icc (-(b-a)/2) ((b-a)/2), t² = (b - a) * ((a + b) / 2)²`. -/
+/-- Exact 1D fiber identity:
+`∫ t in Icc a b, t² - ∫ t in Icc (-(b-a)/2) ((b-a)/2), t² = (b - a) * ((a + b) / 2)²` . -/
 private lemma integral_sq_Icc_sub_symm {a b : ℝ} (hab : a ≤ b) :
     (∫ t in Icc a b, t ^ 2) -
         (∫ t in Icc (-((b - a) / 2)) ((b - a) / 2), t ^ 2) =
       (b - a) * ((a + b) / 2) ^ 2 := by
-  have hIcc_int : ∀ c d : ℝ, c ≤ d → ∫ t in Icc c d, t ^ 2 = (d ^ 3 - c ^ 3) / 3 := fun c d hcd => by
+  have hIcc_int : ∀ c d : ℝ, c ≤ d → ∫ t in Icc c d, t ^ 2 = (d ^ 3 - c ^ 3) / 3 :=
+    fun c d hcd => by
     rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hcd,
       integral_pow]
     norm_num
@@ -596,7 +603,8 @@ theorem secondMoment_bodySteinerSymmDir_lt {u : E} (hu : ‖u‖ = 1) {K : Conve
   have hS'c : IsCompact S' := isCompact_steinerSymm hK'c
   -- Rewrite both second moments as integrals on `ℝ × H`.
   have hsec_eq : ∀ (A : ConvexBody E),
-      secondMoment A = ∫ p : ℝ × H, (Φ '' (A : Set E)).indicator (fun q => q.1 ^ 2 + ‖q.2‖ ^ 2) p := by
+      secondMoment A = ∫ p : ℝ × H,
+        (Φ '' (A : Set E)).indicator (fun q => q.1 ^ 2 + ‖q.2‖ ^ 2) p := by
     intro A
     rw [secondMoment, ← integral_indicator A.isClosed.measurableSet,
       ← hmp.integral_comp hemb]
@@ -634,7 +642,8 @@ theorem secondMoment_bodySteinerSymmDir_lt {u : E} (hu : ‖u‖ = 1) {K : Conve
     rw [hK_sec, hS_sec, Measure.volume_eq_prod,
       integral_prod_symm _ hint_K', integral_prod_symm _ hint_S',
       ← integral_sub hint_K'.integral_prod_right hint_S'.integral_prod_right]
-  -- Evaluate each fiber difference explicitly: `(b - a) * ((a + b) / 2)²` when nonempty, `0` when empty.
+  -- Evaluate each fiber difference explicitly: `(b - a) * ((a + b) / 2)²` when nonempty, `0` when
+  -- empty.
   have hfib_val : ∀ y : H,
       (∫ t : ℝ, K'.indicator (fun q => q.1 ^ 2 + ‖q.2‖ ^ 2) (t, y)) -
         (∫ t : ℝ, S'.indicator (fun q => q.1 ^ 2 + ‖q.2‖ ^ 2) (t, y)) =
@@ -714,7 +723,8 @@ theorem secondMoment_bodySteinerSymmDir_lt {u : E} (hu : ‖u‖ = 1) {K : Conve
   have htend : Tendsto (fun ε : ℝ => reflectHyperplane hu (p + ε • (q - p))) (𝓝 0)
       (𝓝 (reflectHyperplane hu p)) := by
     have h1 : Tendsto (fun ε : ℝ => p + ε • (q - p)) (𝓝 0) (𝓝 p) := by
-      simpa using (tendsto_const_nhds (x := p)).add ((tendsto_id (x := 𝓝 (0 : ℝ))).smul_const (q - p))
+      simpa using (tendsto_const_nhds (x := p)).add
+        ((tendsto_id (x := 𝓝 (0 : ℝ))).smul_const (q - p))
     exact (reflectHyperplane hu).continuous.continuousAt.tendsto.comp h1
   have hev_out : ∀ᶠ ε : ℝ in 𝓝 0, reflectHyperplane hu (p + ε • (q - p)) ∈ (K : Set E)ᶜ :=
     htend.eventually (K.isClosed.isOpen_compl.mem_nhds hpr)
@@ -812,7 +822,8 @@ theorem secondMoment_bodySteinerSymmDir_lt {u : E} (hu : ‖u‖ = 1) {K : Conve
   have hball_pos : 0 < volume.real (ball y₀ (δ / 2)) := by
     rw [Measure.real, ENNReal.toReal_pos_iff]
     exact ⟨isOpen_ball.measure_pos volume ⟨y₀, mem_ball_self (half_pos hδ_pos)⟩,
-      (measure_mono ball_subset_closedBall).trans_lt (isCompact_closedBall y₀ (δ / 2)).measure_lt_top⟩
+      (measure_mono ball_subset_closedBall).trans_lt
+        (isCompact_closedBall y₀ (δ / 2)).measure_lt_top⟩
   have hint_diff := hint_K'.integral_prod_right.sub hint_S'.integral_prod_right
   have hpos_diff : 0 < secondMoment K - secondMoment (bodySteinerSymmDir hu K) := by
     rw [hdiff_fib]
@@ -913,7 +924,8 @@ private lemma convexOn_inv_pow_Ioi (d : ℕ) :
         a * x⁻¹ + b * y⁻¹ := by
       field_simp [hxy_pos.ne', hx_pos.ne', hy_pos.ne']
     linarith
-  have hpow_conv := (convexOn_pow d).2 (inv_nonneg.mpr hx_pos.le) (inv_nonneg.mpr hy_pos.le) ha hb hab
+  have hpow_conv :=
+    (convexOn_pow d).2 (inv_nonneg.mpr hx_pos.le) (inv_nonneg.mpr hy_pos.le) ha hb hab
   simpa [smul_eq_mul] using
     (pow_le_pow_left₀ (inv_nonneg.mpr hxy_pos.le) hinv d).trans hpow_conv
 
@@ -953,7 +965,8 @@ theorem convexOn_polarVolAt [Nontrivial E] (K : ConvexBody E) :
     have hu1 : ‖u.1‖ = 1 := mem_sphere_zero_iff_norm.mp u.2
     have hcomb : supportFn K u.1 - ⟪a • z₁ + b • z₂, u.1⟫ =
         a * (supportFn K u.1 - ⟪z₁, u.1⟫) + b * (supportFn K u.1 - ⟪z₂, u.1⟫) := by
-      rw [inner_add_left, inner_smul_left, inner_smul_left, RCLike.conj_to_real, RCLike.conj_to_real]
+      rw [inner_add_left, inner_smul_left, inner_smul_left, RCLike.conj_to_real,
+        RCLike.conj_to_real]
       have h1 : (a + b) * supportFn K u.1 = supportFn K u.1 := by rw [hab, one_mul]
       linarith
     rw [hcomb]
@@ -981,7 +994,8 @@ theorem convexOn_polarVolAt [Nontrivial E] (K : ConvexBody E) :
           ∫ u : sphere (0 : E) 1, (supportFn K u.1 - ⟪z₂, u.1⟫)⁻¹ ^ Module.finrank ℝ E
             ∂(sphereProb (volume : Measure E))) := by simp only [smul_eq_mul]; ring
 
-/-- Continuity of `polarVolAt K` on `interior K` (follows immediately from convexity on an open set). -/
+/-- Continuity of `polarVolAt K` on `interior K` (follows immediately from convexity on an open
+set). -/
 theorem continuousOn_polarVolAt [Nontrivial E] (K : ConvexBody E) :
     ContinuousOn (polarVolAt K) (interior (K : Set E)) :=
   (convexOn_polarVolAt K).continuousOn isOpen_interior
@@ -1098,7 +1112,8 @@ theorem exists_santaloPoint [Nontrivial E] (K : ConvexBody E)
   set ε₀ : ℝ := cH / (4 * V₀)
   have hε₀_pos : 0 < ε₀ := by positivity
   have hblow : ∀ z ∈ interior (K : Set E),
-      (∃ y ∈ frontier (K : Set E), dist z y ≤ ε₀) → V₀ < polarVolAt K z := fun z hz ⟨y, hy, hzy⟩ => by
+      (∃ y ∈ frontier (K : Set E), dist z y ≤ ε₀) → V₀ < polarVolAt K z :=
+        fun z hz ⟨y, hy, hzy⟩ => by
     obtain ⟨v, hv, hsup_v⟩ := exists_unit_supportFn_eq_of_mem_frontier K hy
     let Sz : Set E := (fun x : E => x - z) '' (K : Set E)
     have hSz_bdd : Sz ⊆ closedBall (0 : E) M := by
@@ -1124,7 +1139,8 @@ theorem exists_santaloPoint [Nontrivial E] (K : ConvexBody E)
     have hcyl := polarBody_cylinder_lower_bound hM_pos hε₀_pos hv hSz_bdd hSz_half
     rw [hvol_H_eq hv, ← ENNReal.ofReal_mul (by positivity)] at hcyl
     have hpol_fin : volume (polarBody Sz) ≠ ⊤ :=
-      (isCompact_polarBody_of_zero_mem_interior (zero_mem_interior_translate_neg hz)).measure_lt_top.ne
+      (isCompact_polarBody_of_zero_mem_interior
+        (zero_mem_interior_translate_neg hz)).measure_lt_top.ne
     have hreal : (2 * ε₀)⁻¹ * cH ≤ polarVolAt K z := by
       rw [polarVolAt, Measure.real]
       have h1 := ENNReal.toReal_mono hpol_fin hcyl
@@ -1135,7 +1151,8 @@ theorem exists_santaloPoint [Nontrivial E] (K : ConvexBody E)
   -- Compact subset `S := {z ∈ K | ∀ y ∈ frontier K, ε₀ ≤ dist z y} ⊆ interior K`.
   let S : Set E := (K : Set E) ∩ ⋂ y ∈ frontier (K : Set E), {z : E | ε₀ ≤ dist z y}
   have hS_closed : IsClosed S :=
-    K.isClosed.inter (isClosed_biInter fun y _ => isClosed_le continuous_const (continuous_id.dist continuous_const))
+    K.isClosed.inter (isClosed_biInter fun y _ =>
+      isClosed_le continuous_const (continuous_id.dist continuous_const))
   have hS_compact : IsCompact S := K.isCompact.of_isClosed_subset hS_closed inter_subset_left
   have hS_sub_int : S ⊆ interior (K : Set E) := fun z ⟨hzK, hz_dist⟩ => by
     by_contra hz_not_int
@@ -1155,7 +1172,8 @@ theorem exists_santaloPoint [Nontrivial E] (K : ConvexBody E)
   obtain ⟨z_min, hz_min_S, hz_min⟩ :=
     hS_compact.exists_isMinOn ⟨z₀, hz₀_mem_S⟩ ((continuousOn_polarVolAt K).mono hS_sub_int)
   have hz_min_int : z_min ∈ interior (K : Set E) := hS_sub_int hz_min_S
-  have hz_min_all : ∀ w ∈ interior (K : Set E), polarVolAt K z_min ≤ polarVolAt K w := fun w hw => by
+  have hz_min_all : ∀ w ∈ interior (K : Set E), polarVolAt K z_min ≤ polarVolAt K w :=
+    fun w hw => by
     by_cases hwS : w ∈ S
     · exact hz_min hwS
     · have hex : ∃ y ∈ frontier (K : Set E), dist w y ≤ ε₀ := by
@@ -1165,9 +1183,11 @@ theorem exists_santaloPoint [Nontrivial E] (K : ConvexBody E)
       have h2 : V₀ < polarVolAt K w := hblow w hw hex
       linarith
   -- Conclude `mahlerVolumeAt volume K z_min = santaloMahlerVolume volume K`.
-  refine ⟨z_min, hz_min_int, le_antisymm ?_ (santaloMahlerVolume_le_mahlerVolumeAt volume hz_min_int)⟩
+  refine ⟨z_min, hz_min_int,
+    le_antisymm ?_ (santaloMahlerVolume_le_mahlerVolumeAt volume hz_min_int)⟩
   refine le_iInf fun ⟨w, hw⟩ => ?_
-  have hvol_eq : ∀ z : E, volume ((fun x : E => x - z) '' (K : Set E)) = volume (K : Set E) := fun z => by
+  have hvol_eq : ∀ z : E, volume ((fun x : E => x - z) '' (K : Set E)) = volume (K : Set E) :=
+    fun z => by
     have hpre : (fun x : E => x - z) '' (K : Set E) = (fun x : E => z + x) ⁻¹' (K : Set E) := by
       ext y; simp only [mem_image, mem_preimage]
       exact ⟨fun ⟨x, hx, hxy⟩ => by rw [← hxy]; simpa [add_sub_cancel] using hx,
@@ -1177,9 +1197,11 @@ theorem exists_santaloPoint [Nontrivial E] (K : ConvexBody E)
   rw [hvol_eq z_min, hvol_eq w]
   refine mul_le_mul' le_rfl ?_
   have hfin_min : volume (polarBody ((fun x : E => x - z_min) '' (K : Set E))) ≠ ⊤ :=
-    (isCompact_polarBody_of_zero_mem_interior (zero_mem_interior_translate_neg hz_min_int)).measure_lt_top.ne
+    (isCompact_polarBody_of_zero_mem_interior
+      (zero_mem_interior_translate_neg hz_min_int)).measure_lt_top.ne
   have hfin_w : volume (polarBody ((fun x : E => x - w) '' (K : Set E))) ≠ ⊤ :=
-    (isCompact_polarBody_of_zero_mem_interior (zero_mem_interior_translate_neg hw)).measure_lt_top.ne
+    (isCompact_polarBody_of_zero_mem_interior
+      (zero_mem_interior_translate_neg hw)).measure_lt_top.ne
   rw [← ENNReal.ofReal_toReal hfin_min, ← ENNReal.ofReal_toReal hfin_w]
   exact ENNReal.ofReal_le_ofReal (hz_min_all w hw)
 
@@ -1239,7 +1261,8 @@ theorem mahlerVolume_eq_santaloMahlerVolume_of_isOriginSymmetric [Nontrivial E]
   have hfin0 : volume (polarBody (K : Set E)) ≠ ⊤ :=
     (isCompact_polarBody_of_zero_mem_interior h0).measure_lt_top.ne
   have hfinz : volume (polarBody ((fun x : E => x - z) '' (K : Set E))) ≠ ⊤ :=
-    (isCompact_polarBody_of_zero_mem_interior (zero_mem_interior_translate_neg hz)).measure_lt_top.ne
+    (isCompact_polarBody_of_zero_mem_interior
+      (zero_mem_interior_translate_neg hz)).measure_lt_top.ne
   rw [← ENNReal.ofReal_toReal hfin0, ← ENNReal.ofReal_toReal hfinz]
   apply ENNReal.ofReal_le_ofReal
   simpa [polarVolAt, Measure.real] using h0_le
@@ -1340,7 +1363,8 @@ theorem upperSemicontinuousOn_santaloMahlerVolume [Nontrivial E] :
       exact polarVolAt_eq_integral L hzL
     rw [polarVolAt_eq_integral K hz]
     exact (htend_int.const_mul _).congr' hev_eq.symm
-  have htend_mahler : Tendsto (fun L : ConvexBody E => mahlerVolumeAt (volume : Measure E) (L : Set E) z)
+  have htend_mahler : Tendsto (fun L : ConvexBody E =>
+    mahlerVolumeAt (volume : Measure E) (L : Set E) z)
       (𝓝 K) (𝓝 (mahlerVolumeAt (volume : Measure E) (K : Set E) z)) := by
     have hvol_eq : ∀ L : ConvexBody E,
         volume ((fun x : E => x - z) '' (L : Set E)) = volume (L : Set E) := fun L => by
@@ -1349,13 +1373,15 @@ theorem upperSemicontinuousOn_santaloMahlerVolume [Nontrivial E] :
         exact ⟨fun ⟨w, hw, hwx⟩ => by rw [← hwx]; simpa [add_sub_cancel] using hw,
           fun hx => ⟨z + x, hx, by abel⟩⟩
       rw [hpre, measure_preimage_add]
-    have htend_vol : Tendsto (fun L : ConvexBody E => volume (L : Set E)) (𝓝 K) (𝓝 (volume (K : Set E))) :=
+    have htend_vol : Tendsto (fun L : ConvexBody E =>
+      volume (L : Set E)) (𝓝 K) (𝓝 (volume (K : Set E))) :=
       (continuous_addHaar_convexBody (volume : Measure E)).continuousAt.tendsto
     have htend_pol_enn : Tendsto
         (fun L : ConvexBody E => volume (polarBody ((fun x : E => x - z) '' (L : Set E))))
         (𝓝 K) (𝓝 (volume (polarBody ((fun x : E => x - z) '' (K : Set E))))) := by
       have hKfin : volume (polarBody ((fun x : E => x - z) '' (K : Set E))) ≠ ⊤ :=
-        (isCompact_polarBody_of_zero_mem_interior (zero_mem_interior_translate_neg hz)).measure_lt_top.ne
+        (isCompact_polarBody_of_zero_mem_interior
+          (zero_mem_interior_translate_neg hz)).measure_lt_top.ne
       have hev : (fun L : ConvexBody E => ENNReal.ofReal (polarVolAt L z)) =ᶠ[𝓝 K]
           (fun L : ConvexBody E => volume (polarBody ((fun x : E => x - z) '' (L : Set E)))) := by
         filter_upwards [Metric.ball_mem_nhds K hr_pos] with L hL
@@ -1363,7 +1389,8 @@ theorem upperSemicontinuousOn_santaloMahlerVolume [Nontrivial E] :
           mem_interior_iff_mem_nhds.mpr
             (Filter.mem_of_superset (closedBall_mem_nhds z hr_pos) (hL_ball L (mem_ball.mp hL)).1)
         exact ENNReal.ofReal_toReal
-          (isCompact_polarBody_of_zero_mem_interior (zero_mem_interior_translate_neg hzL)).measure_lt_top.ne
+          (isCompact_polarBody_of_zero_mem_interior
+            (zero_mem_interior_translate_neg hzL)).measure_lt_top.ne
       rw [← ENNReal.ofReal_toReal hKfin]
       exact (ENNReal.continuous_ofReal.continuousAt.tendsto.comp htend_pol).congr' hev
     have hmul : Tendsto
@@ -1372,7 +1399,8 @@ theorem upperSemicontinuousOn_santaloMahlerVolume [Nontrivial E] :
         (𝓝 K)
         (𝓝 (volume (K : Set E) * volume (polarBody ((fun x : E => x - z) '' (K : Set E))))) :=
       ENNReal.Tendsto.mul htend_vol (Or.inr
-        (isCompact_polarBody_of_zero_mem_interior (zero_mem_interior_translate_neg hz)).measure_lt_top.ne)
+        (isCompact_polarBody_of_zero_mem_interior
+          (zero_mem_interior_translate_neg hz)).measure_lt_top.ne)
         htend_pol_enn (Or.inr K.isCompact.measure_lt_top.ne)
     simpa only [mahlerVolumeAt, mahlerVolume, hvol_eq] using hmul
   have hev_lt : ∀ᶠ L : ConvexBody E in 𝓝 K,
@@ -1411,7 +1439,8 @@ private lemma mem_interior_along_fiber_of_zero_mem_interior_steinerSymmDir
   have hK'c : IsCompact K' := K.isCompact.image (continuous_orthoSplitProd hu)
   have hK'conv : Convex ℝ K' := K.convex.linear_image Φ.toLinearMap
   have h0S' : ((0 : ℝ), (0 : H)) ∈ interior (steinerSymm K') := by
-    have himg : (orthoSplitHomeomorph hu) '' (bodySteinerSymmDir hu K : Set E) = steinerSymm K' := by
+    have himg : (orthoSplitHomeomorph hu) '' (bodySteinerSymmDir hu K : Set E) =
+      steinerSymm K' := by
       have h1 : (orthoSplitHomeomorph hu : E → ℝ × H) = Φ := funext (orthoSplitHomeomorph_coe hu)
       rw [h1, coe_bodySteinerSymmDir]
       exact image_steinerSymmDir hu (K : Set E)
@@ -1424,7 +1453,8 @@ private lemma mem_interior_along_fiber_of_zero_mem_interior_steinerSymmDir
     hballS (by
       rw [mem_ball, Prod.dist_eq, dist_zero_right, dist_zero_right, Real.norm_eq_abs]
       exact max_lt (hs.trans_lt (half_lt_self hr₀_pos)) (hy.trans_lt (half_lt_self hr₀_pos)))
-  have hne0 : (steinerFiber K' 0).Nonempty := (hboxS 0 0 (by simp [hr_pos.le]) (by simp [hr_pos.le])).1
+  have hne0 : (steinerFiber K' 0).Nonempty :=
+    (hboxS 0 0 (by simp [hr_pos.le]) (by simp [hr_pos.le])).1
   have hlen0 : r ≤ (steinerUpper K' 0 - steinerLower K' 0) / 2 := by
     have h := (hboxS r 0 (by rw [abs_of_pos hr_pos]) (by simp [hr_pos.le])).2
     rwa [abs_of_pos hr_pos] at h
@@ -1510,7 +1540,8 @@ private lemma mem_interior_along_fiber_of_zero_mem_interior_steinerSymmDir
         have h1 : ρ ≤ t - steinerLower K' 0 := min_le_left _ _
         have h2 : ρ ≤ steinerUpper K' 0 - t := min_le_right _ _
         exact show s' ∈ steinerFiber K' 0 from
-          hfib0.symm ▸ (⟨by linarith, by linarith⟩ : s' ∈ Icc (steinerLower K' 0) (steinerUpper K' 0))
+          hfib0.symm ▸ (⟨by linarith,
+            by linarith⟩ : s' ∈ Icc (steinerLower K' 0) (steinerUpper K' 0))
       have hconv := hK'conv ht' hs'_mem hlam_pos.le h1lam_pos.le (by ring)
       have heq : lam • (t', y') + (1 - lam) • (s', (0 : H)) = (s, y) := by
         apply Prod.ext
@@ -1521,7 +1552,8 @@ private lemma mem_interior_along_fiber_of_zero_mem_interior_steinerSymmDir
           rw [show (‖y‖ / r) * (r / ‖y‖) = 1 by field_simp [hr_pos.ne', hy_pos.ne'], one_smul]
       rwa [heq] at hconv
   have hmem_int' : ((t, (0 : H)) : ℝ × H) ∈ interior K' :=
-    mem_interior_iff_mem_nhds.mpr (Metric.mem_nhds_iff.mpr ⟨min η δ, lt_min hη_pos hδ_pos, hball_in⟩)
+    mem_interior_iff_mem_nhds.mpr (Metric.mem_nhds_iff.mpr ⟨min η δ, lt_min hη_pos hδ_pos,
+      hball_in⟩)
   have hpre_eq : (orthoSplitHomeomorph hu).symm '' interior K' = interior (K : Set E) := by
     rw [(orthoSplitHomeomorph hu).symm.image_interior]
     congr 1
@@ -1540,10 +1572,12 @@ private lemma volumeIoiPow_apply_Iic (n : ℕ) (x : Ioi (0 : ℝ)) :
   have hsingle : Measure.volumeIoiPow n ({x} : Set (Ioi (0 : ℝ))) = 0 := by
     rw [Measure.volumeIoiPow, withDensity_apply _ (measurableSet_singleton x),
       lintegral_singleton]
-    have hzero : Measure.comap (Subtype.val : Ioi (0 : ℝ) → ℝ) volume ({x} : Set (Ioi (0 : ℝ))) = 0 := by
+    have hzero : Measure.comap (Subtype.val : Ioi (0 : ℝ) → ℝ) volume ({x} : Set (Ioi (0 : ℝ))) =
+      0 := by
       have hemb : MeasurableEmbedding (Subtype.val : Ioi (0 : ℝ) → ℝ) :=
         MeasurableEmbedding.subtype_coe measurableSet_Ioi
-      rw [Measure.comap_apply _ Subtype.val_injective (fun s hs => hemb.measurableSet_image.mpr hs) _
+      rw [Measure.comap_apply _ Subtype.val_injective (fun s hs =>
+        hemb.measurableSet_image.mpr hs) _
         (measurableSet_singleton x), Set.image_singleton, Real.volume_singleton]
     rw [hzero, mul_zero]
   rw [← Set.Iio_union_right, measure_union (Set.disjoint_singleton_right.mpr self_notMem_Iio)
@@ -1569,7 +1603,8 @@ private lemma polarBody_cone_volumeReal [Nontrivial E] (K : ConvexBody E) {z : E
   let cone_s : Set E := {y : E | ∃ (r : ℝ) (w : sphere (0 : E) 1), 0 < r ∧ w ∈ s ∧ y = r • w.1}
   have hcone_eq : (Q : Set E) ∩ cone_s =
       Subtype.val '' ((homeomorphUnitSphereProd E) ⁻¹'
-        {p : sphere (0 : E) 1 × Ioi (0 : ℝ) | p.1 ∈ s ∧ (p.2 : ℝ) ≤ (gauge (Q : Set E) p.1.1)⁻¹}) := by
+        {p : sphere (0 : E) 1 × Ioi (0 : ℝ) | p.1 ∈ s ∧ (p.2 : ℝ) ≤
+          (gauge (Q : Set E) p.1.1)⁻¹}) := by
     ext y
     simp only [mem_inter_iff, cone_s, mem_ofPred_eq, mem_image, mem_preimage]
     constructor
@@ -1701,7 +1736,8 @@ private lemma polarBody_cone_volumeReal [Nontrivial E] (K : ConvexBody E) {z : E
   have hnn : 0 ≤ᵐ[(sphereProb (volume : Measure E)).restrict s]
       fun w : sphere (0 : E) 1 => (supportFn K w.1 - ⟪z, w.1⟫)⁻¹ ^ d :=
     ae_of_all _ fun w =>
-      pow_nonneg (inv_nonneg.mpr (supportFn_sub_inner_pos K hz (mem_sphere_zero_iff_norm.mp w.2)).le) d
+      pow_nonneg
+        (inv_nonneg.mpr (supportFn_sub_inner_pos K hz (mem_sphere_zero_iff_norm.mp w.2)).le) d
   rw [Measure.real, hvol_enn, ← ofReal_integral_eq_lintegral_ofReal hint_s hnn, ENNReal.toReal_mul,
     ENNReal.toReal_ofReal (setIntegral_nonneg hs fun w _ =>
       pow_nonneg (inv_nonneg.mpr
@@ -1780,7 +1816,8 @@ private lemma continuousOn_polarBody_cone_volumeReal [Nontrivial E]
           rw [inner_smul_left, RCLike.conj_to_real] at this
           exact this
         exact (((tendsto_const_nhds.sub
-          (continuous_subtype_val.continuousAt.tendsto.mul tendsto_const_nhds)).inv₀ hpos.ne').pow _)
+          (continuous_subtype_val.continuousAt.tendsto.mul tendsto_const_nhds)).inv₀
+            hpos.ne').pow _)
   exact htend_int.const_mul _
 
 /-- Uniform upper bound on the positive half-volume of `(K - t • v)°` when `t ≤ c` and
@@ -1974,7 +2011,8 @@ private lemma exists_balanced_polar_slice_shift
     let K' : Set (ℝ × orthoHyperplane u) := orthoSplitProd hu '' (K : Set E)
     ∃ t₀ : ℝ, steinerLower K' 0 < t₀ ∧ t₀ < steinerUpper K' 0 ∧
       volume.real (polarBody ((fun x : E => x - t₀ • u) '' (K : Set E)) ∩ {y : E | 0 < ⟪y, u⟫}) =
-        volume.real (polarBody ((fun x : E => x - t₀ • u) '' (K : Set E)) ∩ {y : E | ⟪y, u⟫ < 0}) := by
+        volume.real (polarBody ((fun x : E => x - t₀ • u) '' (K : Set E)) ∩ {y : E | ⟪y,
+          u⟫ < 0}) := by
   have : Nontrivial E := Module.nontrivial_of_finrank_pos (R := ℝ) (M := E) (by omega)
   let H := orthoHyperplane u
   let Φ := orthoSplitProd hu
@@ -2061,7 +2099,8 @@ private lemma exists_balanced_polar_slice_shift
     refine ⟨K.isClosed.closure_eq.symm ▸ hb_mem, fun hb_int => ?_⟩
     obtain ⟨δ, hδ_pos, hball_b⟩ := Metric.mem_nhds_iff.mp (mem_interior_iff_mem_nhds.mp hb_int)
     have hmem' : (b₀ + δ / 2) • u ∈ (K : Set E) := hball_b (by
-      rw [mem_ball, dist_eq_norm, show (b₀ + δ / 2) • u - b₀ • u = (δ / 2) • u by rw [add_smul]; abel,
+      rw [mem_ball, dist_eq_norm,
+        show (b₀ + δ / 2) • u - b₀ • u = (δ / 2) • u by rw [add_smul]; abel,
         norm_smul, Real.norm_eq_abs, abs_of_pos (half_pos hδ_pos), hu, mul_one]
       exact half_lt_self hδ_pos)
     have hfib_mem : b₀ + δ / 2 ∈ steinerFiber K' 0 := by
@@ -2100,8 +2139,10 @@ private lemma exists_balanced_polar_slice_shift
   have ht₂_mem : t₂ ∈ Ioo a₀ b₀ := ⟨hc_mem.1.trans ht₂_cb.1, ht₂_cb.2⟩
   have hDt₂ : 0 ≤ D t₂ := by
     have hneg_le : volNeg t₂ ≤ B_opp := by
-      have hcb_neg : closedBall ((-c) • (-u)) r₁ ⊆ (K : Set E) := by simpa [neg_smul, smul_neg] using hcb_c
-      have hle := polarBody_half_le_closedBall_of_ball_subset hr₁_pos hcb_neg (t := -t₂) (by linarith [ht₂_cb.1])
+      have hcb_neg : closedBall ((-c) • (-u)) r₁ ⊆ (K : Set E) := by
+        simpa [neg_smul, smul_neg] using hcb_c
+      have hle := polarBody_half_le_closedBall_of_ball_subset hr₁_pos hcb_neg (t :=
+        -t₂) (by linarith [ht₂_cb.1])
       simpa [volNeg, P_of, neg_smul, smul_neg, inner_neg_right] using hle
     dsimp only [D, volPos, P_of] at ht₂_ge ⊢
     linarith
@@ -2119,16 +2160,20 @@ private lemma exists_balanced_polar_slice_shift
     by dsimp only [t₁]; linarith [hs₁_ca.1, hc_mem.2]⟩
   have hDt₁ : D t₁ ≤ 0 := by
     have hpos_le : volPos t₁ ≤ B_opp :=
-      polarBody_half_le_closedBall_of_ball_subset hr₁_pos hcb_c (by dsimp only [t₁]; linarith [hs₁_ca.1])
+      polarBody_half_le_closedBall_of_ball_subset hr₁_pos hcb_c (by
+        dsimp only [t₁]
+        linarith [hs₁_ca.1])
     have hneg_ge : B_opp + 1 ≤ volNeg t₁ := by
       simpa [volNeg, P_of, t₁, neg_smul, smul_neg, inner_neg_right] using hs₁_ge
     dsimp only [D]; linarith
   -- Step 4: Apply the Intermediate Value Theorem to `D` on `[min t₁ t₂, max t₁ t₂] ⊆ Ioo a₀ b₀`.
   rcases le_total t₁ t₂ with h12 | h21
-  · have hsub : Icc t₁ t₂ ⊆ Ioo a₀ b₀ := fun t ht => ⟨ht₁_mem.1.trans_le ht.1, ht.2.trans_lt ht₂_mem.2⟩
+  · have hsub : Icc t₁ t₂ ⊆ Ioo a₀ b₀ :=
+      fun t ht => ⟨ht₁_mem.1.trans_le ht.1, ht.2.trans_lt ht₂_mem.2⟩
     obtain ⟨t₀, ht₀_Icc, hDt₀⟩ := intermediate_value_Icc h12 (hD_cont.mono hsub) ⟨hDt₁, hDt₂⟩
     exact ⟨t₀, (hsub ht₀_Icc).1, (hsub ht₀_Icc).2, sub_eq_zero.mp hDt₀⟩
-  · have hsub : Icc t₂ t₁ ⊆ Ioo a₀ b₀ := fun t ht => ⟨ht₂_mem.1.trans_le ht.1, ht.2.trans_lt ht₁_mem.2⟩
+  · have hsub : Icc t₂ t₁ ⊆ Ioo a₀ b₀ :=
+      fun t ht => ⟨ht₂_mem.1.trans_le ht.1, ht.2.trans_lt ht₁_mem.2⟩
     obtain ⟨t₀, ht₀_Icc, hDt₀⟩ := intermediate_value_Icc' h21 (hD_cont.mono hsub) ⟨hDt₁, hDt₂⟩
     exact ⟨t₀, (hsub ht₀_Icc).1, (hsub ht₀_Icc).2, sub_eq_zero.mp hDt₀⟩
 
@@ -2209,10 +2254,16 @@ private lemma exists_cdf_quantile_inverse {M C : ℝ} (hM : 0 < M) (hC : 0 ≤ C
     have hδ_pos : 0 < δ := lt_min (half_pos hε) (lt_min (half_pos hx.1) (by linarith [hx.2]))
     set a : ℝ := s r - δ
     set b : ℝ := s r + δ
-    have ha_Icc : a ∈ Icc 0 M := ⟨by have : δ ≤ s r / 2 := (min_le_right _ _).trans (min_le_left _ _); dsimp only [a]; linarith [hx.1],
-      by dsimp only [a]; linarith [hx.2]⟩
-    have hb_Icc : b ∈ Icc 0 M := ⟨by dsimp only [b]; linarith [hx.1],
-      by have : δ ≤ (M - s r) / 2 := (min_le_right _ _).trans (min_le_right _ _); dsimp only [b]; linarith [hx.2]⟩
+    have ha_Icc : a ∈ Icc 0 M :=
+      ⟨by
+          have : δ ≤ s r / 2 := (min_le_right _ _).trans (min_le_left _ _)
+          dsimp only [a]; linarith [hx.1],
+        by dsimp only [a]; linarith [hx.2]⟩
+    have hb_Icc : b ∈ Icc 0 M :=
+      ⟨by dsimp only [b]; linarith [hx.1],
+        by
+          have : δ ≤ (M - s r) / 2 := (min_le_right _ _).trans (min_le_right _ _)
+          dsimp only [b]; linarith [hx.2]⟩
     have ha_lt_r : F a < r := by
       rw [← hs_inv r hr]
       exact hF_mono ha_Icc ⟨hx.1.le, hx.2.le⟩ (by dsimp only [a]; linarith)
@@ -2330,7 +2381,8 @@ private lemma exists_santaloPoint_orth [Nontrivial E]
       (show (0 : ℝ) ≤ 1 / 2 by norm_num) (show (0 : ℝ) ≤ 1 / 2 by norm_num) (by norm_num)
     rw [smul_eq_mul, smul_eq_mul, hpol_refl] at hconv
     linarith
-  refine ⟨z₀, hz₀_int, hz₀_orth, le_antisymm ?_ (santaloMahlerVolume_le_mahlerVolumeAt volume hz₀_int)⟩
+  refine ⟨z₀, hz₀_int, hz₀_orth,
+    le_antisymm ?_ (santaloMahlerVolume_le_mahlerVolumeAt volume hz₀_int)⟩
   rw [← hzS_min]
   have hvol_eq : ∀ z : E, volume ((fun x : E => x - z) '' (KS : Set E)) = volume (KS : Set E) :=
     fun z => by
@@ -2377,7 +2429,8 @@ private lemma convex_prod_posSlice_properties {H : Type*}
     (isCompact_closedBall (0 : H) (max RP 1)).of_isClosed_subset
       (hPc.isClosed.preimage (continuous_const.prodMk continuous_id)) (hsliceP_sub s)
   have hf_bdd : ∀ s : ℝ, 0 ≤ f s ∧ f s ≤ C_H := fun s =>
-    ⟨measureReal_nonneg, measureReal_mono (hsliceP_sub s) (isCompact_closedBall _ _).measure_lt_top.ne⟩
+    ⟨measureReal_nonneg,
+      measureReal_mono (hsliceP_sub s) (isCompact_closedBall _ _).measure_lt_top.ne⟩
   have hf_meas : Measurable f :=
     ENNReal.measurable_toReal.comp
       (measurable_measure_prodMk_left (ν := (volume : Measure H)) hPc.isClosed.measurableSet)
@@ -2509,7 +2562,8 @@ private lemma convex_prod_posSlice_properties {H : Type*}
         rw [setLIntegral_congr_fun measurableSet_Ioi fun t ht => hzero_gt t ht, lintegral_zero,
           add_zero]
       rw [h1, lintegral_union (measurableSet_singleton M) (by
-        rw [Set.disjoint_left]; intro t ht htm; simp only [mem_singleton_iff] at htm; linarith [ht.2]),
+        rw [Set.disjoint_left]; intro t ht htm; simp only [mem_singleton_iff] at htm;
+        linarith [ht.2]),
         lintegral_singleton, Real.volume_singleton, mul_zero, add_zero]
     have hint_f : IntegrableOn f (Ioo 0 M) volume :=
       (integrableOn_const (C := C_H) (by simp : volume (Ioo 0 M) ≠ ⊤)).mono'
@@ -2522,7 +2576,8 @@ private lemma convex_prod_posSlice_properties {H : Type*}
 
 omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
 /-- **Meyer–Pajor Geometric Slice Inclusion:** for `s₁, s₂ > 0`, `λ = s₂ / (s₁ + s₂)`, and harmonic
-mean `τ = 2 s₁ s₂ / (s₁ + s₂)`, the weighted Minkowski combination of the `s₁`-slice and `(-s₂)`-slice
+mean `τ = 2 s₁ s₂ / (s₁ + s₂)` , the weighted Minkowski combination of the `s₁` -slice and `(-s₂)`
+-slice
 of `(K₁ - t₀ • u)°` lies inside the `τ`-slice of `(S_u K₁)°`. -/
 private lemma meyer_pajor_slice_subset {u : E} (hu : ‖u‖ = 1) (K₁ : ConvexBody E) (t₀ : ℝ)
     {s₁ s₂ : ℝ} (hs₁ : 0 < s₁) (hs₂ : 0 < s₂) :
@@ -2634,7 +2689,8 @@ private lemma meyer_pajor_polar_volume_le
       rintro _ ⟨x, hx, rfl⟩
       rw [mem_closedBall_zero_iff]
       linarith [norm_sub_le x (t₀ • u), mem_closedBall_zero_iff.mp (hR hx)]
-    have h0pol : (0 : E) ∈ interior (polarBody K₀) := zero_mem_interior_polarBody_of_isBounded hK₀_bdd
+    have h0pol : (0 : E) ∈ interior (polarBody K₀) :=
+      zero_mem_interior_polarBody_of_isBounded hK₀_bdd
     have h1 : (orthoSplitHomeomorph hu : E → ℝ × H) = Φ := funext (orthoSplitHomeomorph_coe hu)
     have himg : Φ '' interior (polarBody K₀) = interior P := by
       rw [← h1]; exact (orthoSplitHomeomorph hu).image_interior (polarBody K₀)
@@ -2645,7 +2701,8 @@ private lemma meyer_pajor_polar_volume_le
   have hswap_eq : (swapH : ℝ × H → ℝ × H) = swapL := by ext ⟨s, y⟩ <;> rfl
   let Pneg : Set (ℝ × H) := swapH '' P
   have hPneg_c : IsCompact Pneg := hPc.image swapH.continuous
-  have hPneg_conv : Convex ℝ Pneg := by rw [show Pneg = swapL '' P by rw [← hswap_eq]]; exact hPconv.linear_image swapL
+  have hPneg_conv : Convex ℝ Pneg := by
+    rw [show Pneg = swapL '' P by rw [← hswap_eq]]; exact hPconv.linear_image swapL
   have h0Pneg : ((0 : ℝ), (0 : H)) ∈ interior Pneg := by
     rw [show Pneg = swapH '' P from rfl, ← swapH.image_interior]
     exact ⟨(0, 0), h0P, by simp [swapH]⟩
@@ -2688,7 +2745,8 @@ private lemma meyer_pajor_polar_volume_le
     have hset_eq : polarBody K₀ ∩ {y : E | 0 < ⟪y, u⟫} = Φ ⁻¹' (P ∩ {p : ℝ × H | 0 < p.1}) := by
       ext y; simp only [mem_inter_iff, mem_preimage, mem_ofPred_eq, P, mem_image]
       constructor
-      · rintro ⟨hy, hyu⟩; exact ⟨⟨y, hy, rfl⟩, by dsimp only [Φ]; rw [orthoSplitProd_apply]; exact hyu⟩
+      · rintro ⟨hy, hyu⟩;
+        exact ⟨⟨y, hy, rfl⟩, by dsimp only [Φ]; rw [orthoSplitProd_apply]; exact hyu⟩
       · rintro ⟨⟨z, hz, hzy⟩, hyu⟩
         refine ⟨Φ.injective hzy ▸ hz, ?_⟩
         dsimp only [Φ] at hyu; rw [orthoSplitProd_apply] at hyu; exact hyu
@@ -2710,7 +2768,8 @@ private lemma meyer_pajor_polar_volume_le
     have hset_eq : polarBody K₀ ∩ {y : E | ⟪y, u⟫ < 0} = Φ ⁻¹' (P ∩ {p : ℝ × H | p.1 < 0}) := by
       ext y; simp only [mem_inter_iff, mem_preimage, mem_ofPred_eq, P, mem_image]
       constructor
-      · rintro ⟨hy, hyu⟩; exact ⟨⟨y, hy, rfl⟩, by dsimp only [Φ]; rw [orthoSplitProd_apply]; exact hyu⟩
+      · rintro ⟨hy, hyu⟩;
+        exact ⟨⟨y, hy, rfl⟩, by dsimp only [Φ]; rw [orthoSplitProd_apply]; exact hyu⟩
       · rintro ⟨⟨z, hz, hzy⟩, hyu⟩
         refine ⟨Φ.injective hzy ▸ hz, ?_⟩
         dsimp only [Φ] at hyu; rw [orthoSplitProd_apply] at hyu; exact hyu
@@ -2752,7 +2811,10 @@ private lemma meyer_pajor_polar_volume_le
   have hτ_mono : StrictMonoOn τ (Ioo 0 V2) :=
     strictMonoOn_of_deriv_pos (convex_Ioo 0 V2)
       (fun r hr => (hτ_deriv r hr).continuousAt.continuousWithinAt)
-      (fun r hr => by rw [isOpen_Ioo.interior_eq] at hr; rw [(hτ_deriv r hr).deriv]; exact hτ'_pos r hr)
+      (fun r hr => by
+        rw [isOpen_Ioo.interior_eq] at hr
+        rw [(hτ_deriv r hr).deriv]
+        exact hτ'_pos r hr)
   -- Pointwise inequality `1 ≤ τ'(r) * h(τ(r))` via slice inclusion + Brunn–Minkowski + AM–GM.
   have hkey_pt : ∀ r ∈ Ioo 0 V2, 1 ≤ τ' r * h (τ r) := fun r hr => by
     have hs1 : 0 < s₁ r := (hs₁_mem r hr).1
@@ -2780,7 +2842,8 @@ private lemma meyer_pajor_polar_volume_le
           rw [mem_closedBall, dist_eq_norm, Prod.mk_sub_mk, sub_zero, sub_zero, Prod.norm_def] at h1
           exact mem_closedBall_zero_iff.mpr ((le_max_right _ _).trans h1)
         exact ((measure_mono hsubQ).trans_lt (isCompact_closedBall _ _).measure_lt_top).ne
-      rw [← ENNReal.ofReal_toReal hfin1, ← ENNReal.ofReal_toReal hfin2, ← ENNReal.ofReal_toReal hfinQ,
+      rw [← ENNReal.ofReal_toReal hfin1, ← ENNReal.ofReal_toReal hfin2,
+        ← ENNReal.ofReal_toReal hfinQ,
         ENNReal.ofReal_rpow_of_nonneg ENNReal.toReal_nonneg hlam0.le,
         ENNReal.ofReal_rpow_of_nonneg ENNReal.toReal_nonneg (sub_pos.mpr hlam1).le,
         ← ENNReal.ofReal_mul (Real.rpow_nonneg ENNReal.toReal_nonneg _)] at hbm'
@@ -2792,7 +2855,8 @@ private lemma meyer_pajor_polar_volume_le
       rw [Real.mul_rpow hlam0.le (inv_nonneg.mpr hf1_pos.le),
         Real.mul_rpow (sub_pos.mpr hlam1).le (inv_nonneg.mpr hg2_pos.le),
         Real.inv_rpow hf1_pos.le, Real.inv_rpow hg2_pos.le] at hgm
-      have htau_eq : τ' r = 2 * (lam * (lam * (f (s₁ r))⁻¹) + (1 - lam) * ((1 - lam) * (g (s₂ r))⁻¹)) := by
+      have htau_eq : τ' r = 2 *
+        (lam * (lam * (f (s₁ r))⁻¹) + (1 - lam) * ((1 - lam) * (g (s₂ r))⁻¹)) := by
         dsimp only [τ']; rw [← h1lam]; ring
       have h2lam := one_le_two_mul_rpow_self hlam0 hlam1
       have hinv_nn : 0 ≤ (f (s₁ r) ^ lam)⁻¹ * (g (s₂ r) ^ (1 - lam))⁻¹ := by positivity
@@ -2809,12 +2873,14 @@ private lemma meyer_pajor_polar_volume_le
         _ = τ' r := htau_eq.symm
     have hprod_pos : 0 < f (s₁ r) ^ lam * g (s₂ r) ^ (1 - lam) := by positivity
     calc
-      (1 : ℝ) = (f (s₁ r) ^ lam * g (s₂ r) ^ (1 - lam))⁻¹ * (f (s₁ r) ^ lam * g (s₂ r) ^ (1 - lam)) :=
+      (1 : ℝ) = (f (s₁ r) ^ lam * g (s₂ r) ^ (1 - lam))⁻¹ *
+        (f (s₁ r) ^ lam * g (s₂ r) ^ (1 - lam)) :=
         (inv_mul_cancel₀ hprod_pos.ne').symm
       _ ≤ τ' r * h (τ r) := mul_le_mul hderiv_lb hbm_real hprod_pos.le (hτ'_pos r hr).le
   -- 1D change of variables gives `V2 ≤ volume (Q ∩ {p.1 > 0})`, then double both sides.
   have hcov_ineq : ENNReal.ofReal V2 ≤ volume (Q ∩ {p : ℝ × H | 0 < p.1}) := by
-    have hhalf_Q : ∫⁻ t in Ioi (0 : ℝ), ENNReal.ofReal (h t) = volume (Q ∩ {p : ℝ × H | 0 < p.1}) := by
+    have hhalf_Q : ∫⁻ t in Ioi (0 : ℝ),
+      ENNReal.ofReal (h t) = volume (Q ∩ {p : ℝ × H | 0 < p.1}) := by
       have hm_set : MeasurableSet (Q ∩ {p : ℝ × H | 0 < p.1}) :=
         hQc.isClosed.measurableSet.inter (isOpen_lt continuous_const continuous_fst).measurableSet
       rw [Measure.volume_eq_prod, Measure.prod_apply hm_set]
@@ -2828,7 +2894,8 @@ private lemma meyer_pajor_polar_volume_le
             obtain ⟨RQ, hQR⟩ := hQc.isBounded.subset_closedBall ((0 : ℝ), (0 : H))
             have hsubQ : sliceQ t ⊆ closedBall (0 : H) RQ := fun y hy => by
               have h1 := hQR hy
-              rw [mem_closedBall, dist_eq_norm, Prod.mk_sub_mk, sub_zero, sub_zero, Prod.norm_def] at h1
+              rw [mem_closedBall, dist_eq_norm, Prod.mk_sub_mk, sub_zero, sub_zero,
+                Prod.norm_def] at h1
               exact mem_closedBall_zero_iff.mpr ((le_max_right _ _).trans h1)
             exact ((measure_mono hsubQ).trans_lt (isCompact_closedBall _ _).measure_lt_top).ne
           rw [hpre]; dsimp only [h]; rw [Measure.real, ENNReal.ofReal_toReal hfinQ]
@@ -2850,7 +2917,8 @@ private lemma meyer_pajor_polar_volume_le
           rw [setLIntegral_const, one_mul, Real.volume_Ioo, sub_zero]
       _ ≤ ∫⁻ r in Ioo 0 V2, ENNReal.ofReal |τ' r| * ENNReal.ofReal (h (τ r)) := by
           refine setLIntegral_mono' measurableSet_Ioo fun r hr => ?_
-          rw [abs_of_pos (hτ'_pos r hr), ← ENNReal.ofReal_mul (hτ'_pos r hr).le, ← ENNReal.ofReal_one]
+          rw [abs_of_pos (hτ'_pos r hr), ← ENNReal.ofReal_mul (hτ'_pos r hr).le,
+            ← ENNReal.ofReal_one]
           exact ENNReal.ofReal_le_ofReal (hkey_pt r hr)
       _ = ∫⁻ t in τ '' Ioo 0 V2, ENNReal.ofReal (h t) := hcov.symm
       _ ≤ ∫⁻ t in Ioi (0 : ℝ), ENNReal.ofReal (h t) := lintegral_mono_set himg_sub
@@ -3076,7 +3144,8 @@ theorem blaschke_santalo [Nontrivial E] (K : ConvexBody E)
     have hz_int : z ∈ interior (K : Set E) := by
       have hmid_int : mid ∈ interior I := by
         rw [hI_eq, interior_Icc]; dsimp only [mid]; constructor <;> linarith
-      rw [show I = e.toHomeomorph '' (K : Set E) from rfl, ← e.toHomeomorph.image_interior] at hmid_int
+      rw [show I = e.toHomeomorph '' (K : Set E) from rfl,
+        ← e.toHomeomorph.image_interior] at hmid_int
       rcases hmid_int with ⟨x, hx, hxe⟩
       have hxz : x = z := by
         dsimp only [z]
@@ -3087,7 +3156,8 @@ theorem blaschke_santalo [Nontrivial E] (K : ConvexBody E)
       ext y
       constructor
       · rintro ⟨x, hx, rfl⟩
-        rw [mem_closedBall_zero_iff, ← e.norm_map, map_sub, e.apply_symm_apply, Real.norm_eq_abs, abs_le]
+        rw [mem_closedBall_zero_iff, ← e.norm_map, map_sub, e.apply_symm_apply, Real.norm_eq_abs,
+          abs_le]
         have hxI : e x ∈ Icc a c := hI_eq ▸ ⟨x, hx, rfl⟩
         dsimp only [mid, rad]; constructor <;> linarith [hxI.1, hxI.2]
       · intro hy
@@ -3097,7 +3167,8 @@ theorem blaschke_santalo [Nontrivial E] (K : ConvexBody E)
         rcases hmemI with ⟨x, hxK, hxe⟩
         refine ⟨x, hxK, e.injective ?_⟩
         rw [map_sub, e.apply_symm_apply, hxe, add_sub_cancel_right]
-    have hAt : mahlerVolumeAt (volume : Measure E) (K : Set E) z = volume (closedBall (0 : E) 1) ^ 2 := by
+    have hAt : mahlerVolumeAt (volume : Measure E) (K : Set E) z =
+      volume (closedBall (0 : E) 1) ^ 2 := by
       rw [mahlerVolumeAt, hshift]
       have hsmul : closedBall (0 : E) rad = rad • closedBall (0 : E) 1 := by
         ext y; simp only [mem_closedBall_zero_iff, mem_smul_set]
@@ -3115,7 +3186,8 @@ theorem blaschke_santalo [Nontrivial E] (K : ConvexBody E)
   -- Main case `d ≥ 2`: reduce to John's position inside the compact family `𝒞` and optimize!
   have hd2 : 2 ≤ d := by omega
   let 𝒞 : Set (ConvexBody E) :=
-    {L : ConvexBody E | closedBall (0 : E) 1 ⊆ (L : Set E) ∧ (L : Set E) ⊆ closedBall (0 : E) (d : ℝ)}
+    {L : ConvexBody E | closedBall (0 : E) 1 ⊆ (L : Set E) ∧
+      (L : Set E) ⊆ closedBall (0 : E) (d : ℝ)}
   -- 1. Show `𝒞` is nonempty and compact in the Hausdorff metric.
   have hB1_mem : bodyClosedBall (0 : E) zero_le_one ∈ 𝒞 := by
     refine ⟨by rw [coe_bodyClosedBall], ?_⟩
@@ -3160,7 +3232,8 @@ theorem blaschke_santalo [Nontrivial E] (K : ConvexBody E)
       (hsub_closed.inter (isCompact_subset_closedBall (E := E) (d : ℝ)).isClosed)
       (fun _ h => h.2)
   have h𝒞_int_ne : ∀ L ∈ 𝒞, (interior (L : Set E)).Nonempty := fun L hL =>
-    ⟨0, mem_interior_iff_mem_nhds.mpr (Filter.mem_of_superset (closedBall_mem_nhds 0 zero_lt_one) hL.1)⟩
+    ⟨0, mem_interior_iff_mem_nhds.mpr
+      (Filter.mem_of_superset (closedBall_mem_nhds 0 zero_lt_one) hL.1)⟩
   -- 2. Maximize the upper semicontinuous function `santaloMahlerVolume` on compact `𝒞`.
   have husc : UpperSemicontinuousOn
       (fun L : ConvexBody E => santaloMahlerVolume (volume : Measure E) (L : Set E)) 𝒞 :=
@@ -3168,7 +3241,8 @@ theorem blaschke_santalo [Nontrivial E] (K : ConvexBody E)
   obtain ⟨K_max, hK_max_𝒞, hK_max⟩ := husc.exists_isMaxOn ⟨_, hB1_mem⟩ h𝒞_compact
   set S_max : ℝ≥0∞ := santaloMahlerVolume (volume : Measure E) (K_max : Set E)
   -- 3. The maximizer set `ℳ := {L ∈ 𝒞 | santaloMahlerVolume L = S_max}` is nonempty and compact.
-  let ℳ : Set (ConvexBody E) := {L ∈ 𝒞 | S_max ≤ santaloMahlerVolume (volume : Measure E) (L : Set E)}
+  let ℳ : Set (ConvexBody E) :=
+    {L ∈ 𝒞 | S_max ≤ santaloMahlerVolume (volume : Measure E) (L : Set E)}
   have hℳ_compact : IsCompact ℳ := by
     -- By upper semicontinuity, `{L ∈ 𝒞 | santaloMahlerVolume L < S_max}` is open in `𝒞`,
     -- so its complement `ℳ` in `𝒞` is closed in `𝒞`, hence compact!
@@ -3197,11 +3271,13 @@ theorem blaschke_santalo [Nontrivial E] (K : ConvexBody E)
       · have h1 := bodySteinerSymmDir_mono hu (K := bodyClosedBall (0 : E) zero_le_one) (L := K₀)
           (by rw [coe_bodyClosedBall]; exact hK₀ℳ.1.1)
         rwa [bodySteinerSymmDir_bodyClosedBall hu zero_le_one, coe_bodyClosedBall] at h1
-      · have h1 := bodySteinerSymmDir_mono hu (K := K₀) (L := bodyClosedBall (0 : E) (Nat.cast_nonneg d))
+      · have h1 :=
+          bodySteinerSymmDir_mono hu (K := K₀) (L := bodyClosedBall (0 : E) (Nat.cast_nonneg d))
           (by rw [coe_bodyClosedBall]; exact hK₀ℳ.1.2)
         rwa [bodySteinerSymmDir_bodyClosedBall hu (Nat.cast_nonneg d), coe_bodyClosedBall] at h1
     have hKS₀_ℳ : KS₀ ∈ ℳ :=
-      ⟨hKS₀_𝒞, hK₀ℳ.2.trans (santaloMahlerVolume_le_bodySteinerSymmDir hu hd2 K₀ (h𝒞_int_ne K₀ hK₀ℳ.1))⟩
+      ⟨hKS₀_𝒞,
+        hK₀ℳ.2.trans (santaloMahlerVolume_le_bodySteinerSymmDir hu hd2 K₀ (h𝒞_int_ne K₀ hK₀ℳ.1))⟩
     have hsec_le : secondMoment K₀ ≤ secondMoment KS₀ := hK₀_min hKS₀_ℳ
     have hsec_lt : secondMoment KS₀ < secondMoment K₀ :=
       secondMoment_bodySteinerSymmDir_lt hu (h𝒞_int_ne K₀ hK₀ℳ.1) hnsym
@@ -3227,7 +3303,8 @@ theorem blaschke_santalo [Nontrivial E] (K : ConvexBody E)
     · have hv_pos : 0 < ‖v‖ := norm_pos_iff.mpr hv
       set w : E := ‖v‖⁻¹ • v
       have hw : ‖w‖ = 1 := by
-        rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hv_pos), inv_mul_cancel₀ hv_pos.ne']
+        rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hv_pos),
+          inv_mul_cancel₀ hv_pos.ne']
       have hsup_w : supportFn K₀ w = R := by
         by_cases hwu : w = u₀
         · rw [hwu]
@@ -3242,7 +3319,8 @@ theorem blaschke_santalo [Nontrivial E] (K : ConvexBody E)
             have hinner : 2 * ⟪w, w - u₀⟫ = ‖w - u₀‖ ^ 2 := by
               rw [norm_sub_sq_real, hw, hu₀, inner_sub_right, real_inner_self_eq_norm_sq, hw]; ring
             have hcoeff : 2 * ⟪w, z⟫ = ‖w - u₀‖ := by
-              dsimp only [z]; rw [inner_smul_right, ← mul_assoc, mul_comm 2 ‖w - u₀‖⁻¹, mul_assoc, hinner]
+              dsimp only [z];
+              rw [inner_smul_right, ← mul_assoc, mul_comm 2 ‖w - u₀‖⁻¹, mul_assoc, hinner]
               field_simp [hnorm_pos.ne']
             rw [hcoeff]; dsimp only [z]
             rw [smul_smul, mul_inv_cancel₀ hnorm_pos.ne', one_smul, sub_sub_cancel]
@@ -3268,15 +3346,18 @@ theorem blaschke_santalo [Nontrivial E] (K : ConvexBody E)
       · rintro ⟨w, hw, rfl⟩
         rw [norm_smul, Real.norm_eq_abs, abs_of_pos hR_pos]; nlinarith
     have h0K₀ : (0 : E) ∈ interior (K₀ : Set E) :=
-      mem_interior_iff_mem_nhds.mpr (Filter.mem_of_superset (closedBall_mem_nhds 0 zero_lt_one) hK₀ℳ.1.1)
+      mem_interior_iff_mem_nhds.mpr
+        (Filter.mem_of_superset (closedBall_mem_nhds 0 zero_lt_one) hK₀ℳ.1.1)
     calc
       S_max ≤ santaloMahlerVolume (volume : Measure E) (K₀ : Set E) := hK₀ℳ.2
       _ ≤ mahlerVolume (volume : Measure E) (K₀ : Set E) :=
           santaloMahlerVolume_le_mahlerVolume volume h0K₀
       _ = volume (closedBall (0 : E) 1) ^ 2 := by
-          rw [hsmul, mahlerVolume_smul volume hR_pos.ne', mahlerVolume, polarBody_closedBall one_pos,
+          rw [hsmul, mahlerVolume_smul volume hR_pos.ne', mahlerVolume,
+            polarBody_closedBall one_pos,
             inv_one, sq]
-  -- 8. Transform arbitrary `K` to John's position inside `𝒞` via `exists_affineEquiv_isJohnPosition`.
+  -- 8. Transform arbitrary `K` to John's position inside `𝒞` via
+  -- `exists_affineEquiv_isJohnPosition` .
   obtain ⟨A, hJ⟩ := exists_affineEquiv_isJohnPosition K hne
   have hA_cont : Continuous A := by
     have heq : (A : E → E) = fun x => A.linear x + A 0 := funext fun x => by

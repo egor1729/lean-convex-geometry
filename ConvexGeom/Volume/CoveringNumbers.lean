@@ -111,7 +111,8 @@ theorem measure_le_externalCoveringNumber_mul_closedBall
   by_cases htop : Metric.externalCoveringNumber ε A = ⊤
   · rw [htop, ENat.toENNReal_top, ENNReal.top_mul hball_ne]
     exact le_top
-  · -- When `externalCoveringNumber ε A < ⊤`, it is attained by a cover `C` since `ℕ∞` is well-ordered!
+  · -- When `externalCoveringNumber ε A < ⊤`, it is attained
+    -- by a cover `C` since `ℕ∞` is well-ordered!
     have hne : {n : ℕ∞ | ∃ C : Set E, Metric.IsCover ε A C ∧ C.encard = n}.Nonempty := by
       by_contra hemp
       rw [Set.not_nonempty_iff_eq_empty] at hemp
@@ -120,7 +121,8 @@ theorem measure_le_externalCoveringNumber_mul_closedBall
       have : Metric.externalCoveringNumber ε A = ⊤ := by
         simp [Metric.externalCoveringNumber, hnone]
       exact htop this
-    have hex : ∃ C : Set E, Metric.IsCover ε A C ∧ C.encard = Metric.externalCoveringNumber ε A := by
+    have hex : ∃ C : Set E, Metric.IsCover ε A C ∧
+      C.encard = Metric.externalCoveringNumber ε A := by
       obtain ⟨n, hn_mem, hn_min⟩ :=
         WellFounded.has_min wellFounded_lt _ hne
       obtain ⟨C, hC, rfl⟩ := hn_mem
@@ -144,7 +146,8 @@ theorem measure_le_coveringNumber_mul_closedBall
 /-! ### 2. General Volumetric Upper Bound (via Packing) -/
 
 /-- Any `ε`-separated subset `C ⊆ A` has pairwise disjoint open balls of radius `ε / 2`,
-all contained in `A + ball 0 (ε / 2)`, giving `C.encard * μ (ball 0 (ε / 2)) ≤ μ (A + ball 0 (ε / 2))`. -/
+all contained in `A + ball 0 (ε / 2)` , giving
+`C.encard * μ (ball 0 (ε / 2)) ≤ μ (A + ball 0 (ε / 2))` . -/
 lemma encard_mul_ball_le_measure_add_ball_of_isSeparated (μ : Measure E) [μ.IsAddHaarMeasure]
     {ε : ℝ≥0} {A C : Set E} (hCA : C ⊆ A) (hsep : Metric.IsSeparated ε C) :
     (C.encard : ℝ≥0∞) * μ (Metric.ball (0 : E) ((ε : ℝ) / 2)) ≤
@@ -680,8 +683,11 @@ theorem translativeCoveringNumber_symm_smul_le (μ : Measure E) [μ.IsAddHaarMea
   have hBm : MeasurableSet B := by
     have hpre : B = (fun y : E => (t / 2 : ℝ)⁻¹ • y) ⁻¹' K := by
       ext y; simp only [B, Set.mem_smul_set, mem_preimage]
-      exact ⟨fun ⟨x, hx, h⟩ => by rw [← h, smul_smul, inv_mul_cancel₀ hhalf_pos.ne', one_smul]; exact hx,
-        fun hy => ⟨(t / 2 : ℝ)⁻¹ • y, hy, by rw [smul_smul, mul_inv_cancel₀ hhalf_pos.ne', one_smul]⟩⟩
+      exact ⟨fun ⟨x, hx, h⟩ => by
+          rw [← h, smul_smul, inv_mul_cancel₀ hhalf_pos.ne', one_smul]
+          exact hx,
+        fun hy =>
+          ⟨(t / 2 : ℝ)⁻¹ • y, hy, by rw [smul_smul, mul_inv_cancel₀ hhalf_pos.ne', one_smul]⟩⟩
     rw [hpre]
     exact (measurable_const.smul measurable_id) hKm
   have hdiff_sub : B - B ⊆ t • K := by

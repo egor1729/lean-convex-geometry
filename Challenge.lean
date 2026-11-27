@@ -109,7 +109,8 @@ theorem supporting_hyperplane {E : Type*} [NormedAddCommGroup E] [InnerProductSp
 `v : Fin (d + 1) → (Fin d → ℝ)` equals `|det (v j.succ - v 0)| / d!`. -/
 theorem simplex_volume {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)) :
     volume (convexHull ℝ (Set.range v)) =
-      ENNReal.ofReal (|(Matrix.of fun i j : Fin d => v j.succ i - v 0 i).det| / (d.factorial : ℝ)) := by
+      ENNReal.ofReal (|(Matrix.of fun i j : Fin d =>
+        v j.succ i - v 0 i).det| / (d.factorial : ℝ)) := by
   sorry
 
 /-- **Helly's Theorem:** if a finite family of at least `d + 1` convex bodies in a `d`-dimensional
@@ -299,7 +300,8 @@ theorem ball_reverse_isoperimetric_symmetric {E : Type*} [NormedAddCommGroup E]
     ∃ T : E ≃ₗ[ℝ] E,
       minkowskiSurfaceArea (T '' (K : Set E)) ≤
         (2 * (Module.finrank ℝ E : ℝ≥0∞)) *
-          volume (T '' (K : Set E)) ^ (((Module.finrank ℝ E - 1 : ℕ) : ℝ) / (Module.finrank ℝ E : ℝ)) := by
+          volume (T '' (K : Set E)) ^
+            (((Module.finrank ℝ E - 1 : ℕ) : ℝ) / (Module.finrank ℝ E : ℝ)) := by
   sorry
 
 /-- **Ball's Reverse Isoperimetric Inequality (General / Simplex Form, Ball 1991):** every convex
@@ -314,7 +316,8 @@ theorem ball_reverse_isoperimetric {E : Type*} [NormedAddCommGroup E] [InnerProd
           ENNReal.ofReal ((Module.finrank ℝ E : ℝ) ^ ((Module.finrank ℝ E : ℝ) / 2) *
             ((Module.finrank ℝ E : ℝ) + 1) ^ (((Module.finrank ℝ E : ℝ) + 1) / 2) /
             (Nat.factorial (Module.finrank ℝ E) : ℝ)) ^ (1 / (Module.finrank ℝ E : ℝ)) *
-          volume (e '' (K : Set E)) ^ (((Module.finrank ℝ E - 1 : ℕ) : ℝ) / (Module.finrank ℝ E : ℝ)) := by
+          volume (e '' (K : Set E)) ^
+            (((Module.finrank ℝ E - 1 : ℕ) : ℝ) / (Module.finrank ℝ E : ℝ)) := by
   sorry
 
 /-- **Gaussian Concentration for Lipschitz Functions (around the mean):** for every `L`-Lipschitz
@@ -369,10 +372,13 @@ theorem dvoretzky_theorem {E : Type*} [NormedAddCommGroup E] [InnerProductSpace 
       Module.finrank ℝ F = k ∧
       (∀ w : EuclideanSpace ℝ (Fin k),
         ‖w‖ ≤ gauge (K : Set E) (T w : E) ∧ gauge (K : Set E) (T w : E) ≤ (1 + ε) * ‖w‖) ∧
-      ((1 + ε)⁻¹ • ((F.subtype.comp T.toLinearMap) '' Metric.closedBall (0 : EuclideanSpace ℝ (Fin k)) 1) ⊆
+      ((1 + ε)⁻¹ •
+          ((F.subtype.comp T.toLinearMap) ''
+            Metric.closedBall (0 : EuclideanSpace ℝ (Fin k)) 1) ⊆
           (K : Set E) ∩ (F : Set E) ∧
         (K : Set E) ∩ (F : Set E) ⊆
-          (F.subtype.comp T.toLinearMap) '' Metric.closedBall (0 : EuclideanSpace ℝ (Fin k)) 1) := by
+          (F.subtype.comp T.toLinearMap) ''
+            Metric.closedBall (0 : EuclideanSpace ℝ (Fin k)) 1) := by
   sorry
 
 /-- **Blaschke–Santaló Inequality (General Convex Bodies):** for every convex body `K` with

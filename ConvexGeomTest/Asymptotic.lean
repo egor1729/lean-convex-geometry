@@ -39,13 +39,15 @@ example {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε < 1) :
       have := T.map_smul t (1 : ℝ)
       simpa [c, smul_eq_mul] using this
     -- `-1 ∈ T '' [-1, 1]` and `ε ∈ T '' [-1, 1]` force `1 ≤ |c|`.
-    rcases h1 (show (-1 : ℝ) ∈ Icc (-1) ε by constructor <;> linarith) with ⟨t₀, ⟨ht0a, ht0b⟩, ht0eq⟩
+    rcases h1 (show (-1 : ℝ) ∈ Icc (-1) ε by constructor <;> linarith) with ⟨t₀, ⟨ht0a, ht0b⟩,
+      ht0eq⟩
     have hc_ge1 : 1 ≤ |c| := by
       have h1' : |t₀ * c| = 1 := by rw [← hT t₀, ht0eq]; norm_num
       rw [abs_mul] at h1'
       have ht0_le1 : |t₀| ≤ 1 := abs_le.mpr ⟨ht0a, ht0b⟩
       nlinarith [abs_nonneg c]
-    -- Both `c` and `-c` lie in `T '' [-1, 1] ⊆ r • [-1, ε]`, so `|c| ∈ r • [-1, ε]` implies `|c| ≤ r * ε`.
+    -- Both `c` and `-c` lie in `T '' [-1, 1] ⊆ r • [-1, ε]` , so `|c| ∈ r • [-1, ε]` implies
+    -- `|c| ≤ r * ε` .
     have habs_mem : |c| ∈ T '' Icc (-1 : ℝ) 1 := by
       rcases le_total 0 c with hc | hc
       · exact ⟨1, ⟨by norm_num, le_rfl⟩, by rw [hT, one_mul, abs_of_nonneg hc]⟩
@@ -56,7 +58,8 @@ example {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε < 1) :
       nlinarith
     have hr_ge : ε⁻¹ ≤ r := by
       have := mul_le_mul_of_nonneg_left (hc_ge1.trans hcr) (inv_nonneg.mpr hε0.le)
-      rwa [mul_one, ← mul_assoc, mul_comm ε⁻¹ r, mul_assoc, inv_mul_cancel₀ hε0.ne', mul_one] at this
+      rwa [mul_one, ← mul_assoc, mul_comm ε⁻¹ r, mul_assoc, inv_mul_cancel₀ hε0.ne',
+        mul_one] at this
     exact hr_ge
   exact le_antisymm hle hge
 
@@ -201,7 +204,9 @@ example :
         (2 : ℝ≥0∞) ^ Module.finrank ℝ ℝ :=
   ball_volume_ratio_symmetric (bodyClosedBall (0 : ℝ) zero_le_one)
     (fun x hx => by simpa [coe_bodyClosedBall, mem_closedBall_zero_iff] using hx)
-    (by rw [coe_bodyClosedBall]; exact mem_interior_iff_mem_nhds.mpr (closedBall_mem_nhds 0 zero_lt_one))
+    (by
+      rw [coe_bodyClosedBall]
+      exact mem_interior_iff_mem_nhds.mpr (closedBall_mem_nhds 0 zero_lt_one))
 
 /-- Standard Gaussian second moment and Gaussian-width proportionality on `bodyClosedBall 0 3`. -/
 example :
@@ -211,7 +216,8 @@ example :
   refine ⟨by simpa using integral_norm_sq_stdGaussian (E := ℝ), ?_⟩
   rw [gaussianWidth_eq_integral_norm_mul_meanWidth, meanWidth_bodyClosedBall, mul_comm]
 
-/-- Blaschke–Santaló and Urysohn's inequality on `bodyClosedBall 0 3` in `ℝ` (where both are tight). -/
+/-- Blaschke–Santaló and Urysohn's inequality on `bodyClosedBall 0 3` in `ℝ` (where both are tight).
+-/
 example :
     santaloMahlerVolume (volume : Measure ℝ)
         (bodyClosedBall (0 : ℝ) (by norm_num : (0 : ℝ) ≤ 3) : Set ℝ) ≤

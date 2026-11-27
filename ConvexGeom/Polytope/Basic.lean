@@ -85,7 +85,8 @@ theorem supportFn_bodyConvexHull (S : Finset E) (hS : S.Nonempty) (u : E) :
     exact inner_le_supportFn (subset_convexHull ℝ (S : Set E) hx) u
 
 /-- **1-Lipschitz continuity of convex hulls in the Hausdorff metric:**
-if `∀ i, dist (v i) (w i) ≤ r`, then `hausdorffDist (convexHull ℝ (range v)) (convexHull ℝ (range w)) ≤ r`. -/
+if `∀ i, dist (v i) (w i) ≤ r` , then
+`hausdorffDist (convexHull ℝ (range v)) (convexHull ℝ (range w)) ≤ r` . -/
 theorem hausdorffDist_convexHull_range_le {ι : Type*}
     (v w : ι → E) {r : ℝ} (hr : 0 ≤ r) (hvw : ∀ i, dist (v i) (w i) ≤ r) :
     Metric.hausdorffDist (convexHull ℝ (Set.range v)) (convexHull ℝ (Set.range w)) ≤ r := by
@@ -321,7 +322,8 @@ theorem exists_pushOut_range_sphere {E : Type*} [NormedAddCommGroup E] [NormedSp
           · exact subset_convexHull ℝ _ ⟨i, by simp [u', hi]⟩
         obtain ⟨w, hw_sph, hw_sub⟩ := ih u' hu'_ball hu'_card
         exact ⟨w, hw_sph, hconv_sub.trans hw_sub⟩
-      · -- All points equal `p = u i₀`; place `w i₀` and `w j` at the two sphere hits of a line through `p`.
+      · -- All points equal `p = u i₀`;
+        -- place `w i₀` and `w j` at the two sphere hits of a line through `p`.
         push Not at hdiff
         set p : E := u i₀
         obtain ⟨x, hx⟩ := exists_ne (0 : E)
@@ -349,7 +351,8 @@ theorem exists_pushOut_range_sphere {E : Type*} [NormedAddCommGroup E] [NormedSp
         have hj_ex : ∃ j : ι, j ≠ i₀ := by
           by_contra hall
           push Not at hall
-          have hsub : (Finset.univ : Finset ι) ⊆ {i₀} := fun i _ => Finset.mem_singleton.mpr (hall i)
+          have hsub : (Finset.univ : Finset ι) ⊆ {i₀} :=
+            fun i _ => Finset.mem_singleton.mpr (hall i)
           have := Finset.card_le_card hsub
           simp only [Finset.card_univ, Finset.card_singleton] at this
           omega

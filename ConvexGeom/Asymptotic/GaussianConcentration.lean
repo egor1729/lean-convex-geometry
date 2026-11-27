@@ -127,10 +127,13 @@ private lemma pi_gaussianReal_eq_withDensity (d : ℕ) :
   rw [withDensity_apply _ (MeasurableSet.univ_pi hs),
     ← lintegral_indicator (MeasurableSet.univ_pi hs)]
   have hind : ∀ x : Fin d → ℝ,
-      (Set.univ.pi s).indicator (fun y => ENNReal.ofReal (∏ i : Fin d, gaussianPDFReal 0 1 (y i))) x =
-        ∏ i : Fin d, (s i).indicator (fun t => ENNReal.ofReal (gaussianPDFReal 0 1 t)) (x i) := fun x => by
+      (Set.univ.pi s).indicator (fun y =>
+        ENNReal.ofReal (∏ i : Fin d, gaussianPDFReal 0 1 (y i))) x =
+        ∏ i : Fin d, (s i).indicator (fun t => ENNReal.ofReal (gaussianPDFReal 0 1 t)) (x i) :=
+          fun x => by
     by_cases hx : x ∈ Set.univ.pi s
-    · rw [indicator_of_mem hx, ENNReal.ofReal_prod_of_nonneg (fun _ _ => gaussianPDFReal_nonneg 0 1 _)]
+    · rw [indicator_of_mem hx,
+        ENNReal.ofReal_prod_of_nonneg (fun _ _ => gaussianPDFReal_nonneg 0 1 _)]
       refine Finset.prod_congr rfl fun i _ => ?_
       rw [indicator_of_mem (hx i (mem_univ i))]
     · rw [indicator_of_notMem hx]
@@ -388,11 +391,13 @@ theorem measurePreserving_linearComb_stdGaussian {k : ℕ} {z : Fin k → ℝ}
       refine (PiLp.continuous_toLp 2 (fun _ : Fin k × Fin d => ℝ)).comp ?_
       refine continuous_pi fun p => ?_
       exact (continuous_apply p.2).comp
-        (((PiLp.continuous_ofLp 2 (fun _ : Fin d => ℝ)).comp b.repr.continuous).comp (continuous_apply p.1))
+        (((PiLp.continuous_ofLp 2 (fun _ : Fin d => ℝ)).comp b.repr.continuous).comp
+          (continuous_apply p.1))
     exact hcont.measurable
   -- Prove `enc` is measure-preserving from `Measure.pi (fun _ => stdGaussian E)` to
   -- `stdGaussian (EuclideanSpace ℝ (Fin k × Fin d))` by matching both to
-  -- `Measure.pi (fun _ : Fin k × Fin d => gaussianReal 0 1)` via `e_idx : Fin k × Fin d ≃ Fin (k * d)`.
+  -- `Measure.pi (fun _ : Fin k × Fin d => gaussianReal 0 1)` via
+  -- `e_idx : Fin k × Fin d ≃ Fin (k * d)` .
   let eIdx : Fin k × Fin d ≃ Fin (k * d) := finProdFinEquiv
   have hmp_prod_std : MeasurePreserving (fun M : EuclideanSpace ℝ (Fin k × Fin d) => WithLp.ofLp M)
       (stdGaussian (EuclideanSpace ℝ (Fin k × Fin d)))
@@ -405,10 +410,12 @@ theorem measurePreserving_linearComb_stdGaussian {k : ℕ} {z : Fin k → ℝ}
         (Measure.pi (fun _ : Fin (k * d) => gaussianReal 0 1))
         (Measure.pi (fun _ : Fin k × Fin d => gaussianReal 0 1)) := by
       refine ⟨(MeasurableEquiv.piCongrLeft (fun _ : Fin k × Fin d => ℝ) eIdx.symm).measurable, ?_⟩
-      simpa using Measure.pi_map_piCongrLeft (μ := fun _ : Fin k × Fin d => gaussianReal 0 1) eIdx.symm
+      simpa using Measure.pi_map_piCongrLeft (μ := fun _ : Fin k × Fin d =>
+        gaussianReal 0 1) eIdx.symm
     have hcomp := h3.comp (h2.comp h1)
     have hfun : (⇑(MeasurableEquiv.piCongrLeft (fun _ : Fin k × Fin d => ℝ) eIdx.symm) ∘
-        WithLp.ofLp ∘ ⇑Uidx) = (WithLp.ofLp : EuclideanSpace ℝ (Fin k × Fin d) → Fin k × Fin d → ℝ) := by
+        WithLp.ofLp ∘ ⇑Uidx) =
+          (WithLp.ofLp : EuclideanSpace ℝ (Fin k × Fin d) → Fin k × Fin d → ℝ) := by
       ext M ⟨i, l⟩
       simp [Uidx, MeasurableEquiv.piCongrLeft, Equiv.piCongrLeft, LinearIsometryEquiv.piLpCongrLeft]
     rwa [hfun] at hcomp
@@ -496,7 +503,8 @@ theorem measurePreserving_linearComb_stdGaussian {k : ℕ} {z : Fin k → ℝ}
       map_sum, map_smul, WithLp.ofLp_sum, WithLp.ofLp_smul, Finset.sum_apply, Pi.smul_apply,
       smul_eq_mul]
     -- The `i0`-th entry of `Q col` equals `⟪Q col, e0⟫ = ⟪col, Q e0⟫ = ⟪col, zLp⟫`.
-    let col : EuclideanSpace ℝ (Fin k) := WithLp.toLp 2 fun j : Fin k => WithLp.ofLp (b.repr (g j)) l
+    let col : EuclideanSpace ℝ (Fin k) :=
+      WithLp.toLp 2 fun j : Fin k => WithLp.ofLp (b.repr (g j)) l
     have hinner1 : WithLp.ofLp (Q col) i0 = ⟪Q col, e0⟫ := by
       rw [EuclideanSpace.inner_single_right]
       simp
@@ -565,8 +573,10 @@ theorem measurePreserving_homeomorphUnitSphereProd_stdGaussian [Nontrivial E] :
   have hcomap : ((stdGaussian E).comap (Subtype.val : ({0}ᶜ : Set E) → E))
       ((homeomorphUnitSphereProd E) ⁻¹' s) =
       ∫⁻ x in (homeomorphUnitSphereProd E) ⁻¹' s,
-        ENNReal.ofReal (stdGaussianDensity x.1) ∂(volume.comap (Subtype.val : ({0}ᶜ : Set E) → E)) := by
-    rw [Measure.comap_apply _ Subtype.val_injective (fun t ht => hemb.measurableSet_image.mpr ht) _ hpre_m,
+        ENNReal.ofReal (stdGaussianDensity x.1)
+          ∂(volume.comap (Subtype.val : ({0}ᶜ : Set E) → E)) := by
+    rw [Measure.comap_apply _ Subtype.val_injective (fun t ht =>
+      hemb.measurableSet_image.mpr ht) _ hpre_m,
       stdGaussian_eq_withDensity, withDensity_apply _ (hemb.measurableSet_image.mpr hpre_m),
       ← lintegral_indicator (hemb.measurableSet_image.mpr hpre_m),
       ← lintegral_indicator hpre_m]
@@ -595,20 +605,25 @@ theorem measurePreserving_homeomorphUnitSphereProd_stdGaussian [Nontrivial E] :
     refine lintegral_congr fun x => ?_
     by_cases hx : x ∈ (homeomorphUnitSphereProd E) ⁻¹' s
     · rw [indicator_of_mem hx,
-        indicator_of_mem (show x.1 ∈ Subtype.val '' ((homeomorphUnitSphereProd E) ⁻¹' s) from ⟨x, hx, rfl⟩)]
-    · rw [indicator_of_notMem hx, indicator_of_notMem (by rintro ⟨y, hy, hxy⟩; exact hx (Subtype.ext hxy ▸ hy))]
+        indicator_of_mem (show x.1 ∈ Subtype.val '' ((homeomorphUnitSphereProd E) ⁻¹' s) from ⟨x,
+          hx, rfl⟩)]
+    · rw [indicator_of_notMem hx,
+        indicator_of_notMem (by rintro ⟨y, hy, hxy⟩; exact hx (Subtype.ext hxy ▸ hy))]
   rw [hcomap]
   have hmp_pol := (volume : Measure E).measurePreserving_homeomorphUnitSphereProd
   have h_lhs : ∫⁻ x in (homeomorphUnitSphereProd E) ⁻¹' s,
       ENNReal.ofReal (stdGaussianDensity x.1) ∂(volume.comap (Subtype.val : ({0}ᶜ : Set E) → E)) =
       ∫⁻ p in s, ρ p.2 ∂((volume : Measure E).toSphere.prod (Measure.volumeIoiPow (d - 1))) := by
     rw [← lintegral_indicator hpre_m, ← lintegral_indicator hs,
-      ← hmp_pol.lintegral_comp_emb (homeomorphUnitSphereProd E).toMeasurableEquiv.measurableEmbedding]
+      ← hmp_pol.lintegral_comp_emb
+        (homeomorphUnitSphereProd E).toMeasurableEquiv.measurableEmbedding]
     refine lintegral_congr fun x => ?_
     by_cases hx : homeomorphUnitSphereProd E x ∈ s
-    · simp [indicator_of_mem hx, indicator_of_mem (show x ∈ (homeomorphUnitSphereProd E) ⁻¹' s from hx),
+    · simp [indicator_of_mem hx,
+        indicator_of_mem (show x ∈ (homeomorphUnitSphereProd E) ⁻¹' s from hx),
         hdens_val x]
-    · simp [indicator_of_notMem hx, indicator_of_notMem (show x ∉ (homeomorphUnitSphereProd E) ⁻¹' s from hx)]
+    · simp [indicator_of_notMem hx,
+        indicator_of_notMem (show x ∉ (homeomorphUnitSphereProd E) ⁻¹' s from hx)]
   have hρ_snd : Measurable (fun p : sphere (0 : E) 1 × Ioi (0 : ℝ) => ρ p.2) :=
     hρ_meas.comp measurable_snd
   rw [h_lhs, ← lintegral_indicator hs,
@@ -625,13 +640,16 @@ theorem measurePreserving_homeomorphUnitSphereProd_stdGaussian [Nontrivial E] :
     have hfin : (volume : Measure E).toSphere Set.univ ≠ ⊤ := by
       rw [Measure.toSphere_apply_univ]
       exact ENNReal.mul_ne_top (ENNReal.natCast_ne_top _)
-        ((measure_mono ball_subset_closedBall).trans_lt (isCompact_closedBall (0 : E) 1).measure_lt_top).ne
+        ((measure_mono ball_subset_closedBall).trans_lt
+          (isCompact_closedBall (0 : E) 1).measure_lt_top).ne
     rw [ENNReal.mul_inv_cancel hpos hfin, one_smul]
   -- Show `SFinite (stdGaussianRadial E)` so `Measure.prod_apply` applies cleanly.
   have h_rad_finite : stdGaussianRadial E Set.univ ≠ ⊤ := by
-    have htop := (hmp_pol.lintegral_comp_emb (homeomorphUnitSphereProd E).toMeasurableEquiv.measurableEmbedding
+    have htop :=
+      (hmp_pol.lintegral_comp_emb (homeomorphUnitSphereProd E).toMeasurableEquiv.measurableEmbedding
       (fun p : sphere (0 : E) 1 × Ioi (0 : ℝ) => ρ p.2)).symm
-    have htot_eq : ∫⁻ p, ρ p.2 ∂((volume : Measure E).toSphere.prod (Measure.volumeIoiPow (d - 1))) = 1 := by
+    have htot_eq : ∫⁻ p,
+      ρ p.2 ∂((volume : Measure E).toSphere.prod (Measure.volumeIoiPow (d - 1))) = 1 := by
       rw [htop]
       have h1 : (fun x : ({0}ᶜ : Set E) => ρ (homeomorphUnitSphereProd E x).2) =
           (fun x : ({0}ᶜ : Set E) => ENNReal.ofReal (stdGaussianDensity x.1)) := by
@@ -648,7 +666,8 @@ theorem measurePreserving_homeomorphUnitSphereProd_stdGaussian [Nontrivial E] :
         refine ⟨continuous_subtype_val.measurable, ?_⟩
         ext t ht
         rw [Measure.map_apply continuous_subtype_val.measurable ht, Measure.restrict_apply ht,
-          Measure.comap_apply _ Subtype.val_injective (fun u hu => hemb.measurableSet_image.mpr hu) _
+          Measure.comap_apply _ Subtype.val_injective (fun u hu =>
+            hemb.measurableSet_image.mpr hu) _
             (ht.preimage continuous_subtype_val.measurable)]
         congr 1; ext y; simp [and_comm]
       rw [← hmp_val.lintegral_comp_emb hemb (fun y => ENNReal.ofReal (stdGaussianDensity y))] at h2
@@ -657,7 +676,8 @@ theorem measurePreserving_homeomorphUnitSphereProd_stdGaussian [Nontrivial E] :
     dsimp only at htot_eq
     rw [lintegral_const] at htot_eq
     have hrad_eq : stdGaussianRadial E Set.univ =
-        (∫⁻ r : Ioi (0 : ℝ), ρ r ∂Measure.volumeIoiPow (d - 1)) * (volume : Measure E).toSphere Set.univ := by
+        (∫⁻ r : Ioi (0 : ℝ), ρ r ∂Measure.volumeIoiPow (d - 1)) *
+          (volume : Measure E).toSphere Set.univ := by
       rw [stdGaussianRadial, smul_apply, smul_eq_mul, withDensity_apply _ MeasurableSet.univ,
         Measure.restrict_univ, mul_comm]
     rw [hrad_eq, htot_eq]
@@ -688,7 +708,8 @@ instance instIsProbabilityMeasureStdGaussianRadial [Nontrivial E] :
     have hcomap_univ : ((stdGaussian E).comap (Subtype.val : ({0}ᶜ : Set E) → E)) Set.univ = 1 := by
       have hemb : MeasurableEmbedding (Subtype.val : ({0}ᶜ : Set E) → E) :=
         MeasurableEmbedding.subtype_coe (measurableSet_singleton (0 : E)).compl
-      rw [Measure.comap_apply _ Subtype.val_injective (fun t ht => hemb.measurableSet_image.mpr ht) _
+      rw [Measure.comap_apply _ Subtype.val_injective (fun t ht =>
+        hemb.measurableSet_image.mpr ht) _
         MeasurableSet.univ, Set.image_univ, Subtype.range_coe_subtype]
       have hcompl : stdGaussian E ({0}ᶜ : Set E) = stdGaussian E Set.univ := by
         rw [Set.compl_eq_univ_sdiff, measure_sdiff_null hzero]
@@ -710,12 +731,14 @@ theorem stdGaussian_polar_cone [Nontrivial E] {S : Set (sphere (0 : E) 1)} (hS :
   have hpre_m : MeasurableSet ((homeomorphUnitSphereProd E) ⁻¹' (S ×ˢ R)) :=
     (hS.prod hR).preimage (homeomorphUnitSphereProd E).continuous.measurable
   rw [← Measure.prod_prod, ← hmp.measure_preimage (hS.prod hR).nullMeasurableSet,
-    Measure.comap_apply _ Subtype.val_injective (fun t ht => hemb.measurableSet_image.mpr ht) _ hpre_m]
+    Measure.comap_apply _ Subtype.val_injective (fun t ht =>
+      hemb.measurableSet_image.mpr ht) _ hpre_m]
 
 /-- The radial law `stdGaussianRadial E` agrees with the distribution of `‖x‖` on `(0, ∞)`. -/
 lemma stdGaussianRadial_Ici [Nontrivial E] {r₀ : ℝ} (hr₀ : 0 < r₀) :
     stdGaussianRadial E (Ici ⟨r₀, hr₀⟩) = stdGaussian E {x : E | r₀ ≤ ‖x‖} := by
-  have h := stdGaussian_polar_cone (E := E) MeasurableSet.univ (measurableSet_Ici (a := (⟨r₀, hr₀⟩ : Ioi (0 : ℝ))))
+  have h := stdGaussian_polar_cone (E :=
+    E) MeasurableSet.univ (measurableSet_Ici (a := (⟨r₀, hr₀⟩ : Ioi (0 : ℝ))))
   rw [measure_univ, one_mul] at h
   rw [← h]
   congr 1
@@ -807,7 +830,8 @@ theorem integral_sq_gaussianReal :
 /-- Fourth moment of a standard 1D Gaussian: `∫ t, t⁴ ∂(gaussianReal 0 1) = 3`. -/
 theorem integral_pow_four_gaussianReal :
     ∫ t : ℝ, t ^ 4 ∂(gaussianReal 0 1) = 3 := by
-  -- Use `d/dt (t^3 * γ(t)) = (3 t^2 - t^4) * γ(t)` and `integral_eq_zero_of_hasDerivAt_of_integrable`.
+  -- Use `d/dt (t^3 * γ(t)) = (3 t^2 - t^4) * γ(t)` and
+  -- `integral_eq_zero_of_hasDerivAt_of_integrable` .
   have hpdf : ∀ t : ℝ, gaussianPDFReal 0 1 t =
       (2 * Real.pi) ^ (-(1 : ℝ) / 2) * Real.exp (-(t ^ 2) / 2) := fun t => by
     rw [gaussianPDFReal_def]
@@ -838,7 +862,8 @@ theorem integral_pow_four_gaussianReal :
         fun t : ℝ => 3 * (t ^ 2 * gaussianPDFReal 0 1 t) - t ^ 4 * gaussianPDFReal 0 1 t := by
       ext t; ring
     rw [hsub]
-    exact ((integrable_pow_mul_gaussianPDFReal 2).const_mul 3).sub (integrable_pow_mul_gaussianPDFReal 4)
+    exact ((integrable_pow_mul_gaussianPDFReal 2).const_mul 3).sub
+      (integrable_pow_mul_gaussianPDFReal 4)
   have hzero := integral_eq_zero_of_hasDerivAt_of_integrable hderiv hf'_int hf_int
   have hsplit : ∫ t : ℝ, (3 * t ^ 2 - t ^ 4) * gaussianPDFReal 0 1 t =
       3 * (∫ t : ℝ, t ^ 2 * gaussianPDFReal 0 1 t) - ∫ t : ℝ, t ^ 4 * gaussianPDFReal 0 1 t := by
@@ -911,7 +936,8 @@ lemma integrable_norm_pow_four_stdGaussian :
     have hsum_int : Integrable (fun v : Fin d → ℝ => v i ^ 4 + v j ^ 4)
         (Measure.pi (fun _ : Fin d => gaussianReal 0 1)) := hi4.add hj4
     exact hsum_int.mono'
-      (((measurable_pi_apply i).pow_const 2).mul ((measurable_pi_apply j).pow_const 2)).aestronglyMeasurable
+      (((measurable_pi_apply i).pow_const 2).mul
+        ((measurable_pi_apply j).pow_const 2)).aestronglyMeasurable
       (ae_of_all _ hdom)
   have hcomp := integrable_comp_mp hmp hpi
   refine hcomp.congr (ae_of_all _ fun x => ?_)
@@ -934,7 +960,8 @@ theorem integral_norm_sq_stdGaussian :
   let b := stdOrthonormalBasis ℝ E
   set d := Module.finrank ℝ E
   have hmp := measurePreserving_orthonormalBasis_stdGaussian b
-  have hfun : (fun x : E => ‖x‖ ^ 2) = fun x : E => ∑ i : Fin d, (WithLp.ofLp (b.repr x) i) ^ 2 := by
+  have hfun : (fun x : E => ‖x‖ ^ 2) = fun x : E =>
+    ∑ i : Fin d, (WithLp.ofLp (b.repr x) i) ^ 2 := by
     ext x
     have hnorm : ‖x‖ ^ 2 = ‖b.repr x‖ ^ 2 := by rw [b.repr.norm_map]
     rw [hnorm, EuclideanSpace.norm_sq_eq]
@@ -1001,7 +1028,8 @@ theorem integral_norm_pow_four_stdGaussian :
     have hsum_int : Integrable (fun v : Fin d → ℝ => v i ^ 4 + v j ^ 4)
         (Measure.pi (fun _ : Fin d => gaussianReal 0 1)) := hi4.add hj4
     refine hsum_int.mono'
-      (((measurable_pi_apply i).pow_const 2).mul ((measurable_pi_apply j).pow_const 2)).aestronglyMeasurable
+      (((measurable_pi_apply i).pow_const 2).mul
+        ((measurable_pi_apply j).pow_const 2)).aestronglyMeasurable
       (ae_of_all _ fun v => ?_)
     rw [Real.norm_eq_abs, abs_of_nonneg (by positivity)]
     nlinarith [sq_nonneg (v i ^ 2 - v j ^ 2)]
@@ -1159,7 +1187,8 @@ theorem stdGaussian_norm_ge_sqrt_half_dim [Nontrivial E] :
     integral_add' (h_ind_one.const_mul (c ^ 2)) integrable_norm_pow_four_stdGaussian,
     integral_const_mul, integral_indicator hAm, setIntegral_const, smul_eq_mul, mul_one,
     integral_norm_pow_four_stdGaussian] at hint_le
-  -- `2 c (d / 2) ≤ c² * γ(A) + d (d + 2)` with `c = 2 (d + 2)` gives `γ(A) ≥ d / (4 (d + 2)) ≥ 1/12`.
+  -- `2 c (d / 2) ≤ c² * γ(A) + d (d + 2)` with `c = 2 (d + 2)` gives
+  -- `γ(A) ≥ d / (4 (d + 2)) ≥ 1/12` .
   have hreal : (1 / 12 : ℝ) ≤ (stdGaussian E).real A := by
     have h1 : d * (d + 2) ≤ 4 * (d + 2) ^ 2 * (stdGaussian E).real A := by
       have : c * d ≤ c ^ 2 * (stdGaussian E).real A + d * (d + 2) := by nlinarith
@@ -1280,12 +1309,15 @@ theorem gaussian_enlargement_two_sets {A B : Set E} (hAm : MeasurableSet A) (hBm
   let g : E → ℝ≥0∞ := B.indicator (fun y => ENNReal.ofReal (stdGaussianDensity y))
   let h : E → ℝ≥0∞ := fun z =>
     ENNReal.ofReal (Real.exp (-(t ^ 2) / 8) * stdGaussianDensity z)
-  have hf : Measurable f := (ENNReal.measurable_ofReal.comp measurable_stdGaussianDensity).indicator hAm
-  have hg : Measurable g := (ENNReal.measurable_ofReal.comp measurable_stdGaussianDensity).indicator hBm
+  have hf : Measurable f :=
+    (ENNReal.measurable_ofReal.comp measurable_stdGaussianDensity).indicator hAm
+  have hg : Measurable g :=
+    (ENNReal.measurable_ofReal.comp measurable_stdGaussianDensity).indicator hBm
   have hh : Measurable h :=
     ENNReal.measurable_ofReal.comp (continuous_const.mul continuous_stdGaussianDensity).measurable
   have hcond : ∀ x y : E,
-      f x ^ (1 - (1 / 2 : ℝ)) * g y ^ (1 / 2 : ℝ) ≤ h ((1 - (1 / 2 : ℝ)) • x + (1 / 2 : ℝ) • y) := by
+      f x ^ (1 - (1 / 2 : ℝ)) * g y ^ (1 / 2 : ℝ) ≤
+        h ((1 - (1 / 2 : ℝ)) • x + (1 / 2 : ℝ) • y) := by
     intro x y
     have hhalf : (1 : ℝ) - 1 / 2 = 1 / 2 := by norm_num
     rw [hhalf]
@@ -1316,7 +1348,8 @@ theorem gaussian_enlargement_two_sets {A B : Set E} (hAm : MeasurableSet A) (hBm
             (2 * Real.pi) ^ (-(Module.finrank ℝ E : ℝ) / 2) := by
           rw [← Real.rpow_add h2pi_pos]; congr 1; ring
         have hexp_le : Real.exp (-(‖x‖ ^ 2) / 2 * (1 / 2)) * Real.exp (-(‖y‖ ^ 2) / 2 * (1 / 2)) ≤
-            Real.exp (-(t ^ 2) / 8) * Real.exp (-(‖(1 / 2 : ℝ) • x + (1 / 2 : ℝ) • y‖ ^ 2) / 2) := by
+            Real.exp (-(t ^ 2) / 8) *
+              Real.exp (-(‖(1 / 2 : ℝ) • x + (1 / 2 : ℝ) • y‖ ^ 2) / 2) := by
           rw [← Real.exp_add, ← Real.exp_add]
           apply Real.exp_le_exp.mpr
           linarith
@@ -1382,8 +1415,10 @@ theorem gaussian_enlargement_thickening {A : Set E} (hAm : MeasurableSet A) {t :
 lemma integrable_exp_lipschitz_stdGaussian {L : ℝ≥0} {f : E → ℝ} (hf : LipschitzWith L f) (a : ℝ) :
     Integrable (fun x : E => Real.exp (a * f x)) (stdGaussian E) := by
   rw [integrable_stdGaussian_iff]
-  have hmeas : AEStronglyMeasurable (fun x : E => stdGaussianDensity x • Real.exp (a * f x)) volume :=
-    (continuous_stdGaussianDensity.mul (Real.continuous_exp.comp (continuous_const.mul hf.continuous))).aestronglyMeasurable
+  have hmeas : AEStronglyMeasurable (fun x : E =>
+    stdGaussianDensity x • Real.exp (a * f x)) volume :=
+    (continuous_stdGaussianDensity.mul
+      (Real.continuous_exp.comp (continuous_const.mul hf.continuous))).aestronglyMeasurable
   set c : ℝ := |a| * (L : ℝ)
   have hc_nn : 0 ≤ c := by positivity
   -- Dominate `stdGaussianDensity x * exp (a * f x)` by `C * stdGaussianDensity ((1/√2) • x)`.
@@ -1394,7 +1429,8 @@ lemma integrable_exp_lipschitz_stdGaussian {L : ℝ≥0} {f : E → ℝ} (hf : L
     have hpos : (1 / Real.sqrt 2 : ℝ) ≠ 0 := by positivity
     simpa [smul_eq_mul] using h1.comp_smul hpos
   refine (hbase.const_mul (Real.exp (|a| * |f 0| + c ^ 2))).mono' hmeas (ae_of_all _ fun x => ?_)
-  rw [smul_eq_mul, Real.norm_eq_abs, abs_of_nonneg (mul_nonneg (stdGaussianDensity_nonneg x) (Real.exp_pos _).le)]
+  rw [smul_eq_mul, Real.norm_eq_abs,
+    abs_of_nonneg (mul_nonneg (stdGaussianDensity_nonneg x) (Real.exp_pos _).le)]
   have hf_bd : a * f x ≤ |a| * |f 0| + c * ‖x‖ := by
     have hlip : |f x - f 0| ≤ (L : ℝ) * ‖x‖ := by
       simpa [dist_eq_norm, Real.dist_eq] using hf.dist_le_mul x 0
@@ -1450,20 +1486,26 @@ theorem gaussian_lipschitz_mgf_le {L : ℝ≥0} {f : E → ℝ} (hf : LipschitzW
   let H : E → ℝ≥0∞ := fun z =>
     ENNReal.ofReal (Real.exp (s ^ 2 * (L : ℝ) ^ 2 / 2) * stdGaussianDensity z)
   have hF : Measurable F := ENNReal.measurable_ofReal.comp
-    ((Real.continuous_exp.comp (continuous_const.mul hf.continuous)).mul continuous_stdGaussianDensity).measurable
+    ((Real.continuous_exp.comp
+      (continuous_const.mul hf.continuous)).mul continuous_stdGaussianDensity).measurable
   have hG : Measurable G := ENNReal.measurable_ofReal.comp
-    ((Real.continuous_exp.comp (continuous_const.mul hf.continuous)).mul continuous_stdGaussianDensity).measurable
+    ((Real.continuous_exp.comp
+      (continuous_const.mul hf.continuous)).mul continuous_stdGaussianDensity).measurable
   have hH : Measurable H := ENNReal.measurable_ofReal.comp
     (continuous_const.mul continuous_stdGaussianDensity).measurable
   have hcond : ∀ x y : E,
-      F x ^ (1 - (1 / 2 : ℝ)) * G y ^ (1 / 2 : ℝ) ≤ H ((1 - (1 / 2 : ℝ)) • x + (1 / 2 : ℝ) • y) := by
+      F x ^ (1 - (1 / 2 : ℝ)) * G y ^ (1 / 2 : ℝ) ≤
+        H ((1 - (1 / 2 : ℝ)) • x + (1 / 2 : ℝ) • y) := by
     intro x y
     have hhalf : (1 : ℝ) - 1 / 2 = 1 / 2 := by norm_num
     rw [hhalf]
     dsimp only [F, G, H]
-    rw [ENNReal.ofReal_rpow_of_nonneg (mul_nonneg (Real.exp_pos _).le (stdGaussianDensity_nonneg x)) (by norm_num),
-      ENNReal.ofReal_rpow_of_nonneg (mul_nonneg (Real.exp_pos _).le (stdGaussianDensity_nonneg y)) (by norm_num),
-      ← ENNReal.ofReal_mul (Real.rpow_nonneg (mul_nonneg (Real.exp_pos _).le (stdGaussianDensity_nonneg x)) _)]
+    rw [ENNReal.ofReal_rpow_of_nonneg
+        (mul_nonneg (Real.exp_pos _).le (stdGaussianDensity_nonneg x)) (by norm_num),
+      ENNReal.ofReal_rpow_of_nonneg
+        (mul_nonneg (Real.exp_pos _).le (stdGaussianDensity_nonneg y)) (by norm_num),
+      ← ENNReal.ofReal_mul
+        (Real.rpow_nonneg (mul_nonneg (Real.exp_pos _).le (stdGaussianDensity_nonneg x)) _)]
     apply ENNReal.ofReal_le_ofReal
     have hpara : ‖x‖ ^ 2 + ‖y‖ ^ 2 =
         2 * ‖(1 / 2 : ℝ) • x + (1 / 2 : ℝ) • y‖ ^ 2 + ‖x - y‖ ^ 2 / 2 := by
@@ -1602,7 +1644,9 @@ theorem gaussian_lipschitz_upper_tail {L : ℝ≥0} (hL : 0 < L) {f : E → ℝ}
       _ ≤ ∫⁻ x : E, ENNReal.ofReal (Real.exp (s * (f x - μf))) ∂stdGaussian E :=
           mul_meas_ge_le_lintegral₀
             (ENNReal.measurable_ofReal.comp
-              (Real.continuous_exp.comp (continuous_const.mul (hf.continuous.sub continuous_const))).measurable).aemeasurable
+              (Real.continuous_exp.comp
+                (continuous_const.mul
+                  (hf.continuous.sub continuous_const))).measurable).aemeasurable
             _
   have hint : Integrable (fun x : E => Real.exp (s * (f x - μf))) (stdGaussian E) := by
     have hfun : (fun x : E => Real.exp (s * (f x - μf))) =
@@ -1610,7 +1654,8 @@ theorem gaussian_lipschitz_upper_tail {L : ℝ≥0} (hL : 0 < L) {f : E → ℝ}
       ext x; rw [← Real.exp_add]; congr 1; ring
     rw [hfun]
     exact (integrable_exp_lipschitz_stdGaussian hf s).const_mul _
-  rw [← ofReal_integral_eq_lintegral_ofReal hint (ae_of_all _ fun _ => (Real.exp_pos _).le)] at hmarkov
+  rw [← ofReal_integral_eq_lintegral_ofReal hint (ae_of_all _ fun _ =>
+    (Real.exp_pos _).le)] at hmarkov
   have hmgf := gaussian_lipschitz_mgf_le hf s
   have hle1 : ENNReal.ofReal (Real.exp (s * t)) * stdGaussian E {x : E | t ≤ f x - μf} ≤
       ENNReal.ofReal (Real.exp (s ^ 2 * (L : ℝ) ^ 2)) :=
@@ -1706,8 +1751,10 @@ theorem gaussian_lipschitz_concentration_median {L : ℝ≥0} (hL : 0 < L) {f : 
             congr 2; rw [div_pow]; ring
     calc
       stdGaussian E {x : E | m + t < f x}
-        = ENNReal.ofReal 2 * (ENNReal.ofReal (1 / 2 : ℝ) * stdGaussian E {x : E | m + t < f x}) := by
-          rw [← mul_assoc, ← ENNReal.ofReal_mul (by norm_num), show (2 : ℝ) * (1 / 2) = 1 by norm_num,
+        = ENNReal.ofReal 2 *
+          (ENNReal.ofReal (1 / 2 : ℝ) * stdGaussian E {x : E | m + t < f x}) := by
+          rw [← mul_assoc, ← ENNReal.ofReal_mul (by norm_num),
+            show (2 : ℝ) * (1 / 2) = 1 by norm_num,
             ENNReal.ofReal_one, one_mul]
       _ ≤ ENNReal.ofReal 2 * ENNReal.ofReal (Real.exp (-(t ^ 2) / (4 * (L : ℝ) ^ 2))) := by gcongr
       _ = ENNReal.ofReal (2 * Real.exp (-(t ^ 2) / (4 * (L : ℝ) ^ 2))) :=
@@ -1736,8 +1783,10 @@ theorem gaussian_lipschitz_concentration_median {L : ℝ≥0} (hL : 0 < L) {f : 
             congr 2; rw [div_pow]; ring
     calc
       stdGaussian E {x : E | f x < m - t}
-        = ENNReal.ofReal 2 * (ENNReal.ofReal (1 / 2 : ℝ) * stdGaussian E {x : E | f x < m - t}) := by
-          rw [← mul_assoc, ← ENNReal.ofReal_mul (by norm_num), show (2 : ℝ) * (1 / 2) = 1 by norm_num,
+        = ENNReal.ofReal 2 *
+          (ENNReal.ofReal (1 / 2 : ℝ) * stdGaussian E {x : E | f x < m - t}) := by
+          rw [← mul_assoc, ← ENNReal.ofReal_mul (by norm_num),
+            show (2 : ℝ) * (1 / 2) = 1 by norm_num,
             ENNReal.ofReal_one, one_mul]
       _ ≤ ENNReal.ofReal 2 * ENNReal.ofReal (Real.exp (-(t ^ 2) / (4 * (L : ℝ) ^ 2))) := by gcongr
       _ = ENNReal.ofReal (2 * Real.exp (-(t ^ 2) / (4 * (L : ℝ) ^ 2))) :=
@@ -1788,9 +1837,11 @@ theorem spherical_enlargement_two_sets [Nontrivial E]
   let CA : Set E := Subtype.val '' ((homeomorphUnitSphereProd E) ⁻¹' (A ×ˢ R))
   let CB : Set E := Subtype.val '' ((homeomorphUnitSphereProd E) ⁻¹' (B ×ˢ R))
   have hCAm : MeasurableSet CA :=
-    hemb.measurableSet_image.mpr ((hAm.prod hRm).preimage (homeomorphUnitSphereProd E).continuous.measurable)
+    hemb.measurableSet_image.mpr
+      ((hAm.prod hRm).preimage (homeomorphUnitSphereProd E).continuous.measurable)
   have hCBm : MeasurableSet CB :=
-    hemb.measurableSet_image.mpr ((hBm.prod hRm).preimage (homeomorphUnitSphereProd E).continuous.measurable)
+    hemb.measurableSet_image.mpr
+      ((hBm.prod hRm).preimage (homeomorphUnitSphereProd E).continuous.measurable)
   -- Distance between points in the truncated radial cones `CA` and `CB` is at least `r₀ * ε`.
   have hsep : ∀ x ∈ CA, ∀ y ∈ CB, r₀ * ε ≤ ‖x - y‖ := by
     rintro x ⟨⟨x', hx'0⟩, ⟨hxA, hxR⟩, rfl⟩ y ⟨⟨y', hy'0⟩, ⟨hyB, hyR⟩, rfl⟩
@@ -1799,10 +1850,12 @@ theorem spherical_enlargement_two_sets [Nontrivial E]
     set r : ℝ := ((homeomorphUnitSphereProd E ⟨x', hx'0⟩).2 : ℝ)
     set s : ℝ := ((homeomorphUnitSphereProd E ⟨y', hy'0⟩).2 : ℝ)
     have hx_eq : x' = r • u.1 := by
-      simp only [u, r, homeomorphUnitSphereProd_apply_fst_coe, homeomorphUnitSphereProd_apply_snd_coe]
+      simp only [u, r, homeomorphUnitSphereProd_apply_fst_coe,
+        homeomorphUnitSphereProd_apply_snd_coe]
       rw [smul_smul, mul_inv_cancel₀ (norm_ne_zero_iff.mpr hx'0), one_smul]
     have hy_eq : y' = s • v.1 := by
-      simp only [v, s, homeomorphUnitSphereProd_apply_fst_coe, homeomorphUnitSphereProd_apply_snd_coe]
+      simp only [v, s, homeomorphUnitSphereProd_apply_fst_coe,
+        homeomorphUnitSphereProd_apply_snd_coe]
       rw [smul_smul, mul_inv_cancel₀ (norm_ne_zero_iff.mpr hy'0), one_smul]
     have hr_ge : r₀ ≤ r := hxR
     have hs_ge : r₀ ≤ s := hyR
@@ -2018,7 +2071,8 @@ private lemma integrable_exp_mul_sq_gaussianReal {a : ℝ} (ha : a < 1 / 2) :
     (f := gaussianPDF 0 1) (measurable_gaussianPDF 0 1).aemeasurable
     (ae_of_all _ fun _ => gaussianPDF_lt_top) (g := fun t : ℝ => Real.exp (a * t ^ 2))
   rw [h1]
-  refine ((integrable_gaussianPDFReal 0 1).comp_mul_left' hc_pos.ne').congr (ae_of_all _ fun t => ?_)
+  refine ((integrable_gaussianPDFReal 0 1).comp_mul_left' hc_pos.ne').congr (ae_of_all _ fun t =>
+    ?_)
   dsimp only
   rw [toReal_gaussianPDF, smul_eq_mul, gaussianPDFReal_def]
   simp only [NNReal.coe_one, mul_one, sub_zero]
@@ -2038,7 +2092,8 @@ private lemma log_one_add_sub_le {ε : ℝ} (hε0 : 0 ≤ ε) (hε1 : ε ≤ 1) 
     exact (h1.sub (hasDerivAt_id x)).add h2
   have hanti : AntitoneOn g (Icc 0 1) := by
     apply antitoneOn_of_deriv_nonpos (convex_Icc 0 1)
-    · refine ContinuousOn.add (ContinuousOn.sub ?_ continuousOn_id) (continuousOn_pow 2 |>.div_const 4)
+    · refine ContinuousOn.add (ContinuousOn.sub ?_ continuousOn_id)
+        (continuousOn_pow 2 |>.div_const 4)
       exact (continuousOn_const.add continuousOn_id).log fun x hx => by
         change 1 + x ≠ 0; linarith [hx.1]
     · intro x hx
@@ -2051,7 +2106,8 @@ private lemma log_one_add_sub_le {ε : ℝ} (hε0 : 0 ≤ ε) (hε1 : ε ≤ 1) 
       have hnum : 1 / (1 + x) - 1 + x / 2 = x * (x - 1) / (2 * (1 + x)) := by
         field_simp [hpos.ne']; ring
       rw [hnum]
-      exact div_nonpos_of_nonpos_of_nonneg (mul_nonpos_of_nonneg_of_nonpos hx.1.le (by linarith [hx.2]))
+      exact div_nonpos_of_nonpos_of_nonneg
+        (mul_nonpos_of_nonneg_of_nonpos hx.1.le (by linarith [hx.2]))
         (by positivity)
   have hle : g ε ≤ g 0 := hanti (⟨le_rfl, zero_le_one⟩ : (0 : ℝ) ∈ Icc 0 1) ⟨hε0, hε1⟩ hε0
   simp only [g, add_zero, Real.log_one, sub_zero, zero_pow two_ne_zero, zero_div] at hle
@@ -2068,7 +2124,8 @@ private lemma log_one_sub_add_le {ε : ℝ} (hε0 : 0 ≤ ε) (hε1 : ε < 1) :
     exact (h1.add (hasDerivAt_id x)).add h2
   have hanti : AntitoneOn g (Ico 0 1) := by
     apply antitoneOn_of_deriv_nonpos (convex_Ico 0 1)
-    · refine ContinuousOn.add (ContinuousOn.add ?_ continuousOn_id) (continuousOn_pow 2 |>.div_const 2)
+    · refine ContinuousOn.add (ContinuousOn.add ?_ continuousOn_id)
+        (continuousOn_pow 2 |>.div_const 2)
       exact (continuousOn_const.sub continuousOn_id).log fun x hx => by
         change 1 - x ≠ 0; linarith [hx.2]
     · intro x hx
@@ -2123,7 +2180,8 @@ theorem chi_sq_upper_tail (k : ℕ) {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε < 1) :
       ENNReal.ofReal (((1 + ε) ^ ((1 : ℝ) / 2)) ^ k) := by
     have hint_prod : Integrable (fun v : Fin k → ℝ => ∏ m : Fin k, Real.exp (a * v m ^ 2)) μ := by
       have h1 := integrable_exp_mul_sq_gaussianReal ha_lt
-      have hfin : ∫⁻ v : Fin k → ℝ, ENNReal.ofReal (∏ m : Fin k, Real.exp (a * v m ^ 2)) ∂μ < ⊤ := by
+      have hfin : ∫⁻ v : Fin k → ℝ,
+        ENNReal.ofReal (∏ m : Fin k, Real.exp (a * v m ^ 2)) ∂μ < ⊤ := by
         have hfact : ∀ v : Fin k → ℝ,
             ENNReal.ofReal (∏ m : Fin k, Real.exp (a * v m ^ 2)) =
               ∏ m : Fin k, ENNReal.ofReal (Real.exp (a * v m ^ 2)) := fun v =>
@@ -2145,32 +2203,44 @@ theorem chi_sq_upper_tail (k : ℕ) {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε < 1) :
                   ENNReal.ofReal (Real.exp (a * p.1 ^ 2)) *
                     ∏ j : Fin n, ENNReal.ofReal (Real.exp (a * p.2 j ^ 2)))
               have hfun_eq : (fun v : Fin (n + 1) → ℝ =>
-                  ENNReal.ofReal (Real.exp (a * (MeasurableEquiv.piFinSuccAbove (fun _ => ℝ) 0 v).1 ^ 2)) *
-                    ∏ j : Fin n, ENNReal.ofReal (Real.exp (a * (MeasurableEquiv.piFinSuccAbove (fun _ => ℝ) 0 v).2 j ^ 2))) =
+                  ENNReal.ofReal
+                    (Real.exp (a * (MeasurableEquiv.piFinSuccAbove (fun _ => ℝ) 0 v).1 ^ 2)) *
+                    ∏ j : Fin n, ENNReal.ofReal
+                      (Real.exp
+                        (a * (MeasurableEquiv.piFinSuccAbove (fun _ => ℝ) 0 v).2 j ^ 2))) =
                   fun v => ∏ m : Fin (n + 1), ENNReal.ofReal (Real.exp (a * v m ^ 2)) := by
-                ext v; rw [Fin.prod_univ_succ]; simp [MeasurableEquiv.piFinSuccAbove_apply, Fin.tail]
+                ext v; rw [Fin.prod_univ_succ];
+                simp [MeasurableEquiv.piFinSuccAbove_apply, Fin.tail]
               rw [hfun_eq] at hcomp
               rw [hcomp, lintegral_prod]
               · have hm_prod : Measurable (fun y : Fin n → ℝ =>
                     ∏ j : Fin n, ENNReal.ofReal (Real.exp (a * y j ^ 2))) :=
                   Finset.measurable_fun_prod Finset.univ fun j _ =>
                     ENNReal.measurable_ofReal.comp
-                      (Real.continuous_exp.comp (continuous_const.mul ((continuous_apply j).pow 2))).measurable
+                      (Real.continuous_exp.comp
+                        (continuous_const.mul ((continuous_apply j).pow 2))).measurable
                 have hm1 : Measurable (fun x : ℝ => ENNReal.ofReal (Real.exp (a * x ^ 2))) :=
                   ENNReal.measurable_ofReal.comp
                     (Real.continuous_exp.comp (continuous_const.mul (continuous_pow 2))).measurable
                 simp_rw [lintegral_const_mul _ hm_prod]
                 rw [lintegral_mul_const _ hm1, ih, pow_succ']
               · exact ((ENNReal.measurable_ofReal.comp
-                  (Real.continuous_exp.comp (continuous_const.mul (continuous_fst.pow 2))).measurable).mul
+                  (Real.continuous_exp.comp
+                    (continuous_const.mul (continuous_fst.pow 2))).measurable).mul
                   (Finset.measurable_fun_prod Finset.univ fun j _ =>
                     ENNReal.measurable_ofReal.comp
-                      (Real.continuous_exp.comp (continuous_const.mul (((continuous_apply j).comp continuous_snd).pow 2))).measurable)).aemeasurable
-        rw [hstep k, ← ofReal_integral_eq_lintegral_ofReal h1 (ae_of_all _ fun _ => (Real.exp_pos _).le)]
+                      (Real.continuous_exp.comp
+                        (continuous_const.mul
+                          (((continuous_apply j).comp continuous_snd).pow 2))).measurable
+                  )).aemeasurable
+        rw [hstep k,
+          ← ofReal_integral_eq_lintegral_ofReal h1 (ae_of_all _ fun _ => (Real.exp_pos _).le)]
         exact ENNReal.pow_lt_top ENNReal.ofReal_lt_top
       exact ⟨(Finset.measurable_fun_prod Finset.univ fun m _ =>
-        (Real.continuous_exp.comp (continuous_const.mul ((continuous_apply m).pow 2))).measurable).aestronglyMeasurable,
-        by simpa [HasFiniteIntegral, Real.eNorm_eq_ofReal (Finset.prod_nonneg fun _ _ => (Real.exp_pos _).le)] using hfin⟩
+        (Real.continuous_exp.comp
+          (continuous_const.mul ((continuous_apply m).pow 2))).measurable).aestronglyMeasurable,
+        by simpa [HasFiniteIntegral,
+          Real.eNorm_eq_ofReal (Finset.prod_nonneg fun _ _ => (Real.exp_pos _).le)] using hfin⟩
     simp_rw [Finset.mul_sum, Real.exp_sum]
     rw [← ofReal_integral_eq_lintegral_ofReal hint_prod
       (ae_of_all _ fun _ => Finset.prod_nonneg fun _ _ => (Real.exp_pos _).le)]
@@ -2178,7 +2248,8 @@ theorem chi_sq_upper_tail (k : ℕ) {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε < 1) :
     rw [integral_fintype_prod_eq_pow (f := fun t : ℝ => Real.exp (a * t ^ 2)), Fintype.card_fin,
       integral_exp_mul_sq_gaussianReal ha_lt, h12a]
     congr 2
-    rw [Real.inv_rpow (by linarith : (0 : ℝ) ≤ 1 + ε), ← Real.rpow_neg (by linarith : (0 : ℝ) ≤ 1 + ε)]
+    rw [Real.inv_rpow (by linarith : (0 : ℝ) ≤ 1 + ε),
+      ← Real.rpow_neg (by linarith : (0 : ℝ) ≤ 1 + ε)]
     ring_nf
   rw [hlint] at hmarkov
   have hpos : ENNReal.ofReal (Real.exp (a * ((1 + ε) * (k : ℝ)))) ≠ 0 :=
@@ -2264,8 +2335,11 @@ theorem chi_sq_lower_tail (k : ℕ) {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε < 1) :
                 ENNReal.ofReal (Real.exp (a * p.1 ^ 2)) *
                   ∏ j : Fin n, ENNReal.ofReal (Real.exp (a * p.2 j ^ 2)))
             have hfun_eq : (fun v : Fin (n + 1) → ℝ =>
-                ENNReal.ofReal (Real.exp (a * (MeasurableEquiv.piFinSuccAbove (fun _ => ℝ) 0 v).1 ^ 2)) *
-                  ∏ j : Fin n, ENNReal.ofReal (Real.exp (a * (MeasurableEquiv.piFinSuccAbove (fun _ => ℝ) 0 v).2 j ^ 2))) =
+                ENNReal.ofReal
+                  (Real.exp (a * (MeasurableEquiv.piFinSuccAbove (fun _ => ℝ) 0 v).1 ^ 2)) *
+                  ∏ j : Fin n, ENNReal.ofReal
+                    (Real.exp
+                      (a * (MeasurableEquiv.piFinSuccAbove (fun _ => ℝ) 0 v).2 j ^ 2))) =
                 fun v => ∏ m : Fin (n + 1), ENNReal.ofReal (Real.exp (a * v m ^ 2)) := by
               ext v; rw [Fin.prod_univ_succ]; simp [MeasurableEquiv.piFinSuccAbove_apply, Fin.tail]
             rw [hfun_eq] at hcomp
@@ -2274,24 +2348,33 @@ theorem chi_sq_lower_tail (k : ℕ) {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε < 1) :
                   ∏ j : Fin n, ENNReal.ofReal (Real.exp (a * y j ^ 2))) :=
                 Finset.measurable_fun_prod Finset.univ fun j _ =>
                   ENNReal.measurable_ofReal.comp
-                    (Real.continuous_exp.comp (continuous_const.mul ((continuous_apply j).pow 2))).measurable
+                    (Real.continuous_exp.comp
+                      (continuous_const.mul ((continuous_apply j).pow 2))).measurable
               have hm1 : Measurable (fun x : ℝ => ENNReal.ofReal (Real.exp (a * x ^ 2))) :=
                 ENNReal.measurable_ofReal.comp
                   (Real.continuous_exp.comp (continuous_const.mul (continuous_pow 2))).measurable
               simp_rw [lintegral_const_mul _ hm_prod]
               rw [lintegral_mul_const _ hm1, ih, pow_succ']
             · exact ((ENNReal.measurable_ofReal.comp
-                (Real.continuous_exp.comp (continuous_const.mul (continuous_fst.pow 2))).measurable).mul
+                (Real.continuous_exp.comp
+                  (continuous_const.mul (continuous_fst.pow 2))).measurable).mul
                 (Finset.measurable_fun_prod Finset.univ fun j _ =>
                   ENNReal.measurable_ofReal.comp
-                    (Real.continuous_exp.comp (continuous_const.mul (((continuous_apply j).comp continuous_snd).pow 2))).measurable)).aemeasurable
-      have hfin : ∫⁻ v : Fin k → ℝ, ENNReal.ofReal (∏ m : Fin k, Real.exp (a * v m ^ 2)) ∂μ < ⊤ := by
+                    (Real.continuous_exp.comp
+                      (continuous_const.mul
+                        (((continuous_apply j).comp continuous_snd).pow 2))).measurable
+                )).aemeasurable
+      have hfin : ∫⁻ v : Fin k → ℝ,
+        ENNReal.ofReal (∏ m : Fin k, Real.exp (a * v m ^ 2)) ∂μ < ⊤ := by
         simp_rw [ENNReal.ofReal_prod_of_nonneg fun _ _ => (Real.exp_pos _).le]
-        rw [hstep k, ← ofReal_integral_eq_lintegral_ofReal h1 (ae_of_all _ fun _ => (Real.exp_pos _).le)]
+        rw [hstep k,
+          ← ofReal_integral_eq_lintegral_ofReal h1 (ae_of_all _ fun _ => (Real.exp_pos _).le)]
         exact ENNReal.pow_lt_top ENNReal.ofReal_lt_top
       exact ⟨(Finset.measurable_fun_prod Finset.univ fun m _ =>
-        (Real.continuous_exp.comp (continuous_const.mul ((continuous_apply m).pow 2))).measurable).aestronglyMeasurable,
-        by simpa [HasFiniteIntegral, Real.eNorm_eq_ofReal (Finset.prod_nonneg fun _ _ => (Real.exp_pos _).le)] using hfin⟩
+        (Real.continuous_exp.comp
+          (continuous_const.mul ((continuous_apply m).pow 2))).measurable).aestronglyMeasurable,
+        by simpa [HasFiniteIntegral,
+          Real.eNorm_eq_ofReal (Finset.prod_nonneg fun _ _ => (Real.exp_pos _).le)] using hfin⟩
     simp_rw [Finset.mul_sum, Real.exp_sum]
     rw [← ofReal_integral_eq_lintegral_ofReal hint_prod
       (ae_of_all _ fun _ => Finset.prod_nonneg fun _ _ => (Real.exp_pos _).le)]
@@ -2335,7 +2418,9 @@ theorem chi_sq_lower_tail (k : ℕ) {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε < 1) :
 for any `N` points `x : Fin N → E` in a finite-dimensional real inner product space `E`, any
 `ε ∈ (0, 1)`, and any target dimension `k ≥ 16 * log N / ε²`, there exists a linear map
 `L : E →ₗ[ℝ] EuclideanSpace ℝ (Fin k)` preserving all pairwise squared distances up to `1 ± ε`:
-$$(1 - \varepsilon)\|x_i - x_j\|^2 \le \|L(x_i) - L(x_j)\|^2 \le (1 + \varepsilon)\|x_i - x_j\|^2.$$ -/
+$$(1 - \varepsilon)\|x_i - x_j\|^2
+  \le \|L(x_i) - L(x_j)\|^2
+  \le (1 + \varepsilon)\|x_i - x_j\|^2.$$ -/
 theorem johnson_lindenstrauss {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     [FiniteDimensional ℝ E]
     {N k : ℕ} (x : Fin N → E) {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε < 1)
@@ -2389,7 +2474,8 @@ theorem johnson_lindenstrauss {E : Type*} [NormedAddCommGroup E] [InnerProductSp
       have hv_pos : 0 < ‖v‖ := norm_pos_iff.mpr h0
       set u : E := ‖v‖⁻¹ • v
       have hu : ‖u‖ = 1 := by
-        rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hv_pos), inv_mul_cancel₀ hv_pos.ne']
+        rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hv_pos),
+          inv_mul_cancel₀ hv_pos.ne']
       have hmp_u : MeasurePreserving (fun g : Fin k → E => fun m : Fin k => ⟪g m, u⟫)
           μ (Measure.pi (fun _ : Fin k => gaussianReal 0 1)) := by
         have h1 : ∀ m : Fin k, MeasurePreserving (fun y : E => ⟪y, u⟫)
@@ -2444,9 +2530,11 @@ theorem johnson_lindenstrauss {E : Type*} [NormedAddCommGroup E] [InnerProductSp
     have hdisj : Disjoint pairs (Finset.univ.filter fun p : Fin N × Fin N => p.2 < p.1) := by
       rw [Finset.disjoint_filter]
       intro p _ h1 h2; exact lt_asymm h1 h2
-    have hcard_swap : (Finset.univ.filter fun p : Fin N × Fin N => p.2 < p.1).card = pairs.card := by
+    have hcard_swap : (Finset.univ.filter fun p : Fin N × Fin N => p.2 < p.1).card =
+      pairs.card := by
       refine Finset.card_bij (fun p _ => (p.2, p.1)) ?_ ?_ ?_
-      · intro p hp; simp only [pairs, Finset.mem_filter, Finset.mem_univ, true_and] at hp ⊢; exact hp
+      · intro p hp; simp only [pairs, Finset.mem_filter, Finset.mem_univ, true_and] at hp ⊢;
+        exact hp
       · intro p₁ _ p₂ _ h
         exact Prod.ext (congrArg Prod.snd h) (congrArg Prod.fst h)
       · intro q hq
@@ -2461,7 +2549,8 @@ theorem johnson_lindenstrauss {E : Type*} [NormedAddCommGroup E] [InnerProductSp
       · exact ne_of_gt h
     have hcard_off : (Finset.univ.filter fun p : Fin N × Fin N => p.1 ≠ p.2).card = N * N - N := by
       have hdiag : (Finset.univ.filter fun p : Fin N × Fin N => p.1 = p.2).card = N := by
-        refine Finset.card_bij (fun p _ => p.1) (fun _ _ => Finset.mem_univ _) ?_ ?_ |>.trans (by simp)
+        refine Finset.card_bij (fun p _ => p.1) (fun _ _ =>
+          Finset.mem_univ _) ?_ ?_ |>.trans (by simp)
         · intro p₁ hp₁ p₂ hp₂ h
           simp only [Finset.mem_filter, Finset.mem_univ, true_and] at hp₁ hp₂
           exact Prod.ext h (hp₁.symm.trans (h.trans hp₂))
@@ -2563,7 +2652,8 @@ private lemma integral_Icc_gaussianPDFReal_le {r : ℝ} (hr : 0 ≤ r) :
       rcases lt_or_eq_of_le ht.1 with h | h
       · exact Or.inl h
       · exact Or.inr h.symm
-    have h1 : ∫ t in Icc r (r + 1), gaussianPDFReal 0 1 t ≤ ∫ t in Ioi r, gaussianPDFReal 0 1 t := by
+    have h1 : ∫ t in Icc r (r + 1), gaussianPDFReal 0 1 t ≤ ∫ t in Ioi r,
+      gaussianPDFReal 0 1 t := by
       rw [← setIntegral_congr_set (Ioo_ae_eq_Icc (a := r) (b := r + 1))]
       exact setIntegral_mono_set hint.integrableOn
         (ae_of_all _ fun t => gaussianPDFReal_nonneg 0 1 t)
@@ -2605,7 +2695,8 @@ private lemma integral_Icc_gaussianPDFReal_le {r : ℝ} (hr : 0 ≤ r) :
             setIntegral_mono_on (integrableOn_const (by simp)) hint.integrableOn
               measurableSet_Icc hpt
     exact h2.trans h1
-  -- By symmetry `gaussianPDFReal 0 1 (-t) = gaussianPDFReal 0 1 t`, the lower tail equals the upper tail.
+  -- By symmetry `gaussianPDFReal 0 1 (-t) = gaussianPDFReal 0 1 t` , the lower tail equals the
+  -- upper tail.
   have htail_lo : ∫ t in Iio (-r), gaussianPDFReal 0 1 t = ∫ t in Ioi r, gaussianPDFReal 0 1 t := by
     rw [← integral_Iic_eq_integral_Iio, ← integral_comp_neg_Ioi]
     refine setIntegral_congr_fun measurableSet_Ioi fun t _ => ?_
@@ -2698,12 +2789,14 @@ theorem john_position_gaussian_gauge_lower_bound
         rw [gauge_smul_of_nonneg (inv_nonneg.mpr hr_pos.le), smul_eq_mul]
         exact (inv_mul_lt_one₀ hr_pos).mpr hx
       have hmemK : r⁻¹ • x ∈ (K : Set E) :=
-        interior_subset ((gauge_lt_one_iff_mem_interior K.convex (mem_interior_iff_mem_nhds.mp h0)).mp hlt1)
+        interior_subset
+          ((gauge_lt_one_iff_mem_interior K.convex (mem_interior_iff_mem_nhds.mp h0)).mp hlt1)
       exact ⟨r⁻¹ • x, hmemK, by dsimp only; rw [smul_smul, mul_inv_cancel₀ hr_pos.ne', one_smul]⟩
     -- Apply `john_position_gaussian_measure_le` from `BrascampLieb`.
     have hbl := john_position_gaussian_measure_le K hsym hJ hr_pos
     have hmeas_rK : stdGaussian E (r • (K : Set E)) ≤ ENNReal.ofReal (1 / 2 : ℝ) := by
-      rw [stdGaussian_eq_withDensity, withDensity_apply _ (K.isCompact.smul r).isClosed.measurableSet]
+      rw [stdGaussian_eq_withDensity,
+        withDensity_apply _ (K.isCompact.smul r).isClosed.measurableSet]
       refine hbl.trans ?_
       have hI_le := integral_Icc_gaussianPDFReal_le hr_pos.le
       have hI_nn : 0 ≤ ∫ t in Icc (-r) r, gaussianPDFReal 0 1 t :=
@@ -2717,7 +2810,8 @@ theorem john_position_gaussian_gauge_lower_bound
           Real.exp (-((d : ℝ) / 5) * Real.exp (-(r ^ 2))) := by
         calc
           (∫ t in Icc (-r) r, gaussianPDFReal 0 1 t) ^ d
-            ≤ (Real.exp (-((1 / 5 : ℝ) * Real.exp (-(r ^ 2))))) ^ d := pow_le_pow_left₀ hI_nn hexp1 d
+            ≤ (Real.exp (-((1 / 5 : ℝ) * Real.exp (-(r ^ 2))))) ^ d :=
+              pow_le_pow_left₀ hI_nn hexp1 d
           _ = Real.exp ((d : ℝ) * -((1 / 5 : ℝ) * Real.exp (-(r ^ 2)))) := by
               rw [← Real.exp_nat_mul]
           _ = Real.exp (-((d : ℝ) / 5) * Real.exp (-(r ^ 2))) := by congr 1; ring
@@ -2758,11 +2852,13 @@ theorem john_position_gaussian_gauge_lower_bound
         rw [measure_add_measure_compl hSm, measure_univ]
       have h1 : (stdGaussian E).real S + (stdGaussian E).real Sᶜ = 1 := by
         have := congrArg ENNReal.toReal hsum
-        rw [ENNReal.toReal_add (measure_ne_top _ _) (measure_ne_top _ _), ENNReal.toReal_one] at this
+        rw [ENNReal.toReal_add (measure_ne_top _ _) (measure_ne_top _ _),
+          ENNReal.toReal_one] at this
         exact this
       have h2 : (stdGaussian E).real Sᶜ ≤ 1 / 2 := by
         rw [Measure.real]
-        exact (ENNReal.toReal_mono ENNReal.ofReal_ne_top hSc_le).trans_eq (ENNReal.toReal_ofReal (by norm_num))
+        exact (ENNReal.toReal_mono ENNReal.ofReal_ne_top hSc_le).trans_eq
+          (ENNReal.toReal_ofReal (by norm_num))
       linarith
     have hM_ge : r * (stdGaussian E).real S ≤ M := by
       have h1 : r * (stdGaussian E).real S = ∫ _x in S, r ∂stdGaussian E := by
@@ -2771,7 +2867,8 @@ theorem john_position_gaussian_gauge_lower_bound
       calc
         ∫ _x in S, r ∂stdGaussian E
           ≤ ∫ x in S, gauge (K : Set E) x ∂stdGaussian E :=
-            setIntegral_mono_on (integrable_const r).integrableOn hint_g.integrableOn hSm fun x hx => hx
+            setIntegral_mono_on (integrable_const r).integrableOn hint_g.integrableOn hSm
+              fun x hx => hx
         _ ≤ ∫ x : E, gauge (K : Set E) x ∂stdGaussian E :=
             setIntegral_le_integral hint_g (ae_of_all _ fun x => gauge_nonneg x)
     calc
@@ -2786,7 +2883,8 @@ theorem john_position_gaussian_gauge_lower_bound
       subset_sqrt_finrank_smul_of_john_position K hsym hJ
     have hgauge_ge : ∀ x : E, ‖x‖ / Real.sqrt (d : ℝ) ≤ gauge (K : Set E) x := fun x => by
       have hsqrt_pos : 0 < Real.sqrt (d : ℝ) := Real.sqrt_pos.mpr (by linarith)
-      have hball_eq : Real.sqrt (d : ℝ) • closedBall (0 : E) 1 = closedBall (0 : E) (Real.sqrt (d : ℝ)) := by
+      have hball_eq : Real.sqrt (d : ℝ) • closedBall (0 : E) 1 =
+        closedBall (0 : E) (Real.sqrt (d : ℝ)) := by
         ext y
         simp only [mem_smul_set, mem_closedBall_zero_iff]
         constructor
@@ -2794,7 +2892,8 @@ theorem john_position_gaussian_gauge_lower_bound
           rw [norm_smul, Real.norm_eq_abs, abs_of_pos hsqrt_pos]
           nlinarith
         · intro hy
-          refine ⟨(Real.sqrt (d : ℝ))⁻¹ • y, ?_, by rw [smul_smul, mul_inv_cancel₀ hsqrt_pos.ne', one_smul]⟩
+          refine ⟨(Real.sqrt (d : ℝ))⁻¹ • y, ?_,
+            by rw [smul_smul, mul_inv_cancel₀ hsqrt_pos.ne', one_smul]⟩
           rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hsqrt_pos)]
           exact (inv_mul_le_one₀ hsqrt_pos).mpr hy
       have hK_sub' : (K : Set E) ⊆ closedBall (0 : E) (Real.sqrt (d : ℝ)) := hball_eq ▸ hK_sub
@@ -2802,11 +2901,13 @@ theorem john_position_gaussian_gauge_lower_bound
         rw [mem_interior_iff_mem_nhds]
         exact Filter.mem_of_superset (Metric.closedBall_mem_nhds (0 : E) zero_lt_one) hJ.1
       have h1 := gauge_mono (absorbent_nhds_zero (mem_interior_iff_mem_nhds.mp h0)) hK_sub' x
-      have hball_gauge : gauge (closedBall (0 : E) (Real.sqrt (d : ℝ))) x = ‖x‖ / Real.sqrt (d : ℝ) :=
+      have hball_gauge : gauge (closedBall (0 : E) (Real.sqrt (d : ℝ))) x =
+        ‖x‖ / Real.sqrt (d : ℝ) :=
         gauge_closedBall (Real.sqrt_nonneg _) x
       linarith
     have hM_ge : (d : ℝ) / (Real.sqrt (d : ℝ) * Real.sqrt ((d : ℝ) + 2)) ≤ M := by
-      have h1 := integral_mono (integrable_norm_stdGaussian.div_const (Real.sqrt (d : ℝ))) hint_g hgauge_ge
+      have h1 :=
+        integral_mono (integrable_norm_stdGaussian.div_const (Real.sqrt (d : ℝ))) hint_g hgauge_ge
       rw [integral_div] at h1
       have hnorm := div_sqrt_le_integral_norm_stdGaussian (E := E)
       calc
@@ -2818,7 +2919,8 @@ theorem john_position_gaussian_gauge_lower_bound
         _ ≤ M := h1
     have hhalf_le : (1 / 2 : ℝ) ≤ (d : ℝ) / (Real.sqrt (d : ℝ) * Real.sqrt ((d : ℝ) + 2)) := by
       rw [le_div_iff₀ (by positivity)]
-      have hsq : ((1 / 2 : ℝ) * (Real.sqrt (d : ℝ) * Real.sqrt ((d : ℝ) + 2))) ^ 2 ≤ (d : ℝ) ^ 2 := by
+      have hsq : ((1 / 2 : ℝ) * (Real.sqrt (d : ℝ) * Real.sqrt ((d : ℝ) + 2))) ^ 2 ≤
+        (d : ℝ) ^ 2 := by
         rw [mul_pow, mul_pow, Real.sq_sqrt (by linarith), Real.sq_sqrt (by linarith)]
         nlinarith
       exact le_of_sq_le_sq hsq (by linarith)
@@ -2866,7 +2968,8 @@ theorem milman_gaussian_dvoretzky
     linarith
   have hlip : LipschitzWith 1 (fun x : E => gauge (K : Set E) x) :=
     lipschitzWith_gauge_of_closedBall_subset K hsym hball
-  -- Step 1: Extract a finite `δ`-net `N ⊆ sphere 0 1` in `EuclideanSpace ℝ (Fin k)` with `δ = ε / 8`.
+  -- Step 1: Extract a finite `δ` -net `N ⊆ sphere 0 1` in `EuclideanSpace ℝ (Fin k)` with
+  -- `δ = ε / 8` .
   set δ : ℝ := ε / 8
   have hδ_pos : 0 < δ := by positivity
   have hδ_lt : δ < 1 / 8 := by dsimp only [δ]; linarith
@@ -2896,7 +2999,8 @@ theorem milman_gaussian_dvoretzky
     intro htop
     rw [htop] at hcov_le
     simp at hcov_le
-  obtain ⟨Nset, hNsub, hNfin, hNcov, hNcard⟩ := Metric.exists_set_encard_eq_coveringNumber hcov_ne_top
+  obtain ⟨Nset, hNsub, hNfin, hNcov, hNcard⟩ :=
+    Metric.exists_set_encard_eq_coveringNumber hcov_ne_top
   let N : Finset (EuclideanSpace ℝ (Fin k)) := hNfin.toFinset
   have hN_card_le : (N.card : ℝ) ≤ (48 / ε) ^ k := by
     have h1 : (N.card : ℝ≥0∞) ≤ ENNReal.ofReal ((48 / ε) ^ k) := by
@@ -2917,7 +3021,8 @@ theorem milman_gaussian_dvoretzky
         simp [smul_smul, Finset.smul_sum] }
   let bad : EuclideanSpace ℝ (Fin k) → Set (Fin k → E) := fun z =>
     {g : Fin k → E | δ * M ≤ |gauge (K : Set E) (G_of g z) - M|}
-  have hbad_le : ∀ z ∈ N, μ (bad z) ≤ ENNReal.ofReal (2 * Real.exp (-((δ * M) ^ 2) / 4)) := fun z hz => by
+  have hbad_le : ∀ z ∈ N, μ (bad z) ≤ ENNReal.ofReal (2 * Real.exp (-((δ * M) ^ 2) / 4)) :=
+    fun z hz => by
     have hzS : z ∈ S := hNsub (hNfin.mem_toFinset.mp hz)
     have hz_sum : ∑ j : Fin k, WithLp.ofLp z j ^ 2 = 1 := by
       have h1 : ‖z‖ ^ 2 = 1 := by rw [mem_sphere_zero_iff_norm.mp hzS, one_pow]
@@ -2927,9 +3032,11 @@ theorem milman_gaussian_dvoretzky
       measurePreserving_linearComb_stdGaussian hz_sum
     have hmeas_set : MeasurableSet {x : E | δ * M ≤ |gauge (K : Set E) x - M|} :=
       (isClosed_le continuous_const (hlip.continuous.sub continuous_const).abs).measurableSet
-    have hpre : bad z = (fun g : Fin k → E => G_of g z) ⁻¹' {x : E | δ * M ≤ |gauge (K : Set E) x - M|} := rfl
+    have hpre : bad z =
+      (fun g : Fin k → E => G_of g z) ⁻¹' {x : E | δ * M ≤ |gauge (K : Set E) x - M|} := rfl
     rw [hpre, hmp_z.measure_preimage hmeas_set.nullMeasurableSet]
-    have hconc := gaussian_lipschitz_concentration_mean (L := 1) zero_lt_one hlip (mul_nonneg hδ_pos.le hM_pos.le)
+    have hconc := gaussian_lipschitz_concentration_mean (L :=
+      1) zero_lt_one hlip (mul_nonneg hδ_pos.le hM_pos.le)
     simpa [M] using hconc
   have hunion_lt : μ (⋃ z ∈ N, bad z) < 1 := by
     have h1 : μ (⋃ z ∈ N, bad z) ≤ ∑ z ∈ N, μ (bad z) := measure_biUnion_finset_le _ _
@@ -2991,7 +3098,8 @@ theorem milman_gaussian_dvoretzky
   obtain ⟨w0, hw0S, hw0_max⟩ := (isCompact_sphere (0 : EuclideanSpace ℝ (Fin k)) 1).exists_isMaxOn
     hS_ne hG_cont.continuousOn
   set A : ℝ := gauge (K : Set E) (G_of g w0)
-  have hA_bound : ∀ v : EuclideanSpace ℝ (Fin k), gauge (K : Set E) (G_of g v) ≤ A * ‖v‖ := fun v => by
+  have hA_bound : ∀ v : EuclideanSpace ℝ (Fin k), gauge (K : Set E) (G_of g v) ≤ A * ‖v‖ :=
+    fun v => by
     by_cases hv : v = 0
     · simp [hv]
     · have hv_pos : 0 < ‖v‖ := norm_pos_iff.mpr hv
@@ -3146,7 +3254,8 @@ theorem dvoretzky_theorem {E : Type*} [NormedAddCommGroup E] [InnerProductSpace 
         have h2 := (hbounds w).2
         calc
           (1 + ε)⁻¹ * gauge (K : Set E) (T w : E)
-            ≤ (1 + ε)⁻¹ * ((1 + ε) * ‖w‖) := mul_le_mul_of_nonneg_left h2 (inv_nonneg.mpr h1ε_pos.le)
+            ≤ (1 + ε)⁻¹ * ((1 + ε) * ‖w‖) :=
+              mul_le_mul_of_nonneg_left h2 (inv_nonneg.mpr h1ε_pos.le)
           _ = ‖w‖ := by field_simp [h1ε_pos.ne']
           _ ≤ 1 := hw1
       -- Since `K` is closed convex with `0 ∈ interior K`, `gauge K y ≤ 1 → y ∈ K`.
@@ -3156,7 +3265,8 @@ theorem dvoretzky_theorem {E : Type*} [NormedAddCommGroup E] [InnerProductSpace 
           have h1 : Tendsto (fun n : ℕ => (n : ℝ) / ((n : ℝ) + 1)) atTop (𝓝 (1 : ℝ)) := by
             have hinv : Tendsto (fun n : ℕ => ((n : ℝ) + 1)⁻¹) atTop (𝓝 (0 : ℝ)) :=
               tendsto_inv_atTop_zero.comp (tendsto_natCast_atTop_atTop.atTop_add tendsto_const_nhds)
-            have heq : (fun n : ℕ => (n : ℝ) / ((n : ℝ) + 1)) = fun n : ℕ => 1 - ((n : ℝ) + 1)⁻¹ := by
+            have heq : (fun n : ℕ => (n : ℝ) / ((n : ℝ) + 1)) = fun n : ℕ =>
+              1 - ((n : ℝ) + 1)⁻¹ := by
               ext n; field_simp [show (n : ℝ) + 1 ≠ 0 by positivity]; ring
             rw [heq]; simpa using tendsto_const_nhds.sub hinv
           simpa [one_smul] using h1.smul_const y
@@ -3190,7 +3300,8 @@ theorem dvoretzky_theorem {E : Type*} [NormedAddCommGroup E] [InnerProductSpace 
         map_add' := fun _ _ => by simp
         map_smul' := fun _ _ => by simp }
     have hbounds : ∀ w : EuclideanSpace ℝ (Fin 0),
-        ‖w‖ ≤ gauge (K : Set E) (T w : E) ∧ gauge (K : Set E) (T w : E) ≤ (1 + ε) * ‖w‖ := fun w => by
+        ‖w‖ ≤ gauge (K : Set E) (T w : E) ∧ gauge (K : Set E) (T w : E) ≤ (1 + ε) * ‖w‖ :=
+          fun w => by
       have hw0 : w = 0 := by apply WithLp.ofLp_injective 2; ext i; exact Fin.elim0 i
       subst hw0; simp [T]
     refine ⟨F, T, ?_, hbounds, hgeom F T hbounds⟩
@@ -3228,7 +3339,8 @@ theorem dvoretzky_theorem {E : Type*} [NormedAddCommGroup E] [InnerProductSpace 
   let eF : FJ ≃ₗ[ℝ] F := S.symm.submoduleMap FJ
   let T : EuclideanSpace ℝ (Fin k) ≃ₗ[ℝ] F := TJ.trans eF
   have hgauge_pull : ∀ x : E, gauge (KJ : Set E) (S x) = gauge (K : Set E) x := fun x => by
-    have heq : {r : ℝ | 0 < r ∧ S x ∈ r • (KJ : Set E)} = {r : ℝ | 0 < r ∧ x ∈ r • (K : Set E)} := by
+    have heq : {r : ℝ | 0 < r ∧ S x ∈ r • (KJ : Set E)} =
+      {r : ℝ | 0 < r ∧ x ∈ r • (K : Set E)} := by
       ext r
       simp only [mem_ofPred_eq, hKJ_coe, mem_smul_set, mem_image, and_congr_right_iff]
       intro _

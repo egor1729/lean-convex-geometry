@@ -367,7 +367,8 @@ theorem supportFn_bodyClosedBall [ProperSpace E] (c : E) {r : ℝ} (hr : 0 ≤ r
 `h_{U(K)}(v) = h_K(U⁻¹ v)`. -/
 theorem supportFn_mapLinearIsometry {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
     (U : E ≃ₗᵢ[ℝ] F) (K : ConvexBody E) (v : F) :
-    supportFn (mapLinear U.toLinearIsometry.toContinuousLinearMap K) v = supportFn K (U.symm v) := by
+    supportFn (mapLinear U.toLinearIsometry.toContinuousLinearMap K) v =
+      supportFn K (U.symm v) := by
   apply le_antisymm
   · rw [supportFn_le_iff]
     intro y hy
@@ -947,7 +948,8 @@ noncomputable def bodyOfSupportFn [FiniteDimensional ℝ E] (h : E → ℝ)
       have heq : {x : E | ∀ u, ⟪x, u⟫ ≤ h u} = ⋂ u : E, {x : E | ⟪x, u⟫ ≤ h u} := by
         ext x; simp
       rw [heq]
-      exact isClosed_iInter fun u => isClosed_le (continuous_id.inner continuous_const) continuous_const
+      exact isClosed_iInter fun u =>
+        isClosed_le (continuous_id.inner continuous_const) continuous_const
     obtain ⟨C, hC0, hC⟩ := sublinear_bounded_of_finiteDimensional h h_hom h_add
     have hsub : {x : E | ∀ u, ⟪x, u⟫ ≤ h u} ⊆ Metric.closedBall 0 C := by
       intro x hx

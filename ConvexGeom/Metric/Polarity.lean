@@ -82,7 +82,8 @@ lemma isClosed_polarBody (S : Set E) : IsClosed (polarBody S) := by
   have heq : polarBody S = ⋂ x ∈ S, {y : E | ⟪x, y⟫ ≤ 1} := by
     ext y; simp [polarBody]
   rw [heq]
-  exact isClosed_biInter fun x _ => isClosed_le (continuous_const.inner continuous_id) continuous_const
+  exact isClosed_biInter fun x _ =>
+    isClosed_le (continuous_const.inner continuous_id) continuous_const
 
 lemma polarBody_antitone : Antitone (polarBody (E := E)) :=
   fun _ _ hST _ hy x hx => hy x (hST hx)

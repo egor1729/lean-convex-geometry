@@ -41,13 +41,15 @@ and the Banach–Mazur compactum on finite-dimensional real inner product spaces
 
 ## Main statements
 
-* `ConvexGeom.isSymmetric_det_eq_prod_eigenvalues`, `ConvexGeom.isSymmetric_trace_eq_sum_eigenvalues`,
+* `ConvexGeom.isSymmetric_det_eq_prod_eigenvalues` ,
+  `ConvexGeom.isSymmetric_trace_eq_sum_eigenvalues` ,
   `ConvexGeom.isSymmetric_det_id_add_smul`, `ConvexGeom.exists_det_id_add_smul_gt_one`,
   `ConvexGeom.exists_posSemidef_ellipsoid_eq`: spectral and PSD-ellipsoid prerequisites.
 * `ConvexGeom.det_sum_rankOne_ge_prod`: Ball's determinant inequality.
 * `ConvexGeom.exists_max_det_inscribed_ellipsoid`, `ConvexGeom.unique_max_det_inscribed_ellipsoid`:
   existence and uniqueness of the maximal-volume inscribed ellipsoid.
-* `ConvexGeom.john_decomposition_of_john_position`, `ConvexGeom.isJohnPosition_of_john_decomposition`,
+* `ConvexGeom.john_decomposition_of_john_position` ,
+  `ConvexGeom.isJohnPosition_of_john_decomposition` ,
   `ConvexGeom.isJohnPosition_iff_john_decomposition`,
   `ConvexGeom.eq_closedBall_of_isJohnPosition_of_det_eq_one`: full necessity, sufficiency, and
   uniqueness characterization of John's position.
@@ -245,18 +247,22 @@ theorem exists_posSemidef_ellipsoid_eq [FiniteDimensional ℝ E] (T : E →ₗ[�
     rw [hS_symm.apply_eigenvectorBasis rfl i, inner_smul_left, RCLike.conj_to_real,
       real_inner_self_eq_norm_sq, b.orthonormal.1 i, one_pow, mul_one] at h
     exact h
-  let P : E →ₗ[ℝ] E := Matrix.toLin b.toBasis b.toBasis (Matrix.diagonal (fun i => Real.sqrt (lam i)))
+  let P : E →ₗ[ℝ] E :=
+    Matrix.toLin b.toBasis b.toBasis (Matrix.diagonal (fun i => Real.sqrt (lam i)))
   have hP_apply : ∀ i, P (b i) = Real.sqrt (lam i) • b i := fun i => by
-    change Matrix.toLin b.toBasis b.toBasis (Matrix.diagonal (fun i => Real.sqrt (lam i))) (b.toBasis i) = _
+    change Matrix.toLin b.toBasis b.toBasis (Matrix.diagonal (fun i =>
+      Real.sqrt (lam i))) (b.toBasis i) = _
     rw [Matrix.toLin_self]
     simp [Matrix.diagonal_apply]
   have hP_symm : P.IsSymmetric := by
     intro x y
-    have hinner : ∀ u v : E, ⟪P u, v⟫ = ∑ i, Real.sqrt (lam i) * ⟪b i, u⟫ * ⟪b i, v⟫ := fun u v => by
+    have hinner : ∀ u v : E, ⟪P u, v⟫ = ∑ i, Real.sqrt (lam i) * ⟪b i, u⟫ * ⟪b i, v⟫ :=
+      fun u v => by
       have hu := (b.sum_repr' u).symm
       have hv := (b.sum_repr' v).symm
       conv_lhs => rw [hu, hv]
-      simp only [map_sum, map_smul, hP_apply, sum_inner, inner_sum, inner_smul_left, inner_smul_right,
+      simp only [map_sum, map_smul, hP_apply, sum_inner, inner_sum, inner_smul_left,
+        inner_smul_right,
         RCLike.conj_to_real]
       refine Finset.sum_congr rfl fun i _ => ?_
       rw [Finset.sum_eq_single i]
@@ -270,7 +276,8 @@ theorem exists_posSemidef_ellipsoid_eq [FiniteDimensional ℝ E] (T : E →ₗ[�
     have hinner : ⟪P x, x⟫ = ∑ i, Real.sqrt (lam i) * ⟪b i, x⟫ ^ 2 := by
       have hx := (b.sum_repr' x).symm
       conv_lhs => rw [hx]
-      simp only [map_sum, map_smul, hP_apply, sum_inner, inner_sum, inner_smul_left, inner_smul_right,
+      simp only [map_sum, map_smul, hP_apply, sum_inner, inner_sum, inner_smul_left,
+        inner_smul_right,
         RCLike.conj_to_real]
       refine Finset.sum_congr rfl fun i _ => ?_
       rw [Finset.sum_eq_single i]
@@ -592,7 +599,8 @@ theorem exists_max_det_inscribed_ellipsoid [FiniteDimensional ℝ E]
     {p | (fun x => p.1 x + p.2) '' closedBall (0 : E) 1 ⊆ (K : Set E)}
   -- Compactness of `F`: closed and bounded in finite-dimensional `(E →L[ℝ] E) × E`.
   have hF_closed : IsClosed F := by
-    have heq : F = ⋂ x ∈ closedBall (0 : E) 1, {p : (E →L[ℝ] E) × E | p.1 x + p.2 ∈ (K : Set E)} := by
+    have heq : F = ⋂ x ∈ closedBall (0 : E) 1,
+      {p : (E →L[ℝ] E) × E | p.1 x + p.2 ∈ (K : Set E)} := by
       ext p
       simp [F, Set.subset_def]
     rw [heq]
@@ -603,7 +611,8 @@ theorem exists_max_det_inscribed_ellipsoid [FiniteDimensional ℝ E]
     obtain ⟨x₀, hx₀⟩ := K.nonempty
     exact (norm_nonneg x₀).trans (mem_closedBall_zero_iff.mp (hKR hx₀))
   have hF_bdd : Bornology.IsBounded F := by
-    refine (Metric.isBounded_iff_subset_closedBall (0 : (E →L[ℝ] E) × E)).mpr ⟨2 * R, fun p hp => ?_⟩
+    refine (Metric.isBounded_iff_subset_closedBall (0 : (E →L[ℝ] E) × E)).mpr ⟨2 * R,
+      fun p hp => ?_⟩
     have hc_mem : p.2 ∈ (K : Set E) := hp ⟨0, mem_closedBall_self zero_le_one, by simp⟩
     have hc_norm : ‖p.2‖ ≤ R := mem_closedBall_zero_iff.mp (hKR hc_mem)
     have hop : ‖p.1‖ ≤ 2 * R := by
@@ -733,7 +742,8 @@ theorem exists_linearEquiv_isJohnPosition_of_isOriginSymmetric [FiniteDimensiona
   · intro x hx
     exact ⟨S x, hSK ⟨x, hx, rfl⟩, S.symm_apply_apply x⟩
   · intro U b hUb
-    have hcomp : (fun x => (S.toLinearMap.comp U) x + S b) '' closedBall (0 : E) 1 ⊆ (K : Set E) := by
+    have hcomp : (fun x =>
+      (S.toLinearMap.comp U) x + S b) '' closedBall (0 : E) 1 ⊆ (K : Set E) := by
       rintro _ ⟨x, hx, rfl⟩
       rcases hUb ⟨x, hx, rfl⟩ with ⟨k, hk, hSk⟩
       have hk_eq : k = S (U x + b) := by
@@ -1576,7 +1586,8 @@ theorem subset_sqrt_finrank_smul_of_john_position [FiniteDimensional ℝ E] [Non
   have hd_pos : (0 : ℝ) < d := Nat.cast_pos.mpr Module.finrank_pos
   have hsd_pos : 0 < Real.sqrt (d : ℝ) := Real.sqrt_pos.mpr hd_pos
   obtain ⟨m, u, c, hJD, _, hsup⟩ := john_decomposition_of_john_position K hJ
-  have hcb_eq : Real.sqrt (d : ℝ) • closedBall (0 : E) 1 = closedBall (0 : E) (Real.sqrt (d : ℝ)) := by
+  have hcb_eq : Real.sqrt (d : ℝ) • closedBall (0 : E) 1 =
+    closedBall (0 : E) (Real.sqrt (d : ℝ)) := by
     ext y
     simp only [Set.mem_smul_set, mem_closedBall_zero_iff]
     constructor
@@ -2178,7 +2189,8 @@ theorem affineBanachMazurDist_le_finrank_sq [FiniteDimensional ℝ E] [Nontrivia
           affineBanachMazurDist (closedBall (0 : E) 1) (L : Set E) :=
         affineBanachMazurDist_mul_triangle hKB hBL
     _ ≤ (d : ℝ) * (d : ℝ) :=
-        mul_le_mul h1 h2 (le_trans zero_le_one (one_le_affineBanachMazurDist hBL)) (Nat.cast_nonneg d)
+        mul_le_mul h1 h2 (le_trans zero_le_one (one_le_affineBanachMazurDist hBL))
+          (Nat.cast_nonneg d)
     _ = (d : ℝ) ^ 2 := (sq _).symm
 
 /-- **Attainment of Linear Banach–Mazur Distance:**
@@ -2205,21 +2217,27 @@ theorem banachMazurDist_attained [FiniteDimensional ℝ E]
   obtain ⟨rL, hrL, hballL⟩ := Metric.mem_nhds_iff.mp (mem_interior_iff_mem_nhds.mp hL0)
   obtain ⟨RK, hRK⟩ := K.isBounded.subset_closedBall (0 : E)
   obtain ⟨RL, hRL⟩ := L.isBounded.subset_closedBall (0 : E)
-  have hRK_nn : 0 ≤ RK := (norm_nonneg (0 : E)).trans (mem_closedBall_zero_iff.mp (hRK (interior_subset hK0)))
-  have hRL_nn : 0 ≤ RL := (norm_nonneg (0 : E)).trans (mem_closedBall_zero_iff.mp (hRL (interior_subset hL0)))
+  have hRK_nn : 0 ≤ RK :=
+    (norm_nonneg (0 : E)).trans (mem_closedBall_zero_iff.mp (hRK (interior_subset hK0)))
+  have hRL_nn : 0 ≤ RL :=
+    (norm_nonneg (0 : E)).trans (mem_closedBall_zero_iff.mp (hRL (interior_subset hL0)))
   set aK := rK / 2
   set aL := rL / 2
   have haK : 0 < aK := half_pos hrK
   have haL : 0 < aL := half_pos hrL
-  have hcbK : closedBall (0 : E) aK ⊆ (K : Set E) := (closedBall_subset_ball (half_lt_self hrK)).trans hballK
-  have hcbL : closedBall (0 : E) aL ⊆ (L : Set E) := (closedBall_subset_ball (half_lt_self hrL)).trans hballL
+  have hcbK : closedBall (0 : E) aK ⊆ (K : Set E) :=
+    (closedBall_subset_ball (half_lt_self hrK)).trans hballK
+  have hcbL : closedBall (0 : E) aL ⊆ (L : Set E) :=
+    (closedBall_subset_ball (half_lt_self hrL)).trans hballL
   have hr_bdd : ∀ n, r n ≤ d₀ + 1 := fun n => by
-    have h1 : 1 / ((n : ℝ) + 1) ≤ 1 := div_le_one_of_le₀ (by linarith [Nat.cast_nonneg (α := ℝ) n]) (by positivity)
+    have h1 : 1 / ((n : ℝ) + 1) ≤ 1 :=
+      div_le_one_of_le₀ (by linarith [Nat.cast_nonneg (α := ℝ) n]) (by positivity)
     linarith [hr_lt n]
   set C₁ := (d₀ + 1) * RK / aL
   set C₂ := RL / aK
   have hT_bdd : ∀ n, ‖(T n).toContinuousLinearMap‖ ≤ C₁ := fun n => by
-    refine ContinuousLinearMap.opNorm_le_bound _ (div_nonneg (mul_nonneg (by linarith) hRK_nn) haL.le) fun x => ?_
+    refine ContinuousLinearMap.opNorm_le_bound _
+      (div_nonneg (mul_nonneg (by linarith) hRK_nn) haL.le) fun x => ?_
     by_cases hx : x = 0
     · simp [hx]
     · have hxn : 0 < ‖x‖ := norm_pos_iff.mpr hx
@@ -2286,18 +2304,22 @@ theorem banachMazurDist_attained [FiniteDimensional ℝ E]
   have hAB : ∀ x, A (B x) = x := fun x => by
     have hBx : Tendsto (fun n => (T (φ n)).symm.toContinuousLinearMap x) atTop (𝓝 (B x)) :=
       (ContinuousLinearMap.apply ℝ E x).continuous.continuousAt.tendsto.comp htB
-    have hcomp_t : Tendsto (fun n => (T (φ n)).toContinuousLinearMap ((T (φ n)).symm.toContinuousLinearMap x))
+    have hcomp_t : Tendsto (fun n =>
+      (T (φ n)).toContinuousLinearMap ((T (φ n)).symm.toContinuousLinearMap x))
         atTop (𝓝 (A (B x))) := tendsto_clm_apply htA hBx
-    have hconst : (fun n => (T (φ n)).toContinuousLinearMap ((T (φ n)).symm.toContinuousLinearMap x)) =
+    have hconst : (fun n =>
+      (T (φ n)).toContinuousLinearMap ((T (φ n)).symm.toContinuousLinearMap x)) =
         fun _ => x := funext fun n => (T (φ n)).apply_symm_apply x
     rw [hconst] at hcomp_t
     exact tendsto_nhds_unique hcomp_t tendsto_const_nhds
   have hBA : ∀ x, B (A x) = x := fun x => by
     have hAx : Tendsto (fun n => (T (φ n)).toContinuousLinearMap x) atTop (𝓝 (A x)) :=
       (ContinuousLinearMap.apply ℝ E x).continuous.continuousAt.tendsto.comp htA
-    have hcomp_t : Tendsto (fun n => (T (φ n)).symm.toContinuousLinearMap ((T (φ n)).toContinuousLinearMap x))
+    have hcomp_t : Tendsto (fun n =>
+      (T (φ n)).symm.toContinuousLinearMap ((T (φ n)).toContinuousLinearMap x))
         atTop (𝓝 (B (A x))) := tendsto_clm_apply htB hAx
-    have hconst : (fun n => (T (φ n)).symm.toContinuousLinearMap ((T (φ n)).toContinuousLinearMap x)) =
+    have hconst : (fun n =>
+      (T (φ n)).symm.toContinuousLinearMap ((T (φ n)).toContinuousLinearMap x)) =
         fun _ => x := funext fun n => (T (φ n)).symm_apply_apply x
     rw [hconst] at hcomp_t
     exact tendsto_nhds_unique hcomp_t tendsto_const_nhds
@@ -2324,7 +2346,8 @@ theorem banachMazurDist_attained [FiniteDimensional ℝ E]
     exact L.isClosed.mem_of_tendsto htBx (Filter.Eventually.of_forall hBx_mem)
   · rintro _ ⟨y, hy, rfl⟩
     have hd₀_pos : 0 < d₀ := lt_of_lt_of_le zero_lt_one hd₀_ge1
-    refine ⟨d₀⁻¹ • A y, ?_, by dsimp only; rw [smul_smul, mul_inv_cancel₀ hd₀_pos.ne', one_smul]; rfl⟩
+    refine ⟨d₀⁻¹ • A y, ?_,
+      by dsimp only; rw [smul_smul, mul_inv_cancel₀ hd₀_pos.ne', one_smul]; rfl⟩
     have hmem_n : ∀ n, (r (φ n))⁻¹ • T (φ n) y ∈ (K : Set E) := fun n => by
       rcases hTL (φ n) ⟨y, hy, rfl⟩ with ⟨k, hk, hkn⟩
       have hrpos : 0 < r (φ n) := lt_of_lt_of_le zero_lt_one (hr_mem (φ n)).1
@@ -2397,7 +2420,8 @@ theorem affineBanachMazurDist_attained [FiniteDimensional ℝ E]
     exact ⟨hxK, hyL⟩
   have hex_seq : ∀ n : ℕ, ∃ r ∈ affineBanachMazurSet (K : Set E) (L : Set E),
       1 < r ∧ r < d₀ + 1 / ((n : ℝ) + 1) := fun n => by
-    obtain ⟨r₀, hr₀, hr₀_lt⟩ := Real.lt_sInf_add_pos hne (show 0 < 1 / (2 * ((n : ℝ) + 1)) by positivity)
+    obtain ⟨r₀, hr₀, hr₀_lt⟩ :=
+      Real.lt_sInf_add_pos hne (show 0 < 1 / (2 * ((n : ℝ) + 1)) by positivity)
     by_cases h1 : 1 < r₀
     · refine ⟨r₀, hr₀, h1, hr₀_lt.trans (by
         have hpos : (0 : ℝ) < (n : ℝ) + 1 := by positivity
@@ -2465,18 +2489,21 @@ theorem affineBanachMazurDist_attained [FiniteDimensional ℝ E]
   have haK : 0 < aK := half_pos hrK
   have haL : 0 < aL := half_pos hrL
   have hr_bdd : ∀ n, r n ≤ d₀ + 1 := fun n => by
-    have h1 : 1 / ((n : ℝ) + 1) ≤ 1 := div_le_one_of_le₀ (by linarith [Nat.cast_nonneg (α := ℝ) n]) (by positivity)
+    have h1 : 1 / ((n : ℝ) + 1) ≤ 1 :=
+      div_le_one_of_le₀ (by linarith [Nat.cast_nonneg (α := ℝ) n]) (by positivity)
     linarith [hr_lt n]
   set C₁ := (d₀ + 1) * DK / aL
   set C₂ := DL / aK
   have hT_bdd : ∀ n, ‖(T n).toContinuousLinearMap‖ ≤ C₁ := fun n => by
-    refine ContinuousLinearMap.opNorm_le_bound _ (div_nonneg (mul_nonneg (by linarith) Metric.diam_nonneg) haL.le) fun w => ?_
+    refine ContinuousLinearMap.opNorm_le_bound _
+      (div_nonneg (mul_nonneg (by linarith) Metric.diam_nonneg) haL.le) fun w => ?_
     by_cases hw : w = 0
     · simp [hw]
     · have hwn : 0 < ‖w‖ := norm_pos_iff.mpr hw
       let u : E := (aL / ‖w‖) • w
       have hu_norm : ‖u‖ = aL := by
-        dsimp only [u]; rw [norm_smul, Real.norm_eq_abs, abs_of_pos (div_pos haL hwn), div_mul_cancel₀ _ hwn.ne']
+        dsimp only [u];
+        rw [norm_smul, Real.norm_eq_abs, abs_of_pos (div_pos haL hwn), div_mul_cancel₀ _ hwn.ne']
       have hcL_mem : cL ∈ (L : Set E) := interior_subset hcL
       have hcu_mem : cL + u ∈ (L : Set E) := hballL (by
         rw [mem_ball, dist_eq_norm, add_sub_cancel_left, hu_norm]; exact half_lt_self hrL)
@@ -2513,7 +2540,8 @@ theorem affineBanachMazurDist_attained [FiniteDimensional ℝ E]
     · have hwn : 0 < ‖w‖ := norm_pos_iff.mpr hw
       let u : E := (aK / ‖w‖) • w
       have hu_norm : ‖u‖ = aK := by
-        dsimp only [u]; rw [norm_smul, Real.norm_eq_abs, abs_of_pos (div_pos haK hwn), div_mul_cancel₀ _ hwn.ne']
+        dsimp only [u];
+        rw [norm_smul, Real.norm_eq_abs, abs_of_pos (div_pos haK hwn), div_mul_cancel₀ _ hwn.ne']
       have hcK_mem : cK ∈ (K : Set E) := interior_subset hcK
       have hcu_mem : cK + u ∈ (K : Set E) := hballK (by
         rw [mem_ball, dist_eq_norm, add_sub_cancel_left, hu_norm]; exact half_lt_self hrK)
@@ -2563,7 +2591,8 @@ theorem affineBanachMazurDist_attained [FiniteDimensional ℝ E]
     have hBw : Tendsto (fun n => (T (φ n)).symm.toContinuousLinearMap w) atTop (𝓝 (B w)) :=
       (ContinuousLinearMap.apply ℝ E w).continuous.continuousAt.tendsto.comp htB
     have hcomp_t := tendsto_clm_apply htA hBw
-    have hconst : (fun n => (T (φ n)).toContinuousLinearMap ((T (φ n)).symm.toContinuousLinearMap w)) =
+    have hconst : (fun n =>
+      (T (φ n)).toContinuousLinearMap ((T (φ n)).symm.toContinuousLinearMap w)) =
         fun _ => w := funext fun n => (T (φ n)).apply_symm_apply w
     rw [hconst] at hcomp_t
     exact tendsto_nhds_unique hcomp_t tendsto_const_nhds
@@ -2571,7 +2600,8 @@ theorem affineBanachMazurDist_attained [FiniteDimensional ℝ E]
     have hAw : Tendsto (fun n => (T (φ n)).toContinuousLinearMap w) atTop (𝓝 (A w)) :=
       (ContinuousLinearMap.apply ℝ E w).continuous.continuousAt.tendsto.comp htA
     have hcomp_t := tendsto_clm_apply htB hAw
-    have hconst : (fun n => (T (φ n)).symm.toContinuousLinearMap ((T (φ n)).toContinuousLinearMap w)) =
+    have hconst : (fun n =>
+      (T (φ n)).symm.toContinuousLinearMap ((T (φ n)).toContinuousLinearMap w)) =
         fun _ => w := funext fun n => (T (φ n)).symm_apply_apply w
     rw [hconst] at hcomp_t
     exact tendsto_nhds_unique hcomp_t tendsto_const_nhds
@@ -2645,7 +2675,8 @@ lemma tendsto_banachMazurDist_one_of_tendsto_convexBody [FiniteDimensional ℝ E
     (hB₀ : closedBall (0 : E) 1 ⊆ (K₀ : Set E))
     (htend : Tendsto K atTop (𝓝 K₀)) :
     Tendsto (fun n => banachMazurDist (K n : Set E) (K₀ : Set E)) atTop (𝓝 1) := by
-  have hle : ∀ n, banachMazurDist (K n : Set E) (K₀ : Set E) ≤ (1 + dist (K n) K₀) ^ 2 := fun n => by
+  have hle : ∀ n, banachMazurDist (K n : Set E) (K₀ : Set E) ≤ (1 + dist (K n) K₀) ^ 2 :=
+    fun n => by
     set δ := dist (K n) K₀
     have hδ : 0 ≤ δ := dist_nonneg
     have h1δ : 1 ≤ 1 + δ := by linarith
@@ -2752,7 +2783,8 @@ theorem exists_subseq_banachMazurDist_tendsto_one [FiniteDimensional ℝ E] [Non
   obtain ⟨K₀, _, φ, hφ_mono, htend⟩ :=
     (isCompact_subset_closedBall (E := E) (Real.sqrt (d : ℝ))).tendsto_subseq hL_sub
   have hB_K₀ : closedBall (0 : E) 1 ⊆ (K₀ : Set E) := by
-    have hsup : ∀ u : E, supportFn (bodyClosedBall (0 : E) zero_le_one) u ≤ supportFn K₀ u := fun u => by
+    have hsup : ∀ u : E, supportFn (bodyClosedBall (0 : E) zero_le_one) u ≤ supportFn K₀ u :=
+      fun u => by
       have ht_sup : Tendsto (fun n => supportFn (L (φ n)) u) atTop (𝓝 (supportFn K₀ u)) :=
         (continuous_supportFn_eval u).continuousAt.tendsto.comp htend
       exact ge_of_tendsto ht_sup (Filter.Eventually.of_forall fun n =>
@@ -2769,7 +2801,9 @@ theorem exists_subseq_banachMazurDist_tendsto_one [FiniteDimensional ℝ E] [Non
     have heq : (fun n => supportFn (L (φ n)) (-u)) = fun n => supportFn (L (φ n)) u := by
       ext n
       exact supportFn_neg_of_isOriginSymmetric
-        (by rw [coe_mapLinear]; exact isOriginSymmetric_linearMap_image (T (φ n)).toLinearMap (hsym (φ n))) u
+        (by
+          rw [coe_mapLinear]
+          exact isOriginSymmetric_linearMap_image (T (φ n)).toLinearMap (hsym (φ n))) u
     rw [heq] at h1
     exact tendsto_nhds_unique h1 h2
   have hK₀_0 : (0 : E) ∈ interior (K₀ : Set E) :=
@@ -2828,7 +2862,8 @@ theorem exists_subseq_affineBanachMazurDist_tendsto_one [FiniteDimensional ℝ E
   obtain ⟨K₀, _, φ, hφ_mono, htend⟩ :=
     (isCompact_subset_closedBall (E := E) (d : ℝ)).tendsto_subseq hL_sub
   have hB_K₀ : closedBall (0 : E) 1 ⊆ (K₀ : Set E) := by
-    have hsup : ∀ u : E, supportFn (bodyClosedBall (0 : E) zero_le_one) u ≤ supportFn K₀ u := fun u => by
+    have hsup : ∀ u : E, supportFn (bodyClosedBall (0 : E) zero_le_one) u ≤ supportFn K₀ u :=
+      fun u => by
       have ht_sup : Tendsto (fun n => supportFn (L (φ n)) u) atTop (𝓝 (supportFn K₀ u)) :=
         (continuous_supportFn_eval u).continuousAt.tendsto.comp htend
       exact ge_of_tendsto ht_sup
@@ -2849,7 +2884,8 @@ theorem exists_subseq_affineBanachMazurDist_tendsto_one [FiniteDimensional ℝ E
       (affineBanachMazurSet_nonempty (hint (φ n)) (K (φ n)).isBounded ⟨0, hK₀_0⟩ K₀.isBounded)
   · intro n
     have h0n : (0 : E) ∈ interior (L (φ n) : Set E) :=
-      mem_interior.mpr ⟨ball (0 : E) 1, ball_subset_closedBall.trans (by rw [hL_coe]; exact hBsub (φ n)),
+      mem_interior.mpr ⟨ball (0 : E) 1,
+        ball_subset_closedBall.trans (by rw [hL_coe]; exact hBsub (φ n)),
         isOpen_ball, mem_ball_self zero_lt_one⟩
     have hne_lin := banachMazurSet_nonempty h0n (L (φ n)).isBounded hK₀_0 K₀.isBounded
     have hle := affineBanachMazurDist_le_banachMazurDist hne_lin

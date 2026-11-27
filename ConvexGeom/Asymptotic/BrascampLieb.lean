@@ -354,7 +354,8 @@ theorem loomis_whitney_lintegral : ∀ {n : ℕ}
         (fun i t => if i = 0 then f 1 (e0.symm t) else f 0 (e0.symm t))
         (fun i => by fin_cases i <;> simpa using ‹_›)
       have hlhs : ∫⁻ x : Fin 2 → ℝ, f 0 (e0.symm (x 1)) * f 1 (e0.symm (x 0)) =
-          ∫⁻ x : Fin 2 → ℝ, ∏ i : Fin 2, (if i = 0 then f 1 (e0.symm (x i)) else f 0 (e0.symm (x i))) := by
+          ∫⁻ x : Fin 2 → ℝ, ∏ i : Fin 2,
+            (if i = 0 then f 1 (e0.symm (x i)) else f 0 (e0.symm (x i))) := by
         congr 1; ext x; rw [Fin.prod_univ_two]; simp [mul_comm]
       rw [hlhs, hprod, Fin.prod_univ_two, Fin.prod_univ_two]
       simp only [↓reduceIte, Fin.one_eq_zero_iff, OfNat.ofNat_ne_one, Nat.zero_add,
@@ -381,7 +382,8 @@ theorem loomis_whitney_lintegral : ∀ {n : ℕ}
       have hF : ∀ x : Fin (n + 3) → ℝ,
           ∏ i : Fin (n + 3), f i (Fin.removeNth i x) ^ (1 / ((n + 1 + 1 : ℕ) : ℝ)) =
             f 0 (Fin.tail x) ^ (1 / (d : ℝ)) *
-              ∏ j : Fin (n + 2), g j (x 0) (Fin.removeNth j (Fin.tail x)) ^ (1 / (d : ℝ)) := fun x => by
+              ∏ j : Fin (n + 2), g j (x 0) (Fin.removeNth j (Fin.tail x)) ^ (1 / (d : ℝ)) :=
+                fun x => by
         rw [Fin.prod_univ_succ]
         congr 1
         refine Finset.prod_congr rfl fun j _ => ?_
@@ -402,7 +404,8 @@ theorem loomis_whitney_lintegral : ∀ {n : ℕ}
         have hrem : Measurable (fun y : Fin (n + 2) → ℝ => Fin.removeNth j y) :=
           (continuous_pi fun k => continuous_apply _).measurable
         exact ((hg_meas_prod j).comp (measurable_fst.prodMk (hrem.comp measurable_snd))).pow_const _
-      have hcomp := hmp.lintegral_comp_emb (MeasurableEquiv.piFinSuccAbove _ 0).measurableEmbedding Fprod
+      have hcomp :=
+        hmp.lintegral_comp_emb (MeasurableEquiv.piFinSuccAbove _ 0).measurableEmbedding Fprod
       have hF_eq : (fun x : Fin (n + 3) → ℝ => Fprod (MeasurableEquiv.piFinSuccAbove _ 0 x)) =
           (fun x : Fin (n + 3) → ℝ => f 0 (Fin.tail x) ^ (1 / (d : ℝ)) *
             ∏ j : Fin (n + 2), g j (x 0) (Fin.removeNth j (Fin.tail x)) ^ (1 / (d : ℝ))) := by
@@ -420,7 +423,8 @@ theorem loomis_whitney_lintegral : ∀ {n : ℕ}
           Finset.measurable_fun_prod Finset.univ fun j _ =>
             ((hg_meas j t).comp (continuous_pi fun k => continuous_apply _).measurable).pow_const _
         have hrewrite : ∀ y : Fin (n + 2) → ℝ,
-            Fprod (t, y) = f 0 y ^ (1 / (d : ℝ)) * G y ^ (((n + 1 : ℕ) : ℝ) / (d : ℝ)) := fun y => by
+            Fprod (t, y) = f 0 y ^ (1 / (d : ℝ)) * G y ^ (((n + 1 : ℕ) : ℝ) / (d : ℝ)) :=
+              fun y => by
           dsimp only [Fprod, G]
           congr 1
           rw [ennreal_finset_prod_rpow Finset.univ _ (by positivity)]
@@ -464,7 +468,8 @@ theorem loomis_whitney_lintegral : ∀ {n : ℕ}
             have hne : (n : ℝ) + 1 + 1 ≠ 0 := by positivity
             field_simp [hne]; ring)
           (fun _ _ => by positivity)
-      have htonelli : ∀ j : Fin (n + 2), ∫⁻ t : ℝ, h j t = ∫⁻ y : Fin (n + 2) → ℝ, f j.succ y := fun j => by
+      have htonelli : ∀ j : Fin (n + 2), ∫⁻ t : ℝ, h j t = ∫⁻ y : Fin (n + 2) → ℝ, f j.succ y :=
+        fun j => by
         dsimp only [h, g]
         rw [← lintegral_prod _ (hg_meas_prod j).aemeasurable, ← Measure.volume_eq_prod]
         have hmpj := (volume_preserving_piFinSuccAbove (fun _ : Fin (n + 2) => ℝ) 0).symm
@@ -685,7 +690,8 @@ private lemma cdfOn_properties {I : Set ℝ} (hIopen : IsOpen I) (hIconn : IsPre
               linarith)
             linarith [csInf_le hbdd hmem]
           have hchoose : ∀ n : ℕ, ∃ t ∈ I, t < L + 1 / ((n : ℝ) + 1) := fun n => by
-            obtain ⟨t, ht, hlt⟩ := Real.lt_sInf_add_pos hIne (show 0 < 1 / ((n : ℝ) + 1) by positivity)
+            obtain ⟨t, ht, hlt⟩ :=
+              Real.lt_sInf_add_pos hIne (show 0 < 1 / ((n : ℝ) + 1) by positivity)
             exact ⟨t, ht, hlt⟩
           choose a haI halt using hchoose
           refine ⟨a, haI, fun x hx => ?_⟩
@@ -741,7 +747,8 @@ private lemma cdfOn_properties {I : Set ℝ} (hIopen : IsOpen I) (hIconn : IsPre
             linarith [le_csSup hbdd hmem]
           have hchoose : ∀ n : ℕ, ∃ t ∈ I, U - 1 / ((n : ℝ) + 1) < t := fun n => by
             obtain ⟨t, ht, hlt⟩ := Real.add_neg_lt_sSup hIne
-              (show -(1 / ((n : ℝ) + 1)) < 0 by linarith [show (0 : ℝ) < 1 / ((n : ℝ) + 1) by positivity])
+              (show -(1 / ((n : ℝ) + 1)) < 0 by
+                linarith [show (0 : ℝ) < 1 / ((n : ℝ) + 1) by positivity])
             exact ⟨t, ht, by linarith⟩
           choose b hbI hbgt using hchoose
           refine ⟨b, hbI, fun x hx => ?_⟩
@@ -882,7 +889,8 @@ theorem exists_gaussian_transport {I : Set ℝ} (hIopen : IsOpen I) (hIconn : Is
       unfold γ gaussianPDFReal
       fun_prop
     exact this.continuousOn
-  have hγ_pos : ∀ y ∈ (Set.univ : Set ℝ), 0 < γ y := fun y _ => gaussianPDFReal_pos 0 1 y one_ne_zero
+  have hγ_pos : ∀ y ∈ (Set.univ : Set ℝ), 0 < γ y :=
+    fun y _ => gaussianPDFReal_pos 0 1 y one_ne_zero
   have hγ_int : IntegrableOn γ Set.univ volume :=
     integrableOn_univ.mpr (integrable_gaussianPDFReal 0 1)
   have hγ_one : ∫ y in (Set.univ : Set ℝ), γ y = 1 := by
@@ -1078,7 +1086,8 @@ theorem brascamp_lieb_rankOne_of_continuous_pos {ι : Type*} [Fintype ι]
       (Finset.prod_nonneg fun i _ => Real.rpow_nonneg (hT'_pos i ⟪x, u i⟫).le _).trans hdet_ge
     have hprod_γ : ∏ i, γ (T i ⟪x, u i⟫) ^ c i ≤ stdGaussianDensity (Θ x) := by
       have h2pi_pos : (0 : ℝ) < 2 * Real.pi := by positivity
-      have hγ_form : ∀ t : ℝ, γ t = (2 * Real.pi) ^ (-(1 : ℝ) / 2) * Real.exp (-(t ^ 2) / 2) := fun t => by
+      have hγ_form : ∀ t : ℝ, γ t = (2 * Real.pi) ^ (-(1 : ℝ) / 2) * Real.exp (-(t ^ 2) / 2) :=
+        fun t => by
         rw [show γ t = gaussianPDFReal 0 1 t from rfl, gaussianPDFReal_def]
         simp only [NNReal.coe_one, mul_one, sub_zero]
         congr 1
@@ -1115,7 +1124,8 @@ theorem brascamp_lieb_rankOne_of_continuous_pos {ι : Type*} [Fintype ι]
         rw [div_mul_cancel₀ _ (gaussianPDFReal_pos 0 1 _ one_ne_zero).ne']
       rw [hsplit, abs_of_nonneg hdet_nn]
       exact mul_le_mul hdet_ge hprod_γ
-        (Finset.prod_nonneg fun i _ => Real.rpow_nonneg (gaussianPDFReal_pos 0 1 _ one_ne_zero).le _)
+        (Finset.prod_nonneg fun i _ =>
+          Real.rpow_nonneg (gaussianPDFReal_pos 0 1 _ one_ne_zero).le _)
         hdet_nn
     rw [← ENNReal.ofReal_mul (abs_nonneg _)]
     have hlhs : ∏ i, ENNReal.ofReal (f i ⟪x, u i⟫) ^ c i =
@@ -1129,7 +1139,8 @@ theorem brascamp_lieb_rankOne_of_continuous_pos {ι : Type*} [Fintype ι]
     ∫⁻ x : E, ∏ i, ENNReal.ofReal (f i ⟪x, u i⟫) ^ c i
       ≤ ∫⁻ x : E, ENNReal.ofReal |(DΘ x).det| * ENNReal.ofReal (stdGaussianDensity (Θ x)) :=
         lintegral_mono hpt
-    _ = ∫⁻ x in Set.univ, ENNReal.ofReal |(DΘ x).det| * ENNReal.ofReal (stdGaussianDensity (Θ x)) := by
+    _ = ∫⁻ x in Set.univ,
+      ENNReal.ofReal |(DΘ x).det| * ENNReal.ofReal (stdGaussianDensity (Θ x)) := by
         rw [Measure.restrict_univ]
     _ = ∫⁻ y in Θ '' Set.univ, ENNReal.ofReal (stdGaussianDensity y) :=
         (lintegral_image_eq_lintegral_abs_det_fderiv_mul volume MeasurableSet.univ
@@ -1302,7 +1313,8 @@ theorem brascamp_lieb_rankOne {ι : Type*} [Fintype ι]
       (((hf i).const_mul (I i)⁻¹).aemeasurable) ?_
     rw [lintegral_const_mul _ (hf i)]
     exact (ENNReal.inv_mul_cancel (hzero i) (hI_ne_top i)).trans_lt ENNReal.one_lt_top |>.ne
-  have hg_ofReal : ∀ i, (fun t => ENNReal.ofReal (g i t)) =ᵐ[volume] fun t => (I i)⁻¹ * f i t := fun i => by
+  have hg_ofReal : ∀ i, (fun t => ENNReal.ofReal (g i t)) =ᵐ[volume] fun t => (I i)⁻¹ * f i t :=
+    fun i => by
     have hfin : ∀ᵐ t : ℝ, (I i)⁻¹ * f i t ≠ ⊤ := by
       have hlt : ∫⁻ t, (I i)⁻¹ * f i t < ⊤ := by
         rw [lintegral_const_mul _ (hf i), ENNReal.inv_mul_cancel (hzero i) (hI_ne_top i)]
@@ -1335,7 +1347,8 @@ theorem brascamp_lieb_rankOne {ι : Type*} [Fintype ι]
       ae_iff.mp (hg_ofReal i)
     have hE1 := measure_preimage_inner_null hu_ne hbad1
     have hE2 := measure_preimage_inner_null hu_ne hbad2
-    have hE_union : volume ({x : E | ⟪x, u i⟫ ∈ {t | ¬ Tendsto (fun n => phi i n t) atTop (𝓝 (g i t))}} ∪
+    have hE_union : volume ({x : E | ⟪x,
+      u i⟫ ∈ {t | ¬ Tendsto (fun n => phi i n t) atTop (𝓝 (g i t))}} ∪
         {x : E | ⟪x, u i⟫ ∈ {t | ENNReal.ofReal (g i t) ≠ (I i)⁻¹ * f i t}}) = 0 :=
       measure_union_null hE1 hE2
     rw [ae_iff]
@@ -1490,7 +1503,8 @@ theorem reverse_brascamp_lieb_rankOne {ι : Type*} [Fintype ι]
         ENNReal.ofReal |(DΨ x).det| * H (Ψ x) := fun x => by
     have hprod_γ : ∏ i, γ ⟪x, u i⟫ ^ c i = stdGaussianDensity x := by
       have h2pi_pos : (0 : ℝ) < 2 * Real.pi := by positivity
-      have hγ_form : ∀ t : ℝ, γ t = (2 * Real.pi) ^ (-(1 : ℝ) / 2) * Real.exp (-(t ^ 2) / 2) := fun t => by
+      have hγ_form : ∀ t : ℝ, γ t = (2 * Real.pi) ^ (-(1 : ℝ) / 2) * Real.exp (-(t ^ 2) / 2) :=
+        fun t => by
         rw [show γ t = gaussianPDFReal 0 1 t from rfl, gaussianPDFReal_def]
         simp only [NNReal.coe_one, mul_one, sub_zero]
         congr 1
@@ -1571,7 +1585,8 @@ theorem reverse_brascamp_lieb_rankOne {ι : Type*} [Fintype ι]
 
 end ReverseBrascampLieb
 
-/-! ### 6. Applications: Ball's Volume Ratio, Reverse Isoperimetry, Barthe's Polar Bound, and Gaussian Measure -/
+/-! ### 6. Applications: Ball's Volume Ratio, Reverse Isoperimetry, Barthe's Polar Bound, and
+Gaussian Measure -/
 
 section Applications
 
@@ -1774,9 +1789,11 @@ private lemma lintegral_exp_cone [Nontrivial E] (K : ConvexBody E) :
     ∫⁻ z : WithLp 2 (E × ℝ),
       ({p : E × ℝ | 0 < p.2 ∧
           p.1 ∈ (p.2 / Real.sqrt (Module.finrank ℝ E : ℝ)) • (K : Set E)}).indicator
-        (fun p : E × ℝ => ENNReal.ofReal (Real.exp (-p.2 * Real.sqrt ((Module.finrank ℝ E : ℝ) + 1))))
+        (fun p : E × ℝ =>
+          ENNReal.ofReal (Real.exp (-p.2 * Real.sqrt ((Module.finrank ℝ E : ℝ) + 1))))
         (WithLp.ofLp z) =
-      volume (K : Set E) * ENNReal.ofReal ((Module.finrank ℝ E : ℝ) ^ (-(Module.finrank ℝ E : ℝ) / 2) *
+      volume (K : Set E) *
+        ENNReal.ofReal ((Module.finrank ℝ E : ℝ) ^ (-(Module.finrank ℝ E : ℝ) / 2) *
         ((Module.finrank ℝ E : ℝ) + 1) ^ (-((Module.finrank ℝ E : ℝ) + 1) / 2) *
         (Nat.factorial (Module.finrank ℝ E) : ℝ)) := by
   set d := Module.finrank ℝ E
@@ -1868,7 +1885,8 @@ private lemma lintegral_exp_cone [Nontrivial E] (K : ConvexBody E) :
       ENNReal.ofReal ((d : ℝ) ^ (-(d : ℝ) / 2) *
         (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r))) =
       ENNReal.ofReal ((d : ℝ) ^ (-(d : ℝ) / 2)) *
-        ∫⁻ r in Ioi (0 : ℝ), ENNReal.ofReal (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r)) := by
+        ∫⁻ r in Ioi (0 : ℝ),
+          ENNReal.ofReal (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r)) := by
     simp_rw [ENNReal.ofReal_mul (Real.rpow_nonneg hd_pos.le _)]
     exact lintegral_const_mul _ (by fun_prop)
   rw [hpull2]
@@ -1963,7 +1981,8 @@ theorem volume_le_simplex_bound_of_john_position [Nontrivial E]
         have hterm : ∀ i, c' i * ⟪z, v i⟫ =
             -(((d : ℝ) + 1) / (d : ℝ) * Real.sqrt ((d : ℝ) / ((d : ℝ) + 1))) *
               ⟪(WithLp.ofLp z).1, c i • u i⟫ +
-            (((d : ℝ) + 1) / (d : ℝ) * ((WithLp.ofLp z).2 / Real.sqrt ((d : ℝ) + 1))) * c i := fun i => by
+            (((d : ℝ) + 1) / (d : ℝ) * ((WithLp.ofLp z).2 / Real.sqrt ((d : ℝ) + 1))) * c i :=
+              fun i => by
           rw [hv_inner, inner_smul_right]; dsimp only [c']; ring
         simp_rw [hterm, Finset.sum_add_distrib, ← Finset.mul_sum, ← inner_sum, hsum0,
           inner_zero_right, mul_zero, zero_add, hdecomp.sum_weights]
@@ -1977,7 +1996,8 @@ theorem volume_le_simplex_bound_of_john_position [Nontrivial E]
           _ = (WithLp.ofLp z).2 * Real.sqrt ((d : ℝ) + 1) := by rw [hsq]
       have hprod_eq : ∏ i, f i ⟪z, v i⟫ ^ c' i =
           ENNReal.ofReal (Real.exp (-(WithLp.ofLp z).2 * Real.sqrt ((d : ℝ) + 1))) := by
-        have hterm : ∀ i, f i ⟪z, v i⟫ ^ c' i = ENNReal.ofReal (Real.exp (-(c' i * ⟪z, v i⟫))) := fun i => by
+        have hterm : ∀ i, f i ⟪z, v i⟫ ^ c' i = ENNReal.ofReal (Real.exp (-(c' i * ⟪z, v i⟫))) :=
+          fun i => by
           dsimp only [f]
           rw [indicator_of_mem (hge0 i), ENNReal.ofReal_rpow_of_pos (Real.exp_pos _),
             ← Real.exp_mul]
@@ -1993,9 +2013,11 @@ theorem volume_le_simplex_bound_of_john_position [Nontrivial E]
       ((d : ℝ) + 1) ^ (-((d : ℝ) + 1) / 2) * (Nat.factorial d : ℝ)) ≤ 1 := by
     rw [← lintegral_exp_cone K]
     exact (lintegral_mono hpt_le).trans hbl
-  set C : ℝ := (d : ℝ) ^ (-(d : ℝ) / 2) * ((d : ℝ) + 1) ^ (-((d : ℝ) + 1) / 2) * (Nat.factorial d : ℝ)
+  set C : ℝ :=
+    (d : ℝ) ^ (-(d : ℝ) / 2) * ((d : ℝ) + 1) ^ (-((d : ℝ) + 1) / 2) * (Nat.factorial d : ℝ)
   have hC_pos : 0 < C := by positivity
-  have hinv : C⁻¹ = (d : ℝ) ^ ((d : ℝ) / 2) * ((d : ℝ) + 1) ^ (((d : ℝ) + 1) / 2) / (Nat.factorial d : ℝ) := by
+  have hinv : C⁻¹ = (d : ℝ) ^ ((d : ℝ) / 2) *
+    ((d : ℝ) + 1) ^ (((d : ℝ) + 1) / 2) / (Nat.factorial d : ℝ) := by
     dsimp only [C]
     rw [mul_inv, mul_inv, ← Real.rpow_neg hd_pos.le, ← Real.rpow_neg hd1_pos.le]
     have h1 : -(-(d : ℝ) / 2) = (d : ℝ) / 2 := by ring
@@ -2037,7 +2059,8 @@ theorem minkowskiSurfaceArea_le_finrank_mul_volume_of_closedBall_subset
   set d := Module.finrank ℝ E
   set V := volume (K : Set E)
   have hV_ne_top : V ≠ ⊤ := K.isCompact.measure_lt_top.ne
-  have hsub : ∀ {t : ℝ}, 0 < t → (K : Set E) + t • closedBall (0 : E) 1 ⊆ (1 + t) • (K : Set E) := by
+  have hsub : ∀ {t : ℝ},
+    0 < t → (K : Set E) + t • closedBall (0 : E) 1 ⊆ (1 + t) • (K : Set E) := by
     intro t ht
     calc
       (K : Set E) + t • closedBall (0 : E) 1 ⊆ (K : Set E) + t • (K : Set E) :=
@@ -2062,7 +2085,8 @@ theorem minkowskiSurfaceArea_le_finrank_mul_volume_of_closedBall_subset
       have h1 : (1 : ℝ) ≤ (1 + t) ^ d := one_le_pow₀ (by linarith)
       have heq : ENNReal.ofReal ((1 + t) ^ d) * V =
           ENNReal.ofReal ((1 + t) ^ d - 1) * V + V := by
-        rw [← add_one_mul, ← ENNReal.ofReal_one, ← ENNReal.ofReal_add (sub_nonneg.mpr h1) zero_le_one,
+        rw [← add_one_mul, ← ENNReal.ofReal_one,
+          ← ENNReal.ofReal_add (sub_nonneg.mpr h1) zero_le_one,
           sub_add_cancel]
       exact tsub_le_iff_right.mpr (hvol_le.trans_eq heq)
     have hdiv : ENNReal.ofReal ((1 + t) ^ d - 1) / ENNReal.ofReal t =
@@ -2089,7 +2113,8 @@ theorem minkowskiSurfaceArea_le_finrank_mul_volume_of_closedBall_subset
     exact (ENNReal.Tendsto.mul_const h1 (Or.inr hV_ne_top))
   calc
     minkowskiSurfaceArea (K : Set E)
-      = liminf (fun t : ℝ => (volume ((K : Set E) + t • closedBall (0 : E) 1) - V) / ENNReal.ofReal t)
+      = liminf (fun t : ℝ =>
+        (volume ((K : Set E) + t • closedBall (0 : E) 1) - V) / ENNReal.ofReal t)
           (𝓝[>] (0 : ℝ)) := rfl
     _ ≤ liminf (fun t : ℝ => ENNReal.ofReal (((1 + t) ^ d - 1) / t) * V) (𝓝[>] (0 : ℝ)) :=
         liminf_le_liminf (eventually_nhdsWithin_of_forall fun _ ht => hdiff_le ht)
@@ -2105,7 +2130,8 @@ theorem ball_reverse_isoperimetric_symmetric [Nontrivial E]
     ∃ T : E ≃ₗ[ℝ] E,
       minkowskiSurfaceArea (T '' (K : Set E)) ≤
         (2 * (Module.finrank ℝ E : ℝ≥0∞)) *
-          volume (T '' (K : Set E)) ^ (((Module.finrank ℝ E - 1 : ℕ) : ℝ) / (Module.finrank ℝ E : ℝ)) := by
+          volume (T '' (K : Set E)) ^
+            (((Module.finrank ℝ E - 1 : ℕ) : ℝ) / (Module.finrank ℝ E : ℝ)) := by
   set d := Module.finrank ℝ E
   have hd_pos : 1 ≤ d := Module.finrank_pos
   have hd_rpos : (0 : ℝ) < d := Nat.cast_pos.mpr hd_pos
@@ -2148,7 +2174,8 @@ theorem ball_reverse_isoperimetric [Nontrivial E]
           ENNReal.ofReal ((Module.finrank ℝ E : ℝ) ^ ((Module.finrank ℝ E : ℝ) / 2) *
             ((Module.finrank ℝ E : ℝ) + 1) ^ (((Module.finrank ℝ E : ℝ) + 1) / 2) /
             (Nat.factorial (Module.finrank ℝ E) : ℝ)) ^ (1 / (Module.finrank ℝ E : ℝ)) *
-          volume (e '' (K : Set E)) ^ (((Module.finrank ℝ E - 1 : ℕ) : ℝ) / (Module.finrank ℝ E : ℝ)) := by
+          volume (e '' (K : Set E)) ^
+            (((Module.finrank ℝ E - 1 : ℕ) : ℝ) / (Module.finrank ℝ E : ℝ)) := by
   set d := Module.finrank ℝ E
   have hd_pos : 1 ≤ d := Module.finrank_pos
   have hd_rpos : (0 : ℝ) < d := Nat.cast_pos.mpr hd_pos
@@ -2298,7 +2325,8 @@ theorem barthe_polar_volume_of_john_position_symmetric [Nontrivial E]
           indicator_of_mem (mem_Ioi.mpr h0t), indicator_of_mem (mem_Ioi.mpr h1)]
       · by_cases h0t : 0 < t
         · simp [indicator_of_notMem (show (z, t) ∉ {p : E × ℝ | supportFn K p.1 < p.2} from h1),
-            indicator_of_mem (mem_Ioi.mpr h0t), indicator_of_notMem (show t ∉ Ioi (supportFn K z) from h1)]
+            indicator_of_mem (mem_Ioi.mpr h0t),
+              indicator_of_notMem (show t ∉ Ioi (supportFn K z) from h1)]
         · simp [indicator_of_notMem (show t ∉ Ioi (0 : ℝ) from h0t),
             indicator_of_notMem (show t ∉ Ioi (supportFn K z) from h1)]
     rw [hset]
@@ -2327,7 +2355,8 @@ theorem barthe_polar_volume_of_john_position_symmetric [Nontrivial E]
       ← ofReal_integral_eq_lintegral_ofReal (integrableOn_exp_neg_Ioi 0)
         (ae_of_all _ fun _ => (Real.exp_pos _).le),
       hf_int_pos, ENNReal.ofReal_one, mul_one]
-  have hH_le : ∫⁻ z : E, H z ≤ ENNReal.ofReal (Nat.factorial d : ℝ) * volume (polarBody (K : Set E)) := by
+  have hH_le : ∫⁻ z : E,
+    H z ≤ ENNReal.ofReal (Nat.factorial d : ℝ) * volume (polarBody (K : Set E)) := by
     let F : E → ℝ → ℝ≥0∞ := fun z t =>
       ({p : E × ℝ | supportFn K p.1 < p.2}).indicator
         (fun p => ENNReal.ofReal (Real.exp (-p.2))) (z, t)
@@ -2341,7 +2370,8 @@ theorem barthe_polar_volume_of_john_position_symmetric [Nontrivial E]
     rw [lintegral_lintegral_swap hmeas_ind.aemeasurable]
     have hslice : ∀ t : ℝ, 0 < t →
         ∫⁻ z : E, F z t ≤
-          ENNReal.ofReal (t ^ (d : ℝ) * Real.exp (-t)) * volume (polarBody (K : Set E)) := fun t ht => by
+          ENNReal.ofReal (t ^ (d : ℝ) * Real.exp (-t)) * volume (polarBody (K : Set E)) :=
+            fun t ht => by
       have hsub : {z : E | supportFn K z < t} ⊆ t • polarBody (K : Set E) := fun z hz => by
         refine ⟨t⁻¹ • z, ?_, by dsimp only; rw [smul_smul, mul_inv_cancel₀ ht.ne', one_smul]⟩
         intro x hx
@@ -2377,7 +2407,8 @@ theorem barthe_polar_volume_of_john_position_symmetric [Nontrivial E]
           lintegral_mul_const _ (by fun_prop)
       _ = ENNReal.ofReal (Nat.factorial d : ℝ) * volume (polarBody (K : Set E)) := by
           congr 1
-          have hint_gam : IntegrableOn (fun t : ℝ => t ^ (d : ℝ) * Real.exp (-t)) (Ioi 0) volume := by
+          have hint_gam : IntegrableOn (fun t : ℝ =>
+            t ^ (d : ℝ) * Real.exp (-t)) (Ioi 0) volume := by
             have h1 := integrableOn_Ioi_rpow_mul_exp_neg_mul (q := (d : ℝ)) (b := 1)
               (by linarith [Nat.cast_nonneg (α := ℝ) d]) zero_lt_one
             simpa using h1
@@ -2507,8 +2538,10 @@ theorem john_position_gaussian_measure_le [Nontrivial E]
           have := inner_le_supportFn (hsym k hk) (u i)
           rw [hsup i, inner_neg_left] at this; linarith
         exact ⟨by nlinarith, by nlinarith⟩
-      have hprod_eq : ∏ i, f i ⟪r • k, u i⟫ ^ c i = ENNReal.ofReal (stdGaussianDensity (r • k)) := by
-        have hterm : ∀ i, f i ⟪r • k, u i⟫ ^ c i = ENNReal.ofReal (γ ⟪r • k, u i⟫ ^ c i) := fun i => by
+      have hprod_eq : ∏ i, f i ⟪r • k,
+        u i⟫ ^ c i = ENNReal.ofReal (stdGaussianDensity (r • k)) := by
+        have hterm : ∀ i, f i ⟪r • k, u i⟫ ^ c i = ENNReal.ofReal (γ ⟪r • k, u i⟫ ^ c i) :=
+          fun i => by
           dsimp only [f]
           rw [indicator_of_mem (hmem i),
             ENNReal.ofReal_rpow_of_pos (gaussianPDFReal_pos 0 1 _ one_ne_zero)]
@@ -2517,7 +2550,8 @@ theorem john_position_gaussian_measure_le [Nontrivial E]
           Real.rpow_nonneg (gaussianPDFReal_nonneg 0 1 _) _)]
         congr 1
         have h2pi_pos : (0 : ℝ) < 2 * Real.pi := by positivity
-        have hγ_form : ∀ t : ℝ, γ t = (2 * Real.pi) ^ (-(1 : ℝ) / 2) * Real.exp (-(t ^ 2) / 2) := fun t => by
+        have hγ_form : ∀ t : ℝ, γ t = (2 * Real.pi) ^ (-(1 : ℝ) / 2) * Real.exp (-(t ^ 2) / 2) :=
+          fun t => by
           rw [show γ t = gaussianPDFReal 0 1 t from rfl, gaussianPDFReal_def]
           simp only [NNReal.coe_one, mul_one, sub_zero]
           congr 1

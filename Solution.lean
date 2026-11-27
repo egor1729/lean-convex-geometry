@@ -71,7 +71,8 @@ theorem supporting_hyperplane {E : Type*} [NormedAddCommGroup E] [InnerProductSp
 
 theorem simplex_volume {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)) :
     volume (convexHull ℝ (Set.range v)) =
-      ENNReal.ofReal (|(Matrix.of fun i j : Fin d => v j.succ i - v 0 i).det| / (d.factorial : ℝ)) :=
+      ENNReal.ofReal (|(Matrix.of fun i j : Fin d =>
+        v j.succ i - v 0 i).det| / (d.factorial : ℝ)) :=
   ConvexGeom.volume_convexHull_simplex_matrix v
 
 theorem helly_theorem {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
@@ -231,7 +232,8 @@ theorem ball_reverse_isoperimetric_symmetric {E : Type*} [NormedAddCommGroup E]
     ∃ T : E ≃ₗ[ℝ] E,
       minkowskiSurfaceArea (T '' (K : Set E)) ≤
         (2 * (Module.finrank ℝ E : ℝ≥0∞)) *
-          volume (T '' (K : Set E)) ^ (((Module.finrank ℝ E - 1 : ℕ) : ℝ) / (Module.finrank ℝ E : ℝ)) :=
+          volume (T '' (K : Set E)) ^
+            (((Module.finrank ℝ E - 1 : ℕ) : ℝ) / (Module.finrank ℝ E : ℝ)) :=
   ConvexGeom.ball_reverse_isoperimetric_symmetric K hsym h0
 
 theorem ball_reverse_isoperimetric {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
@@ -243,7 +245,8 @@ theorem ball_reverse_isoperimetric {E : Type*} [NormedAddCommGroup E] [InnerProd
           ENNReal.ofReal ((Module.finrank ℝ E : ℝ) ^ ((Module.finrank ℝ E : ℝ) / 2) *
             ((Module.finrank ℝ E : ℝ) + 1) ^ (((Module.finrank ℝ E : ℝ) + 1) / 2) /
             (Nat.factorial (Module.finrank ℝ E) : ℝ)) ^ (1 / (Module.finrank ℝ E : ℝ)) *
-          volume (e '' (K : Set E)) ^ (((Module.finrank ℝ E - 1 : ℕ) : ℝ) / (Module.finrank ℝ E : ℝ)) :=
+          volume (e '' (K : Set E)) ^
+            (((Module.finrank ℝ E - 1 : ℕ) : ℝ) / (Module.finrank ℝ E : ℝ)) :=
   ConvexGeom.ball_reverse_isoperimetric K hint
 
 theorem gaussian_lipschitz_concentration {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
@@ -286,10 +289,13 @@ theorem dvoretzky_theorem {E : Type*} [NormedAddCommGroup E] [InnerProductSpace 
       Module.finrank ℝ F = k ∧
       (∀ w : EuclideanSpace ℝ (Fin k),
         ‖w‖ ≤ gauge (K : Set E) (T w : E) ∧ gauge (K : Set E) (T w : E) ≤ (1 + ε) * ‖w‖) ∧
-      ((1 + ε)⁻¹ • ((F.subtype.comp T.toLinearMap) '' Metric.closedBall (0 : EuclideanSpace ℝ (Fin k)) 1) ⊆
+      ((1 + ε)⁻¹ •
+          ((F.subtype.comp T.toLinearMap) ''
+            Metric.closedBall (0 : EuclideanSpace ℝ (Fin k)) 1) ⊆
           (K : Set E) ∩ (F : Set E) ∧
         (K : Set E) ∩ (F : Set E) ⊆
-          (F.subtype.comp T.toLinearMap) '' Metric.closedBall (0 : EuclideanSpace ℝ (Fin k)) 1) :=
+          (F.subtype.comp T.toLinearMap) ''
+            Metric.closedBall (0 : EuclideanSpace ℝ (Fin k)) 1) :=
   ConvexGeom.dvoretzky_theorem K hsym h0 hd2 hε0 hε1 hk_bd
 
 theorem blaschke_santalo {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]

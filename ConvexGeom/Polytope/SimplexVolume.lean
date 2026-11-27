@@ -217,7 +217,8 @@ theorem volume_orderSimplex (d : ℕ) :
   have hcube : volume (Icc (0 : Fin d → ℝ) 1) = 1 := by
     rw [Real.volume_Icc_pi]
     simp
-  -- Tiling `[0, 1]^d` by the `d!` a.e.-disjoint permuted simplices gives `1 = d! * vol(orderSimplex d)`.
+  -- Tiling `[0, 1]^d` by the `d!` a.e.-disjoint permuted simplices gives
+  -- `1 = d! * vol(orderSimplex d)` .
   have hsum : (1 : ENNReal) = (d.factorial : ENNReal) * volume (orderSimplex d) := by
     calc
       (1 : ENNReal) = volume (Icc (0 : Fin d → ℝ) 1) := hcube.symm
@@ -394,7 +395,8 @@ lemma simplexEdgeMatrix_apply {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)) (i
     simplexEdgeMatrix v i j = v j.succ i - v 0 i := by
   rfl
 
-/-- `simplexEdgeMap v` has the same determinant as the explicit edge matrix `simplexEdgeMatrix v`. -/
+/-- `simplexEdgeMap v` has the same determinant as the explicit edge matrix `simplexEdgeMatrix v` .
+-/
 theorem det_simplexEdgeMap_eq_det_matrix {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)) :
     (simplexEdgeMap v).det = (simplexEdgeMatrix v).det := by
   rw [← LinearMap.det_toMatrix']
@@ -408,7 +410,8 @@ theorem det_simplexEdgeMap_eq_det_matrix {d : ℕ} (v : Fin (d + 1) → (Fin d �
     simp [Pi.single_eq_of_ne hkj]
   · intro hj; exact absurd (Finset.mem_univ j) hj
 
-/-- `convexHull ℝ (Set.range v)` is the translate by `v 0` of `simplexEdgeMap v '' solidSimplex d`. -/
+/-- `convexHull ℝ (Set.range v)` is the translate by `v 0` of `simplexEdgeMap v '' solidSimplex d` .
+-/
 lemma convexHull_range_eq_image_solidSimplex {d : ℕ} (v : Fin (d + 1) → (Fin d → ℝ)) :
     convexHull ℝ (Set.range v) = (fun x => v 0 + x) '' (simplexEdgeMap v '' solidSimplex d) := by
   rw [convexHull_range_eq_exists_affineCombination]
@@ -505,7 +508,8 @@ theorem volume_convexHull_simplex_euclideanSpace {d : ℕ}
       rwa [← this]
   have hmeas : NullMeasurableSet (convexHull ℝ (Set.range (fun i => (v i).ofLp))) volume :=
     ((Set.finite_range _).isCompact_convexHull ℝ).isClosed.measurableSet.nullMeasurableSet
-  rw [hpre, (EuclideanSpace.volume_preserving_symm_measurableEquiv_toLp (Fin d)).measure_preimage hmeas]
+  rw [hpre,
+    (EuclideanSpace.volume_preserving_symm_measurableEquiv_toLp (Fin d)).measure_preimage hmeas]
   exact volume_convexHull_simplex (fun i => (v i).ofLp)
 
 /-- **Matrix-determinant form of $d$-simplex volume in `EuclideanSpace ℝ (Fin d)`.** -/

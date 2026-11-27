@@ -221,7 +221,8 @@ theorem isCompact_subset_closedBall (R : ℝ) :
         (abs_supportFn_le_of_subset_closedBall hKR u).trans
           ((mul_le_mul_of_nonneg_left hu1 hR0).trans (by rw [mul_one]))
       exact abs_le.mp habs
-    · refine (LipschitzWith.uniformEquicontinuous (fun f : A => (f.1 : Metric.closedBall (0 : E) 1 → ℝ))
+    · refine (LipschitzWith.uniformEquicontinuous (fun f : A =>
+        (f.1 : Metric.closedBall (0 : E) 1 → ℝ))
         ⟨R, hR0⟩ ?_).equicontinuous
       rintro ⟨_, K, hKR, rfl⟩
       refine LipschitzWith.of_dist_le_mul fun u v => ?_

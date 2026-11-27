@@ -54,11 +54,13 @@ noncomputable def metricProj (K : ConvexBody E) (x : E) : E :=
   (exists_norm_eq_iInf_of_complete_convex K.nonempty K.isCompact.isComplete K.convex x).choose
 
 theorem metricProj_mem (K : ConvexBody E) (x : E) : metricProj K x ∈ K :=
-  (exists_norm_eq_iInf_of_complete_convex K.nonempty K.isCompact.isComplete K.convex x).choose_spec.1
+  (exists_norm_eq_iInf_of_complete_convex K.nonempty K.isCompact.isComplete
+    K.convex x).choose_spec.1
 
 theorem norm_sub_metricProj_eq_iInf (K : ConvexBody E) (x : E) :
     ‖x - metricProj K x‖ = ⨅ w : (K : Set E), ‖x - w‖ :=
-  (exists_norm_eq_iInf_of_complete_convex K.nonempty K.isCompact.isComplete K.convex x).choose_spec.2
+  (exists_norm_eq_iInf_of_complete_convex K.nonempty K.isCompact.isComplete
+    K.convex x).choose_spec.2
 
 theorem norm_sub_metricProj_le (K : ConvexBody E) (x : E) {z : E} (hz : z ∈ K) :
     ‖x - metricProj K x‖ ≤ ‖x - z‖ := by

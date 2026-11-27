@@ -224,7 +224,8 @@ theorem diam_minkowskiSymm_le {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) :
   rw [dist_eq_norm]
   have hsplit : ((1 / 2 : ℝ) • x₁ + (1 / 2 : ℝ) • reflectHyperplane hu x₂) -
       ((1 / 2 : ℝ) • y₁ + (1 / 2 : ℝ) • reflectHyperplane hu y₂) =
-      (1 / 2 : ℝ) • (x₁ - y₁) + (1 / 2 : ℝ) • (reflectHyperplane hu x₂ - reflectHyperplane hu y₂) := by
+      (1 / 2 : ℝ) • (x₁ - y₁) +
+        (1 / 2 : ℝ) • (reflectHyperplane hu x₂ - reflectHyperplane hu y₂) := by
     rw [smul_sub, smul_sub]; abel
   rw [hsplit]
   calc

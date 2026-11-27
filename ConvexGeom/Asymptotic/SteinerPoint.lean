@@ -61,9 +61,11 @@ theorem integral_sphereProb_id :
       (sphereMap (LinearIsometryEquiv.neg ℝ (E := E))).measurableEmbedding
       (fun u : sphere (0 : E) 1 => (u : E))
     simpa [sphereMap_coe, integral_neg] using hcomp.symm
-  have htwo : (2 : ℝ) • (∫ u : sphere (0 : E) 1, (u : E) ∂(sphereProb (volume : Measure E))) = 0 := by
+  have htwo : (2 : ℝ) • (∫ u : sphere (0 : E) 1, (u : E) ∂(sphereProb (volume : Measure E))) =
+    0 := by
     rw [two_smul]
-    conv_rhs => rw [← add_neg_cancel (∫ u : sphere (0 : E) 1, (u : E) ∂(sphereProb (volume : Measure E)))]
+    conv_rhs =>
+      rw [← add_neg_cancel (∫ u : sphere (0 : E) 1, (u : E) ∂(sphereProb (volume : Measure E)))]
     congr 1
   exact (smul_eq_zero.mp htwo).resolve_left two_ne_zero
 
@@ -191,10 +193,12 @@ theorem finrank_smul_integral_inner_smul_sphereProb [Nontrivial E] (x : E) :
   refine ext_inner_right ℝ fun v => ?_
   have hint : Integrable (fun u : sphere (0 : E) 1 => ⟪x, u.1⟫ • (u.1 : E))
       (sphereProb (volume : Measure E)) :=
-    ((continuous_const.inner continuous_subtype_val).smul continuous_subtype_val).integrable_of_hasCompactSupport
+    ((continuous_const.inner continuous_subtype_val).smul
+      continuous_subtype_val).integrable_of_hasCompactSupport
       (HasCompactSupport.of_compactSpace _)
   rw [inner_smul_left, RCLike.conj_to_real]
-  have hcomm : ⟪∫ u : sphere (0 : E) 1, ⟪x, u.1⟫ • (u.1 : E) ∂(sphereProb (volume : Measure E)), v⟫ =
+  have hcomm : ⟪∫ u : sphere (0 : E) 1, ⟪x, u.1⟫ • (u.1 : E) ∂(sphereProb (volume : Measure E)),
+    v⟫ =
       ∫ u : sphere (0 : E) 1, ⟪u.1, x⟫ * ⟪u.1, v⟫ ∂(sphereProb (volume : Measure E)) := by
     have h := (innerSL ℝ v).integral_comp_comm hint
     rw [real_inner_comm v _]
@@ -421,7 +425,8 @@ theorem steinerPoint_mem [Nontrivial E] (K : ConvexBody E) :
       exact hint1.sub hint2
     have hint_rhs : Integrable (fun u : sphere (0 : E) 1 => (2 * supportFn K v) * ⟪u.1, v⟫ ^ 2)
         (sphereProb (volume : Measure E)) :=
-      (continuous_const.mul ((continuous_subtype_val.inner continuous_const).pow 2)).integrable_of_hasCompactSupport
+      (continuous_const.mul
+        ((continuous_subtype_val.inner continuous_const).pow 2)).integrable_of_hasCompactSupport
         (HasCompactSupport.of_compactSpace _)
     have h2I_le : 2 * I ≤ (2 * supportFn K v) / (d : ℝ) := by
       calc

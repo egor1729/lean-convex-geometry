@@ -103,7 +103,8 @@ theorem brunn_minkowski_one_dim_compact {A B : Set ℝ}
     _ = volume (A' ∪ B') := hunion.symm
     _ ≤ volume (A + B) := measure_mono (union_subset hA'_sub hB'_sub)
 
-/-- Helper: every nonempty measurable set `A ⊆ ℝ` is inner-approximated by nonempty compact subsets. -/
+/-- Helper: every nonempty measurable set `A ⊆ ℝ` is inner-approximated by nonempty compact subsets.
+-/
 private lemma exists_isCompact_nonempty_lt {A : Set ℝ} (hAm : MeasurableSet A) (hAne : A.Nonempty)
     {c : ℝ≥0∞} (hc : c < volume A) :
     ∃ K, K ⊆ A ∧ IsCompact K ∧ K.Nonempty ∧ c < volume K := by
