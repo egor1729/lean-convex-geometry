@@ -7,11 +7,14 @@ module
 
 public import ConvexGeom.Metric.Polarity
 public import ConvexGeom.Volume.Symmetrization
+public import Mathlib.Analysis.Convex.Gauge
 public import Mathlib.LinearAlgebra.AffineSpace.AffineEquiv
 public import Mathlib.LinearAlgebra.Determinant
 public import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
 
 import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Analysis.LocallyConvex.Basic
+import Mathlib.Analysis.Normed.Module.FiniteDimension
 import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 import Mathlib.Topology.Algebra.Module.FiniteDimension
 
@@ -19,42 +22,44 @@ import Mathlib.Topology.Algebra.Module.FiniteDimension
 # Origin-Symmetric Bodies, Ellipsoids, Mahler Volume, and Banach–Mazur Distance
 
 This module provides the linear- and affine-invariant geometric foundations used throughout
-asymptotic geometric analysis (Ball, Lectures 3–4; Klartag; Artstein-Avidan–Giannopoulos–Milman,
-Ch. 1–4):
+asymptotic geometric analysis, including Mathlib bridges between `IsOriginSymmetric` and
+`Balanced` / `gaugeSeminorm`.
 
-1. **Origin-Symmetric Sets (`IsOriginSymmetric`):**
-   Closure under polarity, linear images, scaling, Minkowski sums, and symmetrizations;
-   support-function characterization (`isOriginSymmetric_convexBody_iff_supportFn`);
-   evenness and absolute homogeneity of the Minkowski gauge (`gauge_smul_abs_of_isOriginSymmetric`)
-   and equivalence of one-sided and absolute polarity (`mem_polarBody_iff_abs_inner_le_one`).
-2. **Adjoint Determinant & Polarity under `GL(E)`:**
-   - `det_adjoint_eq_det`: `(LinearMap.adjoint f).det = f.det` on any finite-dimensional real
-     inner product space.
-   - `adjointLinearEquiv`: the adjoint equivalence `T† : E ≃ₗ[ℝ] E`.
-   - `polarBody_linearEquiv_image`: `(T '' S)° = (T⁻¹)† '' S°`.
-3. **Ellipsoids & Mahler Volume (`mahlerVolume`, `mahlerVolumeAt`, `santaloMahlerVolume`):**
-   - `ellipsoid T := T '' closedBall 0 1`: compactness, convexity, symmetry, `0 ∈ interior`,
-     polarity (`polarBody_ellipsoid`), and add-Haar volume (`addHaar_ellipsoid`).
-   - `mahlerVolume μ S := μ S * μ (polarBody S)` is **origin-centered** (`GL(E)`-invariant,
-     `mahlerVolume_linearEquiv`, `mahlerVolume_ellipsoid`, but NOT translation-invariant on
-     non-symmetric sets).
-   - `mahlerVolumeAt μ S z := mahlerVolume μ ((· - z) '' S)` and the **Santaló Mahler volume**
-     `santaloMahlerVolume μ S := ⨅ z : interior S, mahlerVolumeAt μ S z.1` are translation- and
-     full affine-invariant (`santaloMahlerVolume_translate`, `santaloMahlerVolume_affineEquiv`).
-4. **Origin-Fixed (Linear) Banach–Mazur Distance (`banachMazurDist`, `banachMazurEDist`):**
-   $$d_{\mathrm{BM}}(K, L) := \inf \{ r \ge 1 \mid \exists T \in \mathrm{GL}(E),\; K \subseteq T(L) \subseteq r K \}.$$
-   - Appropriate for origin-symmetric bodies (for general non-symmetric bodies, recentering is
-     needed; see Section 5).
-   - Note: the real-valued `banachMazurDist` defaults to `0` on infeasible pairs via
-     `Real.sInf_empty`; `banachMazurEDist : ℝ≥0∞` returns `⊤` on infeasible pairs and satisfies
-     the unconditional multiplicative triangle inequality `banachMazurEDist_mul_triangle`.
-   - Reflexivity, symmetry, `GL(E)`- and positive-scale invariance, polarity invariance
-     (`banachMazurDist_polar`), and Mahler volume comparison.
-5. **Affine Banach–Mazur Distance (`affineBanachMazurDist`, `affineBanachMazurEDist`):**
-   $$d_{\mathrm{BM}}^{\mathrm{aff}}(K, L) := \inf \{ r \ge 1 \mid \exists T \in \mathrm{GL}(E),\, x, y \in E,\; K - x \subseteq T(L - y) \subseteq r (K - x) \}.$$
-   - Invariant under all affine equivalences `E ≃ᵃ[ℝ] E` on both arguments, bounded above by
-     `banachMazurDist`, and satisfies the multiplicative triangle inequality (unconditionally in
-     `ℝ≥0∞`).
+## Main definitions
+
+* `ConvexGeom.IsOriginSymmetric`: `∀ x ∈ S, -x ∈ S`, bridged to Mathlib's `Balanced ℝ S` and
+  `gaugeSeminorm` via `isOriginSymmetric_iff_balanced` and `gaugeSeminorm_of_isOriginSymmetric`.
+* `ConvexGeom.adjointLinearEquiv`: the adjoint equivalence `T† : E ≃ₗ[ℝ] E`.
+* `ConvexGeom.ellipsoid`: centered ellipsoid `T '' closedBall 0 1`.
+* `ConvexGeom.mahlerVolume`, `ConvexGeom.mahlerVolumeAt`, `ConvexGeom.santaloMahlerVolume`:
+  origin-centered, point-centered, and affine-invariant Santaló Mahler volumes.
+* `ConvexGeom.banachMazurDist`, `ConvexGeom.banachMazurEDist`,
+  `ConvexGeom.affineBanachMazurDist`, `ConvexGeom.affineBanachMazurEDist`:
+  linear and affine Banach–Mazur distances (both real-valued and `ℝ≥0∞`-valued).
+
+## Main statements
+
+* `ConvexGeom.isOriginSymmetric_iff_balanced`, `ConvexGeom.isOriginSymmetric_convexBody_iff_supportFn`,
+  `ConvexGeom.gauge_smul_abs_of_isOriginSymmetric`, `ConvexGeom.mem_polarBody_iff_abs_inner_le_one`.
+* `ConvexGeom.det_adjoint_eq_det`, `ConvexGeom.polarBody_linearEquiv_image`,
+  `ConvexGeom.mahlerVolume_linearEquiv`, `ConvexGeom.santaloMahlerVolume_affineEquiv`.
+* `ConvexGeom.banachMazurDist_symm`, `ConvexGeom.banachMazurDist_mul_triangle`,
+  `ConvexGeom.banachMazurEDist_mul_triangle`, `ConvexGeom.banachMazurDist_polar`,
+  `ConvexGeom.affineBanachMazurDist_affineEquiv_left`,
+  `ConvexGeom.affineBanachMazurEDist_mul_triangle`.
+
+## Implementation notes
+
+The real-valued `banachMazurDist` and `affineBanachMazurDist` default to `0` on infeasible pairs
+via `Real.sInf_empty`, whereas `banachMazurEDist` and `affineBanachMazurEDist` take values in
+`ℝ≥0∞` (returning `⊤` on infeasible pairs) and satisfy unconditional multiplicative triangle
+inequalities.
+
+## References
+
+* [K. Ball, *An Elementary Introduction to Modern Convex Geometry*][ball1997], Lectures 3–4
+* [S. Artstein-Avidan, A. Giannopoulos, V. D. Milman, *Asymptotic Geometric Analysis,
+  Part I*][agm2015], Chapters 1–4
 -/
 
 open MeasureTheory Set Metric
@@ -106,6 +111,30 @@ end OriginSymmetricBasic
 section OriginSymmetric
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- A convex set in a real vector space is origin-symmetric if and only if it is `Balanced ℝ`. -/
+theorem isOriginSymmetric_iff_balanced {S : Set E} (hconv : Convex ℝ S) :
+    IsOriginSymmetric S ↔ Balanced ℝ S := by
+  rw [balanced_iff_neg_mem hconv]
+  rfl
+
+/-- An origin-symmetric convex set is `Balanced ℝ`. -/
+lemma IsOriginSymmetric.balanced {S : Set E} (hS : IsOriginSymmetric S) (hconv : Convex ℝ S) :
+    Balanced ℝ S :=
+  (isOriginSymmetric_iff_balanced hconv).mp hS
+
+/-- Package the Minkowski gauge of an origin-symmetric, convex, absorbent set as Mathlib's
+`gaugeSeminorm`. -/
+@[expose]
+noncomputable def gaugeSeminorm_of_isOriginSymmetric {S : Set E}
+    (hS : IsOriginSymmetric S) (hconv : Convex ℝ S) (habs : Absorbent ℝ S) : Seminorm ℝ E :=
+  gaugeSeminorm (hS.balanced hconv) hconv habs
+
+@[simp]
+lemma gaugeSeminorm_of_isOriginSymmetric_apply {S : Set E}
+    (hS : IsOriginSymmetric S) (hconv : Convex ℝ S) (habs : Absorbent ℝ S) (x : E) :
+    gaugeSeminorm_of_isOriginSymmetric hS hconv habs x = gauge S x :=
+  rfl
 
 lemma isOriginSymmetric_polarBody {S : Set E} (hS : IsOriginSymmetric S) :
     IsOriginSymmetric (polarBody S) := by
@@ -180,21 +209,8 @@ lemma isOriginSymmetric_minkowskiSymm [CompleteSpace E] {u : E} (hu : ‖u‖ = 
 
 /-- For an origin-symmetric set `S`, the Minkowski gauge is even: `gauge S (-x) = gauge S x`. -/
 lemma gauge_neg_of_isOriginSymmetric {S : Set E} (hS : IsOriginSymmetric S) (x : E) :
-    gauge S (-x) = gauge S x := by
-  have heq : {r : ℝ | 0 < r ∧ -x ∈ r • S} = {r : ℝ | 0 < r ∧ x ∈ r • S} := by
-    ext r
-    simp only [mem_ofPred_eq, and_congr_right_iff]
-    intro _
-    constructor
-    · rintro ⟨y, hy, hyx⟩
-      refine ⟨-y, hS y hy, ?_⟩
-      dsimp only at hyx ⊢
-      rw [smul_neg, hyx, neg_neg]
-    · rintro ⟨y, hy, hyx⟩
-      refine ⟨-y, hS y hy, ?_⟩
-      dsimp only at hyx ⊢
-      rw [smul_neg, hyx]
-  simp only [gauge, heq]
+    gauge S (-x) = gauge S x :=
+  gauge_neg hS x
 
 /-- For an origin-symmetric set `S`, the Minkowski gauge is positively and negatively homogeneous:
 `gauge S (c • x) = |c| * gauge S x` for all `c : ℝ`. -/
@@ -230,25 +246,6 @@ end OriginSymmetric
 section AdjointAndPolar
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-
-/-- Scalar multiplication by a nonzero real number as a `LinearEquiv`. -/
-noncomputable def smulLinearEquiv {c : ℝ} (hc : c ≠ 0) : E ≃ₗ[ℝ] E where
-  toFun x := c • x
-  invFun x := c⁻¹ • x
-  left_inv x := by dsimp only; rw [smul_smul, inv_mul_cancel₀ hc, one_smul]
-  right_inv x := by dsimp only; rw [smul_smul, mul_inv_cancel₀ hc, one_smul]
-  map_add' x y := smul_add c x y
-  map_smul' a x := smul_comm c a x
-
-@[simp]
-lemma smulLinearEquiv_apply {c : ℝ} (hc : c ≠ 0) (x : E) :
-    smulLinearEquiv hc x = c • x := by
-  rfl
-
-lemma smulLinearEquiv_image {c : ℝ} (hc : c ≠ 0) (S : Set E) :
-    (smulLinearEquiv hc) '' S = c • S := by
-  ext x
-  simp only [mem_image, mem_smul_set, smulLinearEquiv_apply]
 
 /-- On a finite-dimensional real inner product space, the adjoint has the same determinant:
 `det (f†) = det f`. -/
@@ -398,12 +395,17 @@ theorem mahlerVolume_linearEquiv [FiniteDimensional ℝ E] [MeasurableSpace E] [
           ring
     _ = μ S * μ (polarBody S) := by rw [hmul, one_mul]
 
+private lemma smulOfNeZero_image {c : ℝ} (hc : c ≠ 0) (S : Set E) :
+    (LinearEquiv.smulOfNeZero ℝ E c hc) '' S = c • S := by
+  ext x
+  simp [mem_smul_set]
+
 /-- Scale invariance of Mahler volume for any nonzero scalar `c`. -/
 theorem mahlerVolume_smul [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
     (μ : Measure E) [μ.IsAddHaarMeasure] {c : ℝ} (hc : c ≠ 0) (S : Set E) :
     mahlerVolume μ (c • S) = mahlerVolume μ S := by
-  rw [← smulLinearEquiv_image hc]
-  exact mahlerVolume_linearEquiv μ (smulLinearEquiv hc) S
+  rw [← smulOfNeZero_image hc]
+  exact mahlerVolume_linearEquiv μ (LinearEquiv.smulOfNeZero ℝ E c hc) S
 
 /-- Every centered ellipsoid has the same Mahler volume as the Euclidean unit ball:
 `mahlerVolume μ (ellipsoid T) = μ (closedBall 0 1) ^ 2`. -/
@@ -411,17 +413,6 @@ theorem mahlerVolume_ellipsoid [FiniteDimensional ℝ E] [MeasurableSpace E] [Bo
     (μ : Measure E) [μ.IsAddHaarMeasure] (T : E ≃ₗ[ℝ] E) :
     mahlerVolume μ (ellipsoid T) = μ (closedBall (0 : E) 1) ^ 2 := by
   rw [ellipsoid, mahlerVolume_linearEquiv, mahlerVolume, polarBody_closedBall one_pos, inv_one, sq]
-
-/-- Helper: an affine equivalence on a finite-dimensional real inner product space is a
-homeomorphism. -/
-private noncomputable def affineEquivHomeomorph [FiniteDimensional ℝ E] (A : E ≃ᵃ[ℝ] E) :
-    E ≃ₜ E :=
-  A.linear.toContinuousLinearEquiv.toHomeomorph.trans (Homeomorph.addRight (A 0))
-
-private lemma affineEquivHomeomorph_apply [FiniteDimensional ℝ E] (A : E ≃ᵃ[ℝ] E) (x : E) :
-    affineEquivHomeomorph A x = A x := by
-  have h := A.map_vadd 0 x
-  simpa [affineEquivHomeomorph, vadd_eq_add] using h.symm
 
 private lemma affineEquiv_sub (A : E ≃ᵃ[ℝ] E) (x z : E) :
     A x - A z = A.linear (x - z) := by
@@ -509,12 +500,11 @@ theorem santaloMahlerVolume_translate [MeasurableSpace E] (μ : Measure E) (S : 
 theorem santaloMahlerVolume_affineEquiv [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
     (μ : Measure E) [μ.IsAddHaarMeasure] (A : E ≃ᵃ[ℝ] E) (S : Set E) :
     santaloMahlerVolume μ (A '' S) = santaloMahlerVolume μ S := by
-  let h : E ≃ₜ E := affineEquivHomeomorph A
-  have hS : A '' S = h '' S := by
-    ext y; simp [affineEquivHomeomorph_apply, h]
+  let h : E ≃ₜ E := A.toContinuousAffineEquiv.toHomeomorph
+  have hS : A '' S = h '' S := rfl
   have hint : interior (A '' S) = A '' interior S := by
     rw [hS, ← h.image_interior]
-    ext y; simp [affineEquivHomeomorph_apply, h]
+    rfl
   let e : interior S ≃ interior (A '' S) :=
     { toFun := fun z => ⟨A z.1, hint ▸ ⟨z.1, z.2, rfl⟩⟩
       invFun := fun w => ⟨A.symm w.1, by
@@ -588,9 +578,9 @@ lemma banachMazurSet_nonempty {K L : Set E}
   set r := max 1 (c * b₂ / a₁)
   have hr1 : 1 ≤ r := le_max_left _ _
   have hr_pos : 0 < r := lt_of_lt_of_le zero_lt_one hr1
-  refine ⟨r, hr1, smulLinearEquiv hc.ne', ?_, ?_⟩
+  refine ⟨r, hr1, LinearEquiv.smulOfNeZero ℝ E c hc.ne', ?_, ?_⟩
   · intro x hx
-    rw [smulLinearEquiv_image]
+    rw [smulOfNeZero_image]
     refine ⟨c⁻¹ • x, hcbL ?_, by dsimp only; rw [smul_smul, mul_inv_cancel₀ hc.ne', one_smul]⟩
     rw [mem_closedBall_zero_iff, norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hc)]
     have hxnorm : ‖x‖ ≤ b₁ := mem_closedBall_zero_iff.mp (hKb₁ hx)
@@ -598,7 +588,7 @@ lemma banachMazurSet_nonempty {K L : Set E}
       c⁻¹ * ‖x‖ ≤ c⁻¹ * b₁ := mul_le_mul_of_nonneg_left hxnorm (inv_nonneg.mpr hc.le)
       _ = a₂ := by dsimp only [c]; field_simp [hb₁.ne', ha₂.ne']
   · intro y hy
-    rw [smulLinearEquiv_image] at hy
+    rw [smulOfNeZero_image] at hy
     rcases hy with ⟨z, hz, rfl⟩
     refine ⟨r⁻¹ • (c • z), hcbK ?_, ?_⟩
     · rw [mem_closedBall_zero_iff, norm_smul, norm_smul, Real.norm_eq_abs, Real.norm_eq_abs,
@@ -633,7 +623,7 @@ lemma banachMazurSet_symm (K L : Set E) :
   have hsub : ∀ A B : Set E, banachMazurSet A B ⊆ banachMazurSet B A := by
     intro A B r ⟨hr1, T, h1, h2⟩
     have hr_pos : 0 < r := lt_of_lt_of_le zero_lt_one hr1
-    refine ⟨hr1, (smulLinearEquiv hr_pos.ne').trans T.symm, ?_, ?_⟩
+    refine ⟨hr1, (LinearEquiv.smulOfNeZero ℝ E r hr_pos.ne').trans T.symm, ?_, ?_⟩
     · intro y hy
       have hTy : T y ∈ r • A := h2 ⟨y, hy, rfl⟩
       rcases hTy with ⟨x, hx, hrx⟩
@@ -681,11 +671,11 @@ theorem banachMazurDist_linearEquiv_left (K L : Set E) (A : E ≃ₗ[ℝ] E) :
 /-- Scale invariance of Banach–Mazur distance on both arguments. -/
 theorem banachMazurDist_smul_right (K L : Set E) {c : ℝ} (hc : c ≠ 0) :
     banachMazurDist K (c • L) = banachMazurDist K L := by
-  rw [← smulLinearEquiv_image hc, banachMazurDist_linearEquiv_right]
+  rw [← smulOfNeZero_image hc, banachMazurDist_linearEquiv_right]
 
 theorem banachMazurDist_smul_left (K L : Set E) {c : ℝ} (hc : c ≠ 0) :
     banachMazurDist (c • K) L = banachMazurDist K L := by
-  rw [← smulLinearEquiv_image hc, banachMazurDist_linearEquiv_left]
+  rw [← smulOfNeZero_image hc, banachMazurDist_linearEquiv_left]
 
 /-- **Multiplicative Triangle Inequality:**
 `banachMazurDist K M ≤ banachMazurDist K L * banachMazurDist L M`
@@ -732,9 +722,10 @@ theorem banachMazurDist_polar [FiniteDimensional ℝ E] {K L : Set E}
   have hsub : ∀ A B : Set E, banachMazurSet A B ⊆ banachMazurSet (polarBody A) (polarBody B) := by
     intro A B r ⟨hr1, T, h1, h2⟩
     have hr_pos : 0 < r := lt_of_lt_of_le zero_lt_one hr1
-    let S : E ≃ₗ[ℝ] E := (adjointLinearEquiv T.symm).trans (smulLinearEquiv hr_pos.ne')
+    let S : E ≃ₗ[ℝ] E :=
+      (adjointLinearEquiv T.symm).trans (LinearEquiv.smulOfNeZero ℝ E r hr_pos.ne')
     have hSimg : S '' polarBody B = r • polarBody (T '' B) := by
-      rw [polarBody_linearEquiv_image, ← smulLinearEquiv_image hr_pos.ne', ← Set.image_comp]
+      rw [polarBody_linearEquiv_image, ← smulOfNeZero_image hr_pos.ne', ← Set.image_comp]
       rfl
     refine ⟨hr1, S, ?_, ?_⟩
     · rw [hSimg]

@@ -9,6 +9,7 @@ public import ConvexGeom.Asymptotic.BanachMazur
 public import ConvexGeom.Metric.Blaschke
 public import ConvexGeom.Metric.Projection
 public import ConvexGeom.Polytope.Combinatorial
+public import Mathlib.Analysis.InnerProductSpace.LinearMap
 public import Mathlib.Analysis.InnerProductSpace.Spectrum
 public import Mathlib.LinearAlgebra.Trace
 
@@ -21,44 +22,55 @@ import Mathlib.Analysis.Normed.Module.FiniteDimension
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-!
-# Fritz John's Theorem, John's Decomposition, and the Banach–Mazur Compactum
+# Fritz John's Theorem, John's Decomposition, Löwner's Theorem, and the Banach–Mazur Compactum
 
-This module develops the theory of maximal-volume inscribed ellipsoids, John's decomposition of the
-identity, and the Banach–Mazur compactum on finite-dimensional real inner product spaces
-(Ball, *An Elementary Introduction to Modern Convex Geometry*, Lectures 3–4;
-Artstein-Avidan–Giannopoulos–Milman, *Asymptotic Geometric Analysis I*, Ch. 2):
+This module develops the theory of maximal-volume inscribed ellipsoids (John ellipsoids),
+minimal-volume enclosing ellipsoids (Löwner ellipsoids), John's decomposition of the identity,
+and the Banach–Mazur compactum on finite-dimensional real inner product spaces.
 
-1. **Rank-One Operators, Spectral Formulas & Positive-Semidefinite Ellipsoids:**
-   - `rankOne u v`: the rank-one linear map `x ↦ ⟪x, v⟫ • u` (`u ⊗ v`), with trace `⟪u, v⟫`.
-   - `det_eq_prod_eigenvalues`, `trace_eq_sum_eigenvalues`, `det_id_add_smul_eq_prod`, and
-     first-order determinant increase `exists_det_id_add_smul_gt_one`.
-   - `exists_posSemidef_ellipsoid_eq`: every linear image `T '' closedBall 0 1` equals
-     `P '' closedBall 0 1` for a symmetric positive-semidefinite operator `P` with
-     `det P = |det T|`.
-2. **John's Decomposition of the Identity, Ball's Determinant Inequality & Dvoretzky–Rogers:**
-   - `IsJohnDecomposition u c`: `‖u i‖ = 1`, `0 < c i`, and `∑ i, c i • (u i ⊗ u i) = id`.
-   - `det_sum_rankOne_ge_prod`: **Ball's Determinant Inequality**
-     `∏ i, a i ^ c i ≤ det (∑ i, (c i * a i) • (u i ⊗ u i))` for all `a i > 0`.
-   - `dvoretzky_rogers_lemma`: existence of orthonormal vectors `e_1, …, e_m` (`m ≤ d`) with
-     `√((d - j) / d) ≤ gauge K (e j)` in John's position.
-3. **Maximal-Volume Inscribed Ellipsoid & John's Position (`IsJohnPosition`):**
-   - `exists_max_det_inscribed_ellipsoid` (general bodies with nonempty interior) and
-     `exists_max_det_centered_ellipsoid` (origin-symmetric bodies).
-   - `exists_affineEquiv_isJohnPosition` and `exists_linearEquiv_isJohnPosition_of_isOriginSymmetric`.
-4. **Fritz John's Theorem & Löwner's Theorem:**
-   - `john_decomposition_of_john_position`: contact points `u_i ∈ sphere 0 1` with `supportFn K u_i = 1`,
-     `IsJohnDecomposition u c`, and `∑ i, c i • u i = 0`.
-   - `subset_finrank_smul_of_john_position` (`K ⊆ d • B₁`),
-     `subset_sqrt_finrank_smul_of_john_position` (`K ⊆ √d • B₁` for origin-symmetric `K`),
-     `john_theorem`, `john_theorem_symmetric`, and `loewner_theorem_symmetric`.
-5. **Banach–Mazur Distance Bounds, Attainment & Compactness:**
-   - `banachMazurDist_closedBall_le_sqrt_finrank` (`≤ √d`), `banachMazurDist_le_finrank` (`≤ d`),
-     `affineBanachMazurDist_closedBall_le_finrank` (`≤ d`),
-     `affineBanachMazurDist_le_finrank_sq` (`≤ d²`).
-   - `banachMazurDist_attained`, `affineBanachMazurDist_attained`.
-   - Sequential compactness of the Banach–Mazur compactum
-     (`exists_subseq_banachMazurDist_tendsto_one`,
-      `exists_subseq_affineBanachMazurDist_tendsto_one`).
+## Main definitions
+
+* `ConvexGeom.rankOne`: rank-one linear operator `x ↦ ⟪x, v⟫ • u` (`u ⊗ v`), bridged to Mathlib's
+  `InnerProductSpace.rankOne ℝ u v` via `rankOne_eq_toLinearMap_rankOne`.
+* `ConvexGeom.IsJohnDecomposition`: isotropic contact decomposition `∑ i, c i • (u i ⊗ u i) = id`
+  with unit vectors `u i` and strictly positive weights `c i`.
+* `ConvexGeom.IsJohnPosition`: the unit ball is inscribed in `K` and maximizes `|det T|` among all
+  inscribed affine ellipsoids `c + T(B₁) ⊆ K`.
+* `ConvexGeom.IsLoewnerPosition`: the unit ball encloses `K` and minimizes `|det T|` among all
+  enclosing affine ellipsoids `K ⊆ c + T(B₁)`.
+
+## Main statements
+
+* `ConvexGeom.isSymmetric_det_eq_prod_eigenvalues`, `ConvexGeom.isSymmetric_trace_eq_sum_eigenvalues`,
+  `ConvexGeom.isSymmetric_det_id_add_smul`, `ConvexGeom.exists_det_id_add_smul_gt_one`,
+  `ConvexGeom.exists_posSemidef_ellipsoid_eq`: spectral and PSD-ellipsoid prerequisites.
+* `ConvexGeom.det_sum_rankOne_ge_prod`: Ball's determinant inequality.
+* `ConvexGeom.exists_max_det_inscribed_ellipsoid`, `ConvexGeom.unique_max_det_inscribed_ellipsoid`:
+  existence and uniqueness of the maximal-volume inscribed ellipsoid.
+* `ConvexGeom.john_decomposition_of_john_position`, `ConvexGeom.isJohnPosition_of_john_decomposition`,
+  `ConvexGeom.isJohnPosition_iff_john_decomposition`,
+  `ConvexGeom.eq_closedBall_of_isJohnPosition_of_det_eq_one`: full necessity, sufficiency, and
+  uniqueness characterization of John's position.
+* `ConvexGeom.dvoretzky_rogers_lemma`: Dvoretzky–Rogers orthonormal sequence in John's position.
+* `ConvexGeom.john_theorem`, `ConvexGeom.john_theorem_symmetric`: Fritz John's sandwich theorems
+  (`B₁ ⊆ A(K) ⊆ d • B₁` and `B₁ ⊆ T(K) ⊆ √d • B₁`).
+* `ConvexGeom.isLoewnerPosition_of_polar_isJohnPosition`,
+  `ConvexGeom.eq_closedBall_of_isLoewnerPosition_of_det_eq_one`,
+  `ConvexGeom.loewner_theorem_symmetric`: existence, explicit enclosing-ellipsoid minimality, and
+  uniqueness of the Löwner ellipsoid for origin-symmetric bodies.
+* `ConvexGeom.banachMazurDist_closedBall_le_sqrt_finrank`, `ConvexGeom.banachMazurDist_le_finrank`,
+  `ConvexGeom.affineBanachMazurDist_closedBall_le_finrank`,
+  `ConvexGeom.affineBanachMazurDist_le_finrank_sq`, `ConvexGeom.banachMazurDist_attained`,
+  `ConvexGeom.affineBanachMazurDist_attained`,
+  `ConvexGeom.exists_subseq_banachMazurDist_tendsto_one`,
+  `ConvexGeom.exists_subseq_affineBanachMazurDist_tendsto_one`: Banach–Mazur bounds, attainment,
+  and sequential compactness.
+
+## References
+
+* [K. Ball, *An Elementary Introduction to Modern Convex Geometry*][ball1997], Lectures 3–4
+* [S. Artstein-Avidan, A. Giannopoulos, V. D. Milman, *Asymptotic Geometric Analysis,
+  Part I*][agm2015], Chapter 2
 -/
 
 open MeasureTheory Set Metric Filter
@@ -84,53 +96,12 @@ noncomputable def rankOne (u v : E) : E →ₗ[ℝ] E where
 @[simp]
 lemma rankOne_apply (u v x : E) : rankOne u v x = ⟪x, v⟫ • u := rfl
 
-/-- Continuous rank-one linear operator `u ⊗ v : E →L[ℝ] E`. -/
-@[expose]
-noncomputable def rankOneCLM (u v : E) : E →L[ℝ] E :=
-  (innerSL ℝ v).smulRight u
-
-@[simp]
-lemma rankOneCLM_apply (u v x : E) : rankOneCLM u v x = ⟪v, x⟫ • u := rfl
-
-@[simp]
-lemma rankOneCLM_toLinearMap (u v : E) :
-    (rankOneCLM u v : E →ₗ[ℝ] E) = rankOne u v := by
+/-- `rankOne u v` coincides with the underlying linear map of Mathlib's
+`InnerProductSpace.rankOne ℝ u v`. -/
+lemma rankOne_eq_toLinearMap_rankOne (u v : E) :
+    rankOne u v = (InnerProductSpace.rankOne ℝ u v).toLinearMap := by
   ext x
-  simp [rankOneCLM_apply, rankOne_apply, real_inner_comm]
-
-lemma continuous_rankOneCLM :
-    Continuous (fun u : E => rankOneCLM u u) := by
-  rw [Metric.continuous_iff]
-  intro u ε hε
-  refine ⟨min 1 (ε / (2 * (2 * ‖u‖ + 2))), lt_min one_pos (by positivity), fun v hv => ?_⟩
-  rw [dist_eq_norm] at hv ⊢
-  have hv1 : ‖v - u‖ < 1 := lt_of_lt_of_le hv (min_le_left _ _)
-  have hv_norm : ‖v‖ ≤ ‖u‖ + 1 := by
-    have := norm_sub_norm_le v u
-    linarith
-  have hop : ‖rankOneCLM v v - rankOneCLM u u‖ ≤ (‖v‖ + ‖u‖) * ‖v - u‖ := by
-    refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun x => ?_
-    change ‖⟪v, x⟫ • v - ⟪u, x⟫ • u‖ ≤ (‖v‖ + ‖u‖) * ‖v - u‖ * ‖x‖
-    have hsplit : ⟪v, x⟫ • v - ⟪u, x⟫ • u = ⟪v - u, x⟫ • v + ⟪u, x⟫ • (v - u) := by
-      rw [inner_sub_left, sub_smul, smul_sub]; abel
-    rw [hsplit]
-    calc
-      ‖⟪v - u, x⟫ • v + ⟪u, x⟫ • (v - u)‖
-        ≤ ‖⟪v - u, x⟫ • v‖ + ‖⟪u, x⟫ • (v - u)‖ := norm_add_le _ _
-      _ = |⟪v - u, x⟫| * ‖v‖ + |⟪u, x⟫| * ‖v - u‖ := by simp [norm_smul]
-      _ ≤ (‖v - u‖ * ‖x‖) * ‖v‖ + (‖u‖ * ‖x‖) * ‖v - u‖ :=
-          add_le_add (mul_le_mul_of_nonneg_right (abs_real_inner_le_norm _ _) (norm_nonneg _))
-            (mul_le_mul_of_nonneg_right (abs_real_inner_le_norm _ _) (norm_nonneg _))
-      _ = (‖v‖ + ‖u‖) * ‖v - u‖ * ‖x‖ := by ring
-  have hden_pos : 0 < 2 * (2 * ‖u‖ + 2) := by positivity
-  have hv2 : ‖v - u‖ < ε / (2 * (2 * ‖u‖ + 2)) := lt_of_lt_of_le hv (min_le_right _ _)
-  calc
-    ‖rankOneCLM v v - rankOneCLM u u‖ ≤ (‖v‖ + ‖u‖) * ‖v - u‖ := hop
-    _ ≤ (2 * ‖u‖ + 2) * ‖v - u‖ := mul_le_mul_of_nonneg_right (by linarith) (norm_nonneg _)
-    _ < (2 * ‖u‖ + 2) * (ε / (2 * (2 * ‖u‖ + 2))) :=
-        mul_lt_mul_of_pos_left hv2 (by positivity)
-    _ = ε / 2 := by field_simp [show 2 * ‖u‖ + 2 ≠ 0 by positivity]
-    _ < ε := half_lt_self hε
+  simp [rankOne_apply, InnerProductSpace.rankOne_apply, real_inner_comm]
 
 lemma rankOne_isSymmetric (u : E) : (rankOne u u).IsSymmetric := by
   intro x y
@@ -177,10 +148,8 @@ lemma sum_rankOne_isSymmetric {ι : Type*} (s : Finset ι) (u : ι → E) (c : �
 /-- Determinant of a symmetric endomorphism equals the product of its eigenvalues. -/
 theorem isSymmetric_det_eq_prod_eigenvalues [FiniteDimensional ℝ E]
     {T : E →ₗ[ℝ] E} (hT : T.IsSymmetric) :
-    LinearMap.det T = ∏ i : Fin (Module.finrank ℝ E), hT.eigenvalues rfl i := by
-  rw [← LinearMap.det_toMatrix (hT.eigenvectorBasis rfl).toBasis,
-    hT.toMatrix_eigenvectorBasis rfl, Matrix.det_diagonal]
-  simp
+    LinearMap.det T = ∏ i : Fin (Module.finrank ℝ E), hT.eigenvalues rfl i :=
+  hT.det_eq_prod_eigenvalues rfl
 
 /-- Trace of a symmetric endomorphism equals the sum of its eigenvalues. -/
 theorem isSymmetric_trace_eq_sum_eigenvalues [FiniteDimensional ℝ E]
@@ -792,11 +761,12 @@ rank-one operators `u ⊗ u` and on `id` by a symmetric operator `H : E →ₗ[�
 private lemma exists_symmetric_representing_clm [FiniteDimensional ℝ E]
     (f₁ : (E →L[ℝ] E) →L[ℝ] ℝ) :
     ∃ H : E →ₗ[ℝ] E, H.IsSymmetric ∧
-      (∀ u : E, f₁ (rankOneCLM u u) = ⟪H u, u⟫) ∧
+      (∀ u : E, f₁ (InnerProductSpace.rankOne ℝ u u) = ⟪H u, u⟫) ∧
       f₁ (ContinuousLinearMap.id ℝ E) = LinearMap.trace ℝ E H := by
   let b := stdOrthonormalBasis ℝ E
   let a : Fin (Module.finrank ℝ E) → Fin (Module.finrank ℝ E) → ℝ :=
-    fun i j => (f₁ (rankOneCLM (b i) (b j)) + f₁ (rankOneCLM (b j) (b i))) / 2
+    fun i j => (f₁ (InnerProductSpace.rankOne ℝ (b i) (b j)) +
+      f₁ (InnerProductSpace.rankOne ℝ (b j) (b i))) / 2
   let H : E →ₗ[ℝ] E :=
     Matrix.toLin b.toBasis b.toBasis (Matrix.of a)
   have hH_entry : ∀ i j, ⟪H (b j), b i⟫ = a i j := fun i j => by
@@ -826,11 +796,11 @@ private lemma exists_symmetric_representing_clm [FiniteDimensional ℝ E]
     refine Finset.sum_congr rfl fun i _ => Finset.sum_congr rfl fun j _ => ?_
     have ha : a i j = a j i := by dsimp only [a]; ring
     rw [ha]; ring
-  have hH_rankOne : ∀ u : E, f₁ (rankOneCLM u u) = ⟪H u, u⟫ := fun u => by
-    have hu : rankOneCLM u u =
-        ∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) • rankOneCLM (b i) (b j) := by
+  have hH_rankOne : ∀ u : E, f₁ (InnerProductSpace.rankOne ℝ u u) = ⟪H u, u⟫ := fun u => by
+    have hu : InnerProductSpace.rankOne ℝ u u =
+        ∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) • InnerProductSpace.rankOne ℝ (b i) (b j) := by
       ext x
-      simp only [rankOneCLM_apply, sum_apply, smul_apply]
+      simp only [InnerProductSpace.rankOne_apply, sum_apply, smul_apply]
       have hxu : ⟪u, x⟫ = ∑ j, ⟪b j, u⟫ * ⟪b j, x⟫ := by
         simpa [real_inner_comm] using (b.sum_inner_mul_inner u x).symm
       have hu_exp := (b.sum_repr' u).symm
@@ -845,24 +815,24 @@ private lemma exists_symmetric_representing_clm [FiniteDimensional ℝ E]
       have hju : ⟪b j, ∑ k, ⟪b k, u⟫ • b k⟫ = ⟪b j, u⟫ := by rw [← hu_exp]
       rw [hju]
       ring
-    have hf : f₁ (rankOneCLM u u) =
-        ∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) * f₁ (rankOneCLM (b i) (b j)) := by
+    have hf : f₁ (InnerProductSpace.rankOne ℝ u u) =
+        ∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) * f₁ (InnerProductSpace.rankOne ℝ (b i) (b j)) := by
       rw [hu, map_sum]
       refine Finset.sum_congr rfl fun i _ => ?_
       rw [map_sum]
       refine Finset.sum_congr rfl fun j _ => by rw [map_smul, smul_eq_mul]
     have hsym_sum :
-        ∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) * f₁ (rankOneCLM (b i) (b j)) =
+        ∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) * f₁ (InnerProductSpace.rankOne ℝ (b i) (b j)) =
           ∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) * a i j := by
       have hswap :
-          ∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) * f₁ (rankOneCLM (b i) (b j)) =
-            ∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) * f₁ (rankOneCLM (b j) (b i)) := by
+          ∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) * f₁ (InnerProductSpace.rankOne ℝ (b i) (b j)) =
+            ∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) * f₁ (InnerProductSpace.rankOne ℝ (b j) (b i)) := by
         rw [Finset.sum_comm]
         refine Finset.sum_congr rfl fun i _ => Finset.sum_congr rfl fun j _ => by ring
       have hdouble :
           2 * ∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) * a i j =
-            (∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) * f₁ (rankOneCLM (b i) (b j))) +
-              (∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) * f₁ (rankOneCLM (b j) (b i))) := by
+            (∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) * f₁ (InnerProductSpace.rankOne ℝ (b i) (b j))) +
+              (∑ i, ∑ j, (⟪b i, u⟫ * ⟪b j, u⟫) * f₁ (InnerProductSpace.rankOne ℝ (b j) (b i))) := by
         rw [Finset.mul_sum, ← Finset.sum_add_distrib]
         refine Finset.sum_congr rfl fun i _ => ?_
         rw [Finset.mul_sum, ← Finset.sum_add_distrib]
@@ -879,15 +849,261 @@ private lemma exists_symmetric_representing_clm [FiniteDimensional ℝ E]
       rw [hH_entry i j]; ring
     rw [hf, hsym_sum, hinner]
   have hH_trace : f₁ (ContinuousLinearMap.id ℝ E) = LinearMap.trace ℝ E H := by
-    have hid : ContinuousLinearMap.id ℝ E = ∑ i, rankOneCLM (b i) (b i) := by
+    have hid : ContinuousLinearMap.id ℝ E = ∑ i, InnerProductSpace.rankOne ℝ (b i) (b i) := by
       ext x
-      simp only [ContinuousLinearMap.id_apply, sum_apply, rankOneCLM_apply]
+      simp only [ContinuousLinearMap.id_apply, sum_apply, InnerProductSpace.rankOne_apply]
       exact (b.sum_repr' x).symm
     rw [hid, map_sum, LinearMap.trace_eq_matrix_trace ℝ b.toBasis,
       LinearMap.toMatrix_toLin, Matrix.trace]
     refine Finset.sum_congr rfl fun i _ => ?_
     simp [Matrix.diag_apply, a]
   exact ⟨H, hH_symm, hH_rankOne, hH_trace⟩
+
+/-- Perturbation step for Fritz John's theorem: if `closedBall 0 1 ⊆ K`, `H'` is symmetric with
+strictly positive trace, and `⟪H' u, u⟫ + ⟪v, u⟫ < 0` on all unit contact points
+`u ∈ sphere 0 1` with `supportFn K u = 1`, then some small perturbation `(id + ε H')(B₁) + ε v`
+stays inside `K` and has determinant strictly exceeding `1`. -/
+private lemma exists_inscribed_det_gt_one_of_neg_on_contact [FiniteDimensional ℝ E]
+    (K : ConvexBody E) (hB : closedBall (0 : E) 1 ⊆ (K : Set E))
+    {H' : E →ₗ[ℝ] E} (hH'_symm : H'.IsSymmetric) (hH'_trace : 0 < LinearMap.trace ℝ E H')
+    (v : E)
+    (hH'_neg : ∀ u : E, ‖u‖ = 1 → supportFn K u = 1 → ⟪H' u, u⟫ + ⟪v, u⟫ < 0) :
+    ∃ (A : E →ₗ[ℝ] E) (b : E),
+      (fun x => A x + b) '' closedBall (0 : E) 1 ⊆ (K : Set E) ∧
+      1 < |LinearMap.det A| := by
+  have hsup_ge_one : ∀ w : E, ‖w‖ = 1 → 1 ≤ supportFn K w := fun w hw => by
+    have hwK : w ∈ (K : Set E) := hB (by rw [mem_closedBall_zero_iff, hw])
+    have h1 := inner_le_supportFn hwK w
+    rwa [real_inner_self_eq_norm_sq, hw, one_pow] at h1
+  let C : Set E := {u : E | ‖u‖ = 1 ∧ supportFn K u = 1}
+  have hC_compact : IsCompact C := by
+    have hsub : C ⊆ sphere (0 : E) 1 := fun u hu => by rw [mem_sphere_zero_iff_norm]; exact hu.1
+    have hclosed : IsClosed C :=
+      (isClosed_eq continuous_norm continuous_const).inter
+        (isClosed_eq (continuous_supportFn K) continuous_const)
+    exact (isCompact_sphere (0 : E) 1).of_isClosed_subset hclosed hsub
+  let g : E → ℝ := fun w => ⟪H' w, w⟫ + ⟪v, w⟫
+  have hg_cont : Continuous g :=
+    ((H'.toContinuousLinearMap.continuous.inner continuous_id).add
+      (continuous_const.inner continuous_id))
+  have hδ_ex : ∃ δ : ℝ, 0 < δ ∧ ∀ u ∈ C, g u ≤ -2 * δ := by
+    by_cases hCne : C.Nonempty
+    · obtain ⟨u₀, hu₀, hmax⟩ := hC_compact.exists_isMaxOn hCne hg_cont.continuousOn
+      have hlt0 : g u₀ < 0 := hH'_neg u₀ hu₀.1 hu₀.2
+      refine ⟨-g u₀ / 2, by linarith, fun u hu => ?_⟩
+      have hle : g u ≤ g u₀ := hmax hu
+      linarith
+    · refine ⟨1, one_pos, fun u hu => False.elim (hCne ⟨u, hu⟩)⟩
+  obtain ⟨δ, hδ_pos, hδ_C⟩ := hδ_ex
+  let Sbad : Set E := {w : E | w ∈ sphere (0 : E) 1 ∧ -δ ≤ g w}
+  have hSbad_compact : IsCompact Sbad :=
+    (isCompact_sphere (0 : E) 1).of_isClosed_subset
+      (isClosed_sphere.inter (isClosed_le continuous_const hg_cont))
+      (fun _ hw => hw.1)
+  have hη_ex : ∃ η : ℝ, 0 < η ∧ ∀ w ∈ Sbad, 1 + η ≤ supportFn K w := by
+    by_cases hne : Sbad.Nonempty
+    · obtain ⟨w₀, hw₀, hmin⟩ :=
+        hSbad_compact.exists_isMinOn hne (continuous_supportFn K).continuousOn
+      have hw0_norm : ‖w₀‖ = 1 := mem_sphere_zero_iff_norm.mp hw₀.1
+      have hw0_notC : w₀ ∉ C := fun hC => by linarith [hδ_C w₀ hC, hw₀.2]
+      have hgt1 : 1 < supportFn K w₀ :=
+        lt_of_le_of_ne (hsup_ge_one w₀ hw0_norm) fun heq => hw0_notC ⟨hw0_norm, heq.symm⟩
+      refine ⟨supportFn K w₀ - 1, sub_pos.mpr hgt1, fun w hw => ?_⟩
+      have hle : supportFn K w₀ ≤ supportFn K w := hmin hw
+      linarith
+    · refine ⟨1, one_pos, fun w hw => False.elim (hne ⟨w, hw⟩)⟩
+  obtain ⟨η, hη_pos, hη_bad⟩ := hη_ex
+  obtain ⟨ε₀, hε₀_pos, hdet_gt⟩ := exists_det_id_add_smul_gt_one hH'_symm hH'_trace
+  set M_op : ℝ := ‖H'.toContinuousLinearMap‖
+  have hM_nn : 0 ≤ M_op := norm_nonneg _
+  set B_lin : ℝ := M_op + ‖v‖ + 1
+  have hB_pos : 0 < B_lin := by positivity
+  set ε : ℝ := min (ε₀ / 2) (min (η / B_lin) (min (δ / (M_op ^ 2 + 1)) (1 / (2 * (M_op + 1)))))
+  have hε_pos : 0 < ε :=
+    lt_min (half_pos hε₀_pos) (lt_min (div_pos hη_pos hB_pos)
+      (lt_min (div_pos hδ_pos (by positivity)) (by positivity)))
+  have hε_lt_ε₀ : ε < ε₀ := (min_le_left _ _).trans_lt (half_lt_self hε₀_pos)
+  have hε_le_η : ε ≤ η / B_lin := (min_le_right _ _).trans (min_le_left _ _)
+  have hε_le_δ : ε ≤ δ / (M_op ^ 2 + 1) :=
+    ((min_le_right _ _).trans (min_le_right _ _)).trans (min_le_left _ _)
+  have hε_le_half : ε ≤ 1 / (2 * (M_op + 1)) :=
+    ((min_le_right _ _).trans (min_le_right _ _)).trans (min_le_right _ _)
+  let Aε : E →ₗ[ℝ] E := LinearMap.id + ε • H'
+  have hdet1 : 1 < LinearMap.det Aε := hdet_gt ε hε_pos hε_lt_ε₀
+  refine ⟨Aε, ε • v, ?_, hdet1.trans_le (le_abs_self _)⟩
+  rintro _ ⟨x, hx, rfl⟩
+  change Aε x + ε • v ∈ K
+  rw [mem_iff_forall_norm_le_one_inner_le_supportFn]
+  intro w _
+  by_cases hw0 : w = 0
+  · simp [hw0]
+  · have hwn_pos : 0 < ‖w‖ := norm_pos_iff.mpr hw0
+    let w₁ : E := ‖w‖⁻¹ • w
+    have hw₁_norm : ‖w₁‖ = 1 := by
+      rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hwn_pos),
+        inv_mul_cancel₀ hwn_pos.ne']
+    have hw_eq : w = ‖w‖ • w₁ := by
+      dsimp only [w₁]; rw [smul_smul, mul_inv_cancel₀ hwn_pos.ne', one_smul]
+    rw [hw_eq, inner_smul_right, supportFn_smul K hwn_pos.le w₁]
+    refine mul_le_mul_of_nonneg_left ?_ hwn_pos.le
+    have hstep : ⟪Aε x + ε • v, w₁⟫ ≤ ‖Aε w₁‖ + ε * ⟪v, w₁⟫ := by
+      rw [inner_add_left, inner_smul_left, RCLike.conj_to_real]
+      have hsym_id : Aε.IsSymmetric := by
+        intro a b
+        simp only [Aε, LinearMap.add_apply, LinearMap.id_apply, LinearMap.smul_apply,
+          inner_add_left, inner_add_right, inner_smul_left, inner_smul_right,
+          RCLike.conj_to_real]
+        rw [hH'_symm a b]
+      rw [hsym_id x w₁]
+      have hcs := real_inner_le_norm x (Aε w₁)
+      have hx1 : ‖x‖ ≤ 1 := mem_closedBall_zero_iff.mp hx
+      have h1 : ⟪x, Aε w₁⟫ ≤ ‖Aε w₁‖ :=
+        hcs.trans ((mul_le_mul_of_nonneg_right hx1 (norm_nonneg (Aε w₁))).trans_eq (one_mul _))
+      linarith
+    refine hstep.trans ?_
+    by_cases hbad : -δ ≤ g w₁
+    · have hw₁_bad : w₁ ∈ Sbad := ⟨mem_sphere_zero_iff_norm.mpr hw₁_norm, hbad⟩
+      have hsup_w₁ : 1 + η ≤ supportFn K w₁ := hη_bad w₁ hw₁_bad
+      have hnorm_le : ‖Aε w₁‖ ≤ 1 + ε * M_op := by
+        change ‖w₁ + ε • H' w₁‖ ≤ 1 + ε * M_op
+        calc
+          ‖w₁ + ε • H' w₁‖ ≤ ‖w₁‖ + ‖ε • H' w₁‖ := norm_add_le _ _
+          _ = 1 + ε * ‖H' w₁‖ := by
+              rw [hw₁_norm, norm_smul, Real.norm_eq_abs, abs_of_pos hε_pos]
+          _ ≤ 1 + ε * (M_op * ‖w₁‖) := by
+              gcongr; exact H'.toContinuousLinearMap.le_opNorm w₁
+          _ = 1 + ε * M_op := by rw [hw₁_norm, mul_one]
+      have hv_le : ⟪v, w₁⟫ ≤ ‖v‖ := by
+        calc
+          ⟪v, w₁⟫ ≤ ‖v‖ * ‖w₁‖ := real_inner_le_norm v w₁
+          _ = ‖v‖ := by rw [hw₁_norm, mul_one]
+      have hεB : ε * B_lin ≤ η := (le_div_iff₀ hB_pos).mp hε_le_η
+      have hlin : ε * M_op + ε * ⟪v, w₁⟫ ≤ ε * B_lin := by
+        have h1 : ε * ⟪v, w₁⟫ ≤ ε * ‖v‖ := mul_le_mul_of_nonneg_left hv_le hε_pos.le
+        have h2 : ε * (M_op + ‖v‖) ≤ ε * (M_op + ‖v‖ + 1) :=
+          mul_le_mul_of_nonneg_left (by linarith) hε_pos.le
+        dsimp only [B_lin]; linarith
+      linarith
+    · push Not at hbad
+      have hH'w_le : ‖H' w₁‖ ≤ M_op := by
+        simpa [hw₁_norm] using H'.toContinuousLinearMap.le_opNorm w₁
+      have hsq_exp : ‖Aε w₁‖ ^ 2 ≤ 1 + 2 * ε * ⟪H' w₁, w₁⟫ + ε ^ 2 * M_op ^ 2 := by
+        change ‖w₁ + ε • H' w₁‖ ^ 2 ≤ _
+        rw [norm_add_sq_real, hw₁_norm, one_pow, norm_smul, Real.norm_eq_abs,
+          abs_of_pos hε_pos, mul_pow, inner_smul_right, real_inner_comm w₁ (H' w₁)]
+        have hsq_le : ε ^ 2 * ‖H' w₁‖ ^ 2 ≤ ε ^ 2 * M_op ^ 2 :=
+          mul_le_mul_of_nonneg_left (pow_le_pow_left₀ (norm_nonneg _) hH'w_le 2) (sq_nonneg ε)
+        linarith
+      have hinner_ge : -M_op ≤ ⟪H' w₁, w₁⟫ := by
+        have h := abs_real_inner_le_norm (H' w₁) w₁
+        rw [hw₁_norm, mul_one] at h
+        linarith [(abs_le.mp h).1]
+      set rhs : ℝ := 1 + ε * ⟪H' w₁, w₁⟫ + ε ^ 2 * M_op ^ 2 / 2
+      have hrhs_nn : 0 ≤ rhs := by
+        have h1 : ε * (M_op + 1) ≤ 1 / 2 := by
+          have hpos : 0 < 2 * (M_op + 1) := by positivity
+          have := (le_div_iff₀ hpos).mp hε_le_half
+          linarith
+        have h2 : -(ε * M_op) ≤ ε * ⟪H' w₁, w₁⟫ := by
+          have := mul_le_mul_of_nonneg_left hinner_ge hε_pos.le
+          linarith
+        have h3 : ε * M_op ≤ ε * (M_op + 1) := mul_le_mul_of_nonneg_left (by linarith) hε_pos.le
+        have h4 : 0 ≤ ε ^ 2 * M_op ^ 2 / 2 := by positivity
+        dsimp only [rhs]; linarith
+      have hnorm_le_rhs : ‖Aε w₁‖ ≤ rhs := by
+        have hrhs_sq : 1 + 2 * ε * ⟪H' w₁, w₁⟫ + ε ^ 2 * M_op ^ 2 ≤ rhs ^ 2 := by
+          have hmagic : rhs ^ 2 - (1 + 2 * ε * ⟪H' w₁, w₁⟫ + ε ^ 2 * M_op ^ 2) =
+              (ε * ⟪H' w₁, w₁⟫ + ε ^ 2 * M_op ^ 2 / 2) ^ 2 := by
+            dsimp only [rhs]; ring
+          have hsq_nn : 0 ≤ (ε * ⟪H' w₁, w₁⟫ + ε ^ 2 * M_op ^ 2 / 2) ^ 2 := sq_nonneg _
+          linarith
+        have hsq_le : ‖Aε w₁‖ ^ 2 ≤ rhs ^ 2 := hsq_exp.trans hrhs_sq
+        exact (le_abs_self (‖Aε w₁‖)).trans ((sq_le_sq.mp hsq_le).trans_eq (abs_of_nonneg hrhs_nn))
+      have hεM2 : ε * (M_op ^ 2 + 1) ≤ δ := (le_div_iff₀ (by positivity)).mp hε_le_δ
+      have hsum_le1 : rhs + ε * ⟪v, w₁⟫ ≤ 1 := by
+        have h1 : ε * g w₁ ≤ ε * (-δ) := mul_le_mul_of_nonneg_left hbad.le hε_pos.le
+        have h2 : ε ^ 2 * M_op ^ 2 ≤ ε * (ε * (M_op ^ 2 + 1)) := by
+          have hle : M_op ^ 2 ≤ M_op ^ 2 + 1 := by linarith
+          have hmul := mul_le_mul_of_nonneg_left hle (sq_nonneg ε)
+          linarith
+        have h3 : ε * (ε * (M_op ^ 2 + 1)) ≤ ε * δ :=
+          mul_le_mul_of_nonneg_left hεM2 hε_pos.le
+        have h4 : 0 ≤ ε ^ 2 * M_op ^ 2 := by positivity
+        have hg_eq : ⟪H' w₁, w₁⟫ + ⟪v, w₁⟫ = g w₁ := rfl
+        have h5 : ε * ⟪H' w₁, w₁⟫ + ε * ⟪v, w₁⟫ = ε * g w₁ := by rw [← mul_add, hg_eq]
+        dsimp only [rhs]
+        linarith
+      have hsup := hsup_ge_one w₁ hw₁_norm
+      linarith
+
+/-- Hahn–Banach separation step for Fritz John's theorem: in John's position, the pair
+`(d⁻¹ • id, 0)` lies in the convex hull of `(u ⊗ u, u)` over all unit contact points `u`. -/
+private lemma target_mem_convexHull_contact [FiniteDimensional ℝ E] [Nontrivial E]
+    (K : ConvexBody E) (hJ : IsJohnPosition (K : Set E)) :
+    (((Module.finrank ℝ E : ℝ)⁻¹ • ContinuousLinearMap.id ℝ E, (0 : E)) : (E →L[ℝ] E) × E) ∈
+      convexHull ℝ ((fun u : E => (InnerProductSpace.rankOne ℝ u u, u)) ''
+        {u : E | ‖u‖ = 1 ∧ supportFn K u = 1}) := by
+  set d := Module.finrank ℝ E
+  have hd_pos : (0 : ℝ) < d := Nat.cast_pos.mpr Module.finrank_pos
+  let C : Set E := {u : E | ‖u‖ = 1 ∧ supportFn K u = 1}
+  have hC_compact : IsCompact C := by
+    have hsub : C ⊆ sphere (0 : E) 1 := fun u hu => by rw [mem_sphere_zero_iff_norm]; exact hu.1
+    have hclosed : IsClosed C :=
+      (isClosed_eq continuous_norm continuous_const).inter
+        (isClosed_eq (continuous_supportFn K) continuous_const)
+    exact (isCompact_sphere (0 : E) 1).of_isClosed_subset hclosed hsub
+  let φ : E → (E →L[ℝ] E) × E := fun u => (InnerProductSpace.rankOne ℝ u u, u)
+  have hφ_cont : Continuous φ :=
+    ((InnerProductSpace.rankOne ℝ).continuous.clm_apply continuous_id).prodMk continuous_id
+  let M : Set ((E →L[ℝ] E) × E) := φ '' C
+  have hconvM_compact : IsCompact (convexHull ℝ M) :=
+    isCompact_convexHull_of_isCompact (hC_compact.image hφ_cont)
+  let target : (E →L[ℝ] E) × E := ((d : ℝ)⁻¹ • ContinuousLinearMap.id ℝ E, 0)
+  by_contra hnot
+  obtain ⟨f, s, hMs, hst⟩ :=
+    geometric_hahn_banach_closed_point (convex_convexHull ℝ M) hconvM_compact.isClosed hnot
+  let f₁ : (E →L[ℝ] E) →L[ℝ] ℝ := f.comp (ContinuousLinearMap.inl ℝ (E →L[ℝ] E) E)
+  let f₂ : E →L[ℝ] ℝ := f.comp (ContinuousLinearMap.inr ℝ (E →L[ℝ] E) E)
+  obtain ⟨H, hH_symm, hH_rankOne, hH_trace⟩ := exists_symmetric_representing_clm f₁
+  let v : E := (InnerProductSpace.toDual ℝ E).symm f₂
+  have hv : ∀ w : E, f₂ w = ⟪v, w⟫ := fun w => by
+    dsimp only [v]; rw [InnerProductSpace.toDual_symm_apply]
+  have hf_split : ∀ (A : E →L[ℝ] E) (w : E), f (A, w) = f₁ A + f₂ w := fun A w => by
+    have hpair : (A, w) = ContinuousLinearMap.inl ℝ (E →L[ℝ] E) E A +
+        ContinuousLinearMap.inr ℝ (E →L[ℝ] E) E w := by ext <;> simp
+    rw [hpair, map_add]; rfl
+  have hf_u : ∀ u : E, f (φ u) = ⟪H u, u⟫ + ⟪v, u⟫ := fun u => by
+    rw [hf_split, hH_rankOne, hv]
+  have hf_target : f target = (d : ℝ)⁻¹ * LinearMap.trace ℝ E H := by
+    dsimp only [target]
+    rw [hf_split, map_smul, map_zero, add_zero, smul_eq_mul, hH_trace]
+  let H' : E →ₗ[ℝ] E := H - s • LinearMap.id
+  have hH'_symm : H'.IsSymmetric := by
+    intro x y
+    simp only [H', LinearMap.sub_apply, LinearMap.smul_apply, LinearMap.id_apply,
+      inner_sub_left, inner_sub_right, inner_smul_left, inner_smul_right, RCLike.conj_to_real]
+    rw [hH_symm x y]
+  have hH'_trace : 0 < LinearMap.trace ℝ E H' := by
+    simp only [H', map_sub, map_smul, LinearMap.trace_id, smul_eq_mul]
+    rw [hf_target] at hst
+    have h1 : s * (d : ℝ) < LinearMap.trace ℝ E H := by
+      have := mul_lt_mul_of_pos_left hst hd_pos
+      rw [← mul_assoc, mul_inv_cancel₀ hd_pos.ne', one_mul] at this
+      linarith
+    linarith
+  have hH'_neg_C : ∀ u : E, ‖u‖ = 1 → supportFn K u = 1 → ⟪H' u, u⟫ + ⟪v, u⟫ < 0 :=
+    fun u hu1 hu2 => by
+      have h1 : f (φ u) < s := hMs (φ u) (subset_convexHull ℝ M ⟨u, ⟨hu1, hu2⟩, rfl⟩)
+      rw [hf_u u] at h1
+      have hval : ⟪H' u, u⟫ = ⟪H u, u⟫ - s := by
+        simp only [H', LinearMap.sub_apply, LinearMap.smul_apply, LinearMap.id_apply,
+          inner_sub_left, inner_smul_left, RCLike.conj_to_real, real_inner_self_eq_norm_sq,
+          hu1, one_pow, mul_one]
+      linarith
+  obtain ⟨A, b, hsubK, hlt1⟩ :=
+    exists_inscribed_det_gt_one_of_neg_on_contact K hJ.1 hH'_symm hH'_trace v hH'_neg_C
+  have hle1 := hJ.2 A b hsubK
+  linarith
 
 /-- **John's Decomposition of the Identity (Ball, Lecture 3):**
 if `K : ConvexBody E` is in John's position in dimension `d = finrank ℝ E ≥ 1`, then there exist
@@ -903,237 +1119,17 @@ theorem john_decomposition_of_john_position [FiniteDimensional ℝ E] [Nontrivia
       (∀ i, supportFn K (u i) = 1) := by
   set d := Module.finrank ℝ E
   have hd_pos : (0 : ℝ) < d := Nat.cast_pos.mpr Module.finrank_pos
-  have hsup_ge_one : ∀ w : E, ‖w‖ = 1 → 1 ≤ supportFn K w := fun w hw => by
-    have hwK : w ∈ (K : Set E) := hJ.1 (by rw [mem_closedBall_zero_iff, hw])
-    have h1 := inner_le_supportFn hwK w
-    rwa [real_inner_self_eq_norm_sq, hw, one_pow] at h1
-  -- Contact set `C = {u ∈ S^{d-1} | supportFn K u = 1}` is compact.
   let C : Set E := {u : E | ‖u‖ = 1 ∧ supportFn K u = 1}
-  have hC_compact : IsCompact C := by
-    have hsub : C ⊆ sphere (0 : E) 1 := fun u hu => by rw [mem_sphere_zero_iff_norm]; exact hu.1
-    have hclosed : IsClosed C :=
-      (isClosed_eq continuous_norm continuous_const).inter
-        (isClosed_eq (continuous_supportFn K) continuous_const)
-    exact (isCompact_sphere (0 : E) 1).of_isClosed_subset hclosed hsub
-  let φ : E → (E →L[ℝ] E) × E := fun u => (rankOneCLM u u, u)
-  have hφ_cont : Continuous φ := continuous_rankOneCLM.prodMk continuous_id
+  let φ : E → (E →L[ℝ] E) × E := fun u => (InnerProductSpace.rankOne ℝ u u, u)
   let M : Set ((E →L[ℝ] E) × E) := φ '' C
-  have hM_compact : IsCompact M := hC_compact.image hφ_cont
-  have hconvM_compact : IsCompact (convexHull ℝ M) := isCompact_convexHull_of_isCompact hM_compact
   let target : (E →L[ℝ] E) × E := ((d : ℝ)⁻¹ • ContinuousLinearMap.id ℝ E, 0)
-  -- Core separation step: `target ∈ convexHull ℝ M`.
-  have htarget : target ∈ convexHull ℝ M := by
-    by_contra hnot
-    obtain ⟨f, s, hMs, hst⟩ :=
-      geometric_hahn_banach_closed_point (convex_convexHull ℝ M) hconvM_compact.isClosed hnot
-    let f₁ : (E →L[ℝ] E) →L[ℝ] ℝ := f.comp (ContinuousLinearMap.inl ℝ (E →L[ℝ] E) E)
-    let f₂ : E →L[ℝ] ℝ := f.comp (ContinuousLinearMap.inr ℝ (E →L[ℝ] E) E)
-    obtain ⟨H, hH_symm, hH_rankOne, hH_trace⟩ := exists_symmetric_representing_clm f₁
-    let v : E := (InnerProductSpace.toDual ℝ E).symm f₂
-    have hv : ∀ w : E, f₂ w = ⟪v, w⟫ := fun w => by
-      dsimp only [v]; rw [InnerProductSpace.toDual_symm_apply]
-    have hf_split : ∀ (A : E →L[ℝ] E) (w : E), f (A, w) = f₁ A + f₂ w := fun A w => by
-      have hpair : (A, w) = ContinuousLinearMap.inl ℝ (E →L[ℝ] E) E A +
-          ContinuousLinearMap.inr ℝ (E →L[ℝ] E) E w := by ext <;> simp
-      rw [hpair, map_add]; rfl
-    have hf_u : ∀ u : E, f (φ u) = ⟪H u, u⟫ + ⟪v, u⟫ := fun u => by
-      rw [hf_split, hH_rankOne, hv]
-    have hf_target : f target = (d : ℝ)⁻¹ * LinearMap.trace ℝ E H := by
-      dsimp only [target]
-      rw [hf_split, map_smul, map_zero, add_zero, smul_eq_mul, hH_trace]
-    -- Shift `H` to `H' = H - s • id` so `trace H' > 0` and `⟪H' u, u⟫ + ⟪v, u⟫ < 0` on `C`.
-    let H' : E →ₗ[ℝ] E := H - s • LinearMap.id
-    have hH'_symm : H'.IsSymmetric := by
-      intro x y
-      simp only [H', LinearMap.sub_apply, LinearMap.smul_apply, LinearMap.id_apply,
-        inner_sub_left, inner_sub_right, inner_smul_left, inner_smul_right, RCLike.conj_to_real]
-      rw [hH_symm x y]
-    have hH'_trace : 0 < LinearMap.trace ℝ E H' := by
-      simp only [H', map_sub, map_smul, LinearMap.trace_id, smul_eq_mul]
-      rw [hf_target] at hst
-      have h1 : s * (d : ℝ) < LinearMap.trace ℝ E H := by
-        have := mul_lt_mul_of_pos_left hst hd_pos
-        rw [← mul_assoc, mul_inv_cancel₀ hd_pos.ne', one_mul] at this
-        linarith
-      linarith
-    have hH'_neg_C : ∀ u ∈ C, ⟪H' u, u⟫ + ⟪v, u⟫ < 0 := fun u hu => by
-      have h1 : f (φ u) < s := hMs (φ u) (subset_convexHull ℝ M ⟨u, hu, rfl⟩)
-      rw [hf_u u] at h1
-      have hval : ⟪H' u, u⟫ = ⟪H u, u⟫ - s := by
-        simp only [H', LinearMap.sub_apply, LinearMap.smul_apply, LinearMap.id_apply,
-          inner_sub_left, inner_smul_left, RCLike.conj_to_real, real_inner_self_eq_norm_sq,
-          hu.1, one_pow, mul_one]
-      linarith
-    -- Uniform negative margin `-δ` on `C`.
-    let g : E → ℝ := fun w => ⟪H' w, w⟫ + ⟪v, w⟫
-    have hg_cont : Continuous g :=
-      ((H'.toContinuousLinearMap.continuous.inner continuous_id).add
-        (continuous_const.inner continuous_id))
-    have hδ_ex : ∃ δ : ℝ, 0 < δ ∧ ∀ u ∈ C, g u ≤ -2 * δ := by
-      by_cases hCne : C.Nonempty
-      · obtain ⟨u₀, hu₀, hmax⟩ := hC_compact.exists_isMaxOn hCne hg_cont.continuousOn
-        have hlt0 : g u₀ < 0 := hH'_neg_C u₀ hu₀
-        refine ⟨-g u₀ / 2, by linarith, fun u hu => ?_⟩
-        have hle : g u ≤ g u₀ := hmax hu
-        linarith
-      · refine ⟨1, one_pos, fun u hu => False.elim (hCne ⟨u, hu⟩)⟩
-    obtain ⟨δ, hδ_pos, hδ_C⟩ := hδ_ex
-    -- Outside `U = {w ∈ S^{d-1} | g w < -δ}`, `supportFn K` has a uniform gap `1 + η`.
-    let Sbad : Set E := {w : E | w ∈ sphere (0 : E) 1 ∧ -δ ≤ g w}
-    have hSbad_compact : IsCompact Sbad :=
-      (isCompact_sphere (0 : E) 1).of_isClosed_subset
-        (isClosed_sphere.inter (isClosed_le continuous_const hg_cont))
-        (fun _ hw => hw.1)
-    have hη_ex : ∃ η : ℝ, 0 < η ∧ ∀ w ∈ Sbad, 1 + η ≤ supportFn K w := by
-      by_cases hne : Sbad.Nonempty
-      · obtain ⟨w₀, hw₀, hmin⟩ := hSbad_compact.exists_isMinOn hne (continuous_supportFn K).continuousOn
-        have hw0_norm : ‖w₀‖ = 1 := mem_sphere_zero_iff_norm.mp hw₀.1
-        have hw0_notC : w₀ ∉ C := fun hC => by linarith [hδ_C w₀ hC, hw₀.2]
-        have hgt1 : 1 < supportFn K w₀ :=
-          lt_of_le_of_ne (hsup_ge_one w₀ hw0_norm) fun heq => hw0_notC ⟨hw0_norm, heq.symm⟩
-        refine ⟨supportFn K w₀ - 1, sub_pos.mpr hgt1, fun w hw => ?_⟩
-        have hle : supportFn K w₀ ≤ supportFn K w := hmin hw
-        linarith
-      · refine ⟨1, one_pos, fun w hw => False.elim (hne ⟨w, hw⟩)⟩
-    obtain ⟨η, hη_pos, hη_bad⟩ := hη_ex
-    -- Pick `ε > 0` small enough that `det(id + ε H') > 1` AND `(id + ε H')(B₁) + ε v ⊆ K`.
-    obtain ⟨ε₀, hε₀_pos, hdet_gt⟩ := exists_det_id_add_smul_gt_one hH'_symm hH'_trace
-    set M_op : ℝ := ‖H'.toContinuousLinearMap‖
-    have hM_nn : 0 ≤ M_op := norm_nonneg _
-    set B_lin : ℝ := M_op + ‖v‖ + 1
-    have hB_pos : 0 < B_lin := by positivity
-    set ε : ℝ := min (ε₀ / 2) (min (η / B_lin) (min (δ / (M_op ^ 2 + 1)) (1 / (2 * (M_op + 1)))))
-    have hε_pos : 0 < ε := by
-      refine lt_min (half_pos hε₀_pos) (lt_min (div_pos hη_pos hB_pos)
-        (lt_min (div_pos hδ_pos (by positivity)) (by positivity)))
-    have hε_lt_ε₀ : ε < ε₀ := (min_le_left _ _).trans_lt (half_lt_self hε₀_pos)
-    have hε_le_η : ε ≤ η / B_lin := (min_le_right _ _).trans (min_le_left _ _)
-    have hε_le_δ : ε ≤ δ / (M_op ^ 2 + 1) :=
-      ((min_le_right _ _).trans (min_le_right _ _)).trans (min_le_left _ _)
-    have hε_le_half : ε ≤ 1 / (2 * (M_op + 1)) :=
-      ((min_le_right _ _).trans (min_le_right _ _)).trans (min_le_right _ _)
-    let Aε : E →ₗ[ℝ] E := LinearMap.id + ε • H'
-    have hdet1 : 1 < LinearMap.det Aε := hdet_gt ε hε_pos hε_lt_ε₀
-    -- Show `Aε(B₁) + ε v ⊆ K` using `mem_iff_forall_norm_le_one_inner_le_supportFn`.
-    have hsubK : (fun x => Aε x + ε • v) '' closedBall (0 : E) 1 ⊆
-        (K : Set E) := by
-      rintro _ ⟨x, hx, rfl⟩
-      change Aε x + ε • v ∈ K
-      rw [mem_iff_forall_norm_le_one_inner_le_supportFn]
-      intro w hw_le
-      by_cases hw0 : w = 0
-      · simp [hw0]
-      · have hwn_pos : 0 < ‖w‖ := norm_pos_iff.mpr hw0
-        let w₁ : E := ‖w‖⁻¹ • w
-        have hw₁_norm : ‖w₁‖ = 1 := by
-          rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hwn_pos),
-            inv_mul_cancel₀ hwn_pos.ne']
-        have hw_eq : w = ‖w‖ • w₁ := by
-          dsimp only [w₁]; rw [smul_smul, mul_inv_cancel₀ hwn_pos.ne', one_smul]
-        rw [hw_eq, inner_smul_right, supportFn_smul K hwn_pos.le w₁]
-        refine mul_le_mul_of_nonneg_left ?_ hwn_pos.le
-        have hstep : ⟪Aε x + ε • v, w₁⟫ ≤ ‖Aε w₁‖ + ε * ⟪v, w₁⟫ := by
-          rw [inner_add_left, inner_smul_left, RCLike.conj_to_real]
-          have hsym_id : Aε.IsSymmetric := by
-            intro a b
-            simp only [Aε, LinearMap.add_apply, LinearMap.id_apply, LinearMap.smul_apply,
-              inner_add_left, inner_add_right, inner_smul_left, inner_smul_right,
-              RCLike.conj_to_real]
-            rw [hH'_symm a b]
-          rw [hsym_id x w₁]
-          have hcs := real_inner_le_norm x (Aε w₁)
-          have hx1 : ‖x‖ ≤ 1 := mem_closedBall_zero_iff.mp hx
-          have h1 : ⟪x, Aε w₁⟫ ≤ ‖Aε w₁‖ :=
-            hcs.trans ((mul_le_mul_of_nonneg_right hx1 (norm_nonneg (Aε w₁))).trans_eq (one_mul _))
-          linarith
-        refine hstep.trans ?_
-        by_cases hbad : -δ ≤ g w₁
-        · have hw₁_bad : w₁ ∈ Sbad := ⟨mem_sphere_zero_iff_norm.mpr hw₁_norm, hbad⟩
-          have hsup_w₁ : 1 + η ≤ supportFn K w₁ := hη_bad w₁ hw₁_bad
-          have hnorm_le : ‖Aε w₁‖ ≤ 1 + ε * M_op := by
-            change ‖w₁ + ε • H' w₁‖ ≤ 1 + ε * M_op
-            calc
-              ‖w₁ + ε • H' w₁‖ ≤ ‖w₁‖ + ‖ε • H' w₁‖ := norm_add_le _ _
-              _ = 1 + ε * ‖H' w₁‖ := by
-                  rw [hw₁_norm, norm_smul, Real.norm_eq_abs, abs_of_pos hε_pos]
-              _ ≤ 1 + ε * (M_op * ‖w₁‖) := by
-                  gcongr
-                  exact H'.toContinuousLinearMap.le_opNorm w₁
-              _ = 1 + ε * M_op := by rw [hw₁_norm, mul_one]
-          have hv_le : ⟪v, w₁⟫ ≤ ‖v‖ := by
-            calc
-              ⟪v, w₁⟫ ≤ ‖v‖ * ‖w₁‖ := real_inner_le_norm v w₁
-              _ = ‖v‖ := by rw [hw₁_norm, mul_one]
-          have hεB : ε * B_lin ≤ η := (le_div_iff₀ hB_pos).mp hε_le_η
-          have hlin : ε * M_op + ε * ⟪v, w₁⟫ ≤ ε * B_lin := by
-            have h1 : ε * ⟪v, w₁⟫ ≤ ε * ‖v‖ := mul_le_mul_of_nonneg_left hv_le hε_pos.le
-            have h2 : ε * (M_op + ‖v‖) ≤ ε * (M_op + ‖v‖ + 1) :=
-              mul_le_mul_of_nonneg_left (by linarith) hε_pos.le
-            dsimp only [B_lin]; linarith
-          linarith
-        · push Not at hbad
-          have hH'w_le : ‖H' w₁‖ ≤ M_op := by
-            simpa [hw₁_norm] using H'.toContinuousLinearMap.le_opNorm w₁
-          have hsq_exp : ‖Aε w₁‖ ^ 2 ≤
-              1 + 2 * ε * ⟪H' w₁, w₁⟫ + ε ^ 2 * M_op ^ 2 := by
-            change ‖w₁ + ε • H' w₁‖ ^ 2 ≤ _
-            rw [norm_add_sq_real, hw₁_norm, one_pow, norm_smul, Real.norm_eq_abs,
-              abs_of_pos hε_pos, mul_pow, inner_smul_right, real_inner_comm w₁ (H' w₁)]
-            have hsq_le : ε ^ 2 * ‖H' w₁‖ ^ 2 ≤ ε ^ 2 * M_op ^ 2 :=
-              mul_le_mul_of_nonneg_left (pow_le_pow_left₀ (norm_nonneg _) hH'w_le 2) (sq_nonneg ε)
-            linarith
-          have hinner_ge : -M_op ≤ ⟪H' w₁, w₁⟫ := by
-            have h := abs_real_inner_le_norm (H' w₁) w₁
-            rw [hw₁_norm, mul_one] at h
-            linarith [(abs_le.mp h).1]
-          set rhs : ℝ := 1 + ε * ⟪H' w₁, w₁⟫ + ε ^ 2 * M_op ^ 2 / 2
-          have hrhs_nn : 0 ≤ rhs := by
-            have h1 : ε * (M_op + 1) ≤ 1 / 2 := by
-              have hpos : 0 < 2 * (M_op + 1) := by positivity
-              have := (le_div_iff₀ hpos).mp hε_le_half
-              linarith
-            have h2 : -(ε * M_op) ≤ ε * ⟪H' w₁, w₁⟫ := by
-              have := mul_le_mul_of_nonneg_left hinner_ge hε_pos.le
-              linarith
-            have h3 : ε * M_op ≤ ε * (M_op + 1) := mul_le_mul_of_nonneg_left (by linarith) hε_pos.le
-            have h4 : 0 ≤ ε ^ 2 * M_op ^ 2 / 2 := by positivity
-            dsimp only [rhs]; linarith
-          have hnorm_le_rhs : ‖Aε w₁‖ ≤ rhs := by
-            have hrhs_sq : 1 + 2 * ε * ⟪H' w₁, w₁⟫ + ε ^ 2 * M_op ^ 2 ≤ rhs ^ 2 := by
-              have hmagic : rhs ^ 2 - (1 + 2 * ε * ⟪H' w₁, w₁⟫ + ε ^ 2 * M_op ^ 2) =
-                  (ε * ⟪H' w₁, w₁⟫ + ε ^ 2 * M_op ^ 2 / 2) ^ 2 := by
-                dsimp only [rhs]; ring
-              have hsq_nn : 0 ≤ (ε * ⟪H' w₁, w₁⟫ + ε ^ 2 * M_op ^ 2 / 2) ^ 2 := sq_nonneg _
-              linarith
-            have hsq_le : ‖Aε w₁‖ ^ 2 ≤ rhs ^ 2 := hsq_exp.trans hrhs_sq
-            exact (le_abs_self (‖Aε w₁‖)).trans ((sq_le_sq.mp hsq_le).trans_eq (abs_of_nonneg hrhs_nn))
-          have hεM2 : ε * (M_op ^ 2 + 1) ≤ δ := (le_div_iff₀ (by positivity)).mp hε_le_δ
-          have hsum_le1 : rhs + ε * ⟪v, w₁⟫ ≤ 1 := by
-            have h1 : ε * g w₁ ≤ ε * (-δ) := mul_le_mul_of_nonneg_left hbad.le hε_pos.le
-            have h2 : ε ^ 2 * M_op ^ 2 ≤ ε * (ε * (M_op ^ 2 + 1)) := by
-              have hle : M_op ^ 2 ≤ M_op ^ 2 + 1 := by linarith
-              have hmul := mul_le_mul_of_nonneg_left hle (sq_nonneg ε)
-              linarith
-            have h3 : ε * (ε * (M_op ^ 2 + 1)) ≤ ε * δ :=
-              mul_le_mul_of_nonneg_left hεM2 hε_pos.le
-            have h4 : 0 ≤ ε ^ 2 * M_op ^ 2 := by positivity
-            have hg_eq : ⟪H' w₁, w₁⟫ + ⟪v, w₁⟫ = g w₁ := rfl
-            have h5 : ε * ⟪H' w₁, w₁⟫ + ε * ⟪v, w₁⟫ = ε * g w₁ := by rw [← mul_add, hg_eq]
-            dsimp only [rhs]
-            linarith
-          have hsup := hsup_ge_one w₁ hw₁_norm
-          linarith
-    have hle1 := hJ.2 Aε (ε • v) hsubK
-    have hlt1 : 1 < |LinearMap.det Aε| := hdet1.trans_le (le_abs_self _)
-    linarith
-  -- Extract finite convex combination from `target ∈ convexHull ℝ M`, then scale weights by `d`.
+  have htarget : target ∈ convexHull ℝ M := target_mem_convexHull_contact K hJ
   rw [convexHull_eq_union] at htarget
   rcases Set.mem_iUnion.mp htarget with ⟨t, ht⟩
   rcases Set.mem_iUnion.mp ht with ⟨htM, hmem⟩
   rcases Set.mem_iUnion.mp hmem with ⟨_, hmem_t⟩
   rw [Finset.convexHull_eq] at hmem_t
   rcases hmem_t with ⟨w, hw_nn, hw_sum, hw_comb⟩
-  -- Restrict to the strictly positive support `s = {p ∈ t | 0 < w p}`.
   classical
   let s : Finset ((E →L[ℝ] E) × E) := t.filter (fun p => 0 < w p)
   have hsum_s : ∑ p ∈ s, w p • p = target := by
@@ -1143,7 +1139,6 @@ theorem john_decomposition_of_john_position [FiniteDimensional ℝ E] [Nontrivia
     simp [hw0]
   have hs_sub : (s : Set ((E →L[ℝ] E) × E)) ⊆ M :=
     (Finset.coe_subset.mpr (Finset.filter_subset _ t)).trans htM
-  -- Choose a contact point `u₀ p ∈ C` for each `p ∈ s`.
   have hex_u : ∀ p : s, ∃ u : E, u ∈ C ∧ φ u = p.1 := fun p => hs_sub p.2
   choose u₀ hu₀_C hu₀_eq using hex_u
   let e : Fin (Fintype.card s) ≃ s := (Fintype.equivFin s).symm
@@ -1154,10 +1149,10 @@ theorem john_decomposition_of_john_position [FiniteDimensional ℝ E] [Nontrivia
   · intro i
     have hwi : 0 < w (e i).1 := (Finset.mem_filter.mp (e i).2).2
     exact mul_pos hd_pos hwi
-  · -- `∑ i, c i • rankOne (u i) (u i) = id`
-    have h1 := congrArg Prod.fst hsum_s
+  · have h1 := congrArg Prod.fst hsum_s
     simp only [Prod.fst_sum, Prod.smul_fst, target] at h1
-    have h1_fin : ∑ i : Fin (Fintype.card s), w (e i).1 • rankOneCLM (u i) (u i) =
+    have h1_fin : ∑ i : Fin (Fintype.card s),
+        w (e i).1 • InnerProductSpace.rankOne ℝ (u i) (u i) =
         (d : ℝ)⁻¹ • ContinuousLinearMap.id ℝ E := by
       have hsum_coe : ∑ p : s, w p.1 • p.1.1 = (d : ℝ)⁻¹ • ContinuousLinearMap.id ℝ E := by
         rw [← h1]
@@ -1171,10 +1166,9 @@ theorem john_decomposition_of_john_position [FiniteDimensional ℝ E] [Nontrivia
     have hx := congrArg (fun L : E →L[ℝ] E => (d : ℝ) • L x) h1_fin
     simp only [sum_apply, smul_apply, ContinuousLinearMap.id_apply, Finset.smul_sum, smul_smul,
       mul_inv_cancel₀ hd_pos.ne', one_smul] at hx
-    simpa [LinearMap.sum_apply, LinearMap.smul_apply, rankOne_apply, rankOneCLM_apply,
-      real_inner_comm, c, smul_smul] using hx
-  · -- `∑ i, c i • u i = 0`
-    have h2 := congrArg Prod.snd hsum_s
+    simpa [LinearMap.sum_apply, LinearMap.smul_apply, rankOne_apply,
+      InnerProductSpace.rankOne_apply, real_inner_comm, c, smul_smul] using hx
+  · have h2 := congrArg Prod.snd hsum_s
     simp only [Prod.snd_sum, Prod.smul_snd, target] at h2
     have h2_fin : ∑ i : Fin (Fintype.card s), w (e i).1 • u i = 0 := by
       have hsum_coe : ∑ p : s, w p.1 • p.1.2 = 0 := by
@@ -1192,6 +1186,314 @@ theorem john_decomposition_of_john_position [FiniteDimensional ℝ E] [Nontrivia
       _ = (d : ℝ) • ∑ i : Fin (Fintype.card s), w (e i).1 • u i := (Finset.smul_sum).symm
       _ = 0 := by rw [h2_fin, smul_zero]
   · intro i; exact (hu₀_C (e i)).2
+
+/-- Helper: for any John decomposition `∑ c_i (u_i ⊗ u_i) = id`, the trace of any linear
+endomorphism `P` is `∑ c_i ⟪P (u_i), u_i⟫`. -/
+private lemma trace_eq_sum_inner_of_john_decomposition [FiniteDimensional ℝ E]
+    {ι : Type*} [Fintype ι] {u : ι → E} {c : ι → ℝ}
+    (hJD : IsJohnDecomposition u c) (P : E →ₗ[ℝ] E) :
+    LinearMap.trace ℝ E P = ∑ i, c i * ⟪P (u i), u i⟫ := by
+  have hP : P = ∑ i, c i • rankOne (P (u i)) (u i) := by
+    calc
+      P = P.comp LinearMap.id := (LinearMap.comp_id P).symm
+      _ = P.comp (∑ i, c i • rankOne (u i) (u i)) := by rw [hJD.sum_rankOne]
+      _ = ∑ i, c i • rankOne (P (u i)) (u i) := by
+          ext x
+          simp only [LinearMap.comp_apply, LinearMap.sum_apply, LinearMap.smul_apply,
+            rankOne_apply, map_sum, map_smul]
+  conv_lhs => rw [hP]
+  simp only [map_sum, map_smul, trace_rankOne, smul_eq_mul]
+
+/-- Spectral AM-GM with equality characterization: if `P` is symmetric positive-semidefinite with
+`trace P ≤ d = finrank ℝ E`, then `det P ≤ 1`, with equality `det P = 1` implying `P = id`. -/
+private lemma det_le_one_and_eq_id_of_trace_le [FiniteDimensional ℝ E]
+    {P : E →ₗ[ℝ] E} (hP_symm : P.IsSymmetric) (hP_psd : ∀ x : E, 0 ≤ ⟪P x, x⟫)
+    (htr : LinearMap.trace ℝ E P ≤ (Module.finrank ℝ E : ℝ)) :
+    LinearMap.det P ≤ 1 ∧ (LinearMap.det P = 1 → P = LinearMap.id) := by
+  set d := Module.finrank ℝ E
+  let b := hP_symm.eigenvectorBasis rfl
+  let lam : Fin d → ℝ := hP_symm.eigenvalues rfl
+  have hlam_nn : ∀ j, 0 ≤ lam j := fun j => by
+    have h := hP_psd (b j)
+    rw [hP_symm.apply_eigenvectorBasis rfl j, inner_smul_left, RCLike.conj_to_real,
+      real_inner_self_eq_norm_sq, b.orthonormal.1 j, one_pow, mul_one] at h
+    exact h
+  have hdet : LinearMap.det P = ∏ j : Fin d, lam j := isSymmetric_det_eq_prod_eigenvalues hP_symm
+  have hsum : ∑ j : Fin d, lam j ≤ d := by
+    rwa [← isSymmetric_trace_eq_sum_eigenvalues hP_symm]
+  have hle : LinearMap.det P ≤ 1 := by
+    rw [hdet]
+    by_cases hzero : ∃ j : Fin d, lam j = 0
+    · obtain ⟨j, hj⟩ := hzero
+      rw [Finset.prod_eq_zero (Finset.mem_univ j) hj]
+      exact zero_le_one
+    · push Not at hzero
+      have hpos : ∀ j : Fin d, 0 < lam j := fun j => lt_of_le_of_ne (hlam_nn j) (Ne.symm (hzero j))
+      have hlog : Real.log (∏ j : Fin d, lam j) ≤ 0 := by
+        rw [Real.log_prod fun j _ => (hpos j).ne']
+        calc
+          ∑ j : Fin d, Real.log (lam j) ≤ ∑ j : Fin d, (lam j - 1) :=
+            Finset.sum_le_sum fun j _ => Real.log_le_sub_one_of_pos (hpos j)
+          _ = (∑ j : Fin d, lam j) - (d : ℝ) := by
+              simp [Finset.sum_sub_distrib]
+          _ ≤ 0 := by linarith
+      have hprod_pos : 0 < ∏ j : Fin d, lam j := Finset.prod_pos fun j _ => hpos j
+      rw [← Real.exp_log hprod_pos]
+      exact (Real.exp_le_exp.mpr hlog).trans_eq Real.exp_zero
+  refine ⟨hle, fun hdet1 => ?_⟩
+  rw [hdet] at hdet1
+  have hpos : ∀ j : Fin d, 0 < lam j := fun j => by
+    refine lt_of_le_of_ne (hlam_nn j) fun h0 => ?_
+    have hprod0 : ∏ k : Fin d, lam k = 0 := Finset.prod_eq_zero (Finset.mem_univ j) h0.symm
+    linarith
+  have hdiff_nn : ∀ j ∈ (Finset.univ : Finset (Fin d)), 0 ≤ lam j - 1 - Real.log (lam j) :=
+    fun j _ => sub_nonneg.mpr (Real.log_le_sub_one_of_pos (hpos j))
+  have hlog_sum : ∑ j : Fin d, Real.log (lam j) = 0 := by
+    rw [← Real.log_prod fun j _ => (hpos j).ne', hdet1, Real.log_one]
+  have hsum_diff : ∑ j : Fin d, (lam j - 1 - Real.log (lam j)) ≤ 0 := by
+    simp only [Finset.sum_sub_distrib, Finset.sum_const, Finset.card_univ, Fintype.card_fin,
+      nsmul_eq_mul, mul_one, hlog_sum, sub_zero]
+    linarith
+  have hsum_zero : ∑ j : Fin d, (lam j - 1 - Real.log (lam j)) = 0 :=
+    le_antisymm hsum_diff (Finset.sum_nonneg hdiff_nn)
+  have hlam_eq_one : ∀ j : Fin d, lam j = 1 := fun j => by
+    have hj0 : lam j - 1 - Real.log (lam j) = 0 :=
+      (Finset.sum_eq_zero_iff_of_nonneg hdiff_nn).mp hsum_zero j (Finset.mem_univ j)
+    by_contra hne
+    have hlt := Real.log_lt_sub_one_of_pos (hpos j) hne
+    linarith
+  apply b.toBasis.ext
+  intro j
+  change P (b j) = b j
+  rw [hP_symm.apply_eigenvectorBasis rfl j, RCLike.ofReal_real_eq_id, id_eq]
+  change lam j • b j = b j
+  rw [hlam_eq_one j, one_smul]
+
+/-- **Converse of Fritz John's Theorem (Ball, Theorem 3.1):**
+if `closedBall 0 1 ⊆ K` and there exists a balanced John decomposition at contact points
+(`IsJohnDecomposition u c`, `∑ c_i • u_i = 0`, `supportFn K (u_i) = 1`), then `K` is in John's
+position (i.e. `closedBall 0 1` is a maximal-volume inscribed ellipsoid of `K`). -/
+theorem isJohnPosition_of_john_decomposition [FiniteDimensional ℝ E]
+    (K : ConvexBody E) (hB : closedBall (0 : E) 1 ⊆ (K : Set E))
+    {ι : Type*} [Fintype ι] {u : ι → E} {c : ι → ℝ}
+    (hJD : IsJohnDecomposition u c)
+    (hcenter : ∑ i, c i • u i = 0)
+    (hsup : ∀ i, supportFn K (u i) = 1) :
+    IsJohnPosition (K : Set E) := by
+  refine ⟨hB, fun T b hsub => ?_⟩
+  obtain ⟨P, hP_symm, hP_psd, hP_img, hP_det⟩ := exists_posSemidef_ellipsoid_eq T
+  have hinner_le : ∀ i, ⟪P (u i), u i⟫ + ⟪b, u i⟫ ≤ 1 := fun i => by
+    have huB : u i ∈ closedBall (0 : E) 1 := by
+      rw [mem_closedBall_zero_iff, hJD.norm_eq_one i]
+    have hPu : P (u i) ∈ T '' closedBall (0 : E) 1 := hP_img ▸ ⟨u i, huB, rfl⟩
+    rcases hPu with ⟨x, hxB, hxP⟩
+    have hmem : P (u i) + b ∈ (K : Set E) := by
+      rw [← hxP]; exact hsub ⟨x, hxB, rfl⟩
+    have hle := inner_le_supportFn hmem (u i)
+    rw [hsup i, inner_add_left] at hle
+    exact hle
+  have htr : LinearMap.trace ℝ E P ≤ (Module.finrank ℝ E : ℝ) := by
+    have hb_sum : ∑ i, c i * ⟪b, u i⟫ = 0 := by
+      have : ∑ i, c i * ⟪b, u i⟫ = ⟪b, ∑ i, c i • u i⟫ := by
+        rw [inner_sum]
+        refine Finset.sum_congr rfl fun i _ => by rw [inner_smul_right]
+      rw [this, hcenter, inner_zero_right]
+    have hsum_le : ∑ i, c i * (⟪P (u i), u i⟫ + ⟪b, u i⟫) ≤ ∑ i, c i := by
+      refine Finset.sum_le_sum fun i _ => ?_
+      simpa [mul_one] using mul_le_mul_of_nonneg_left (hinner_le i) (hJD.weight_pos i).le
+    have hsplit : ∑ i, c i * (⟪P (u i), u i⟫ + ⟪b, u i⟫) =
+        (∑ i, c i * ⟪P (u i), u i⟫) + ∑ i, c i * ⟪b, u i⟫ := by
+      rw [← Finset.sum_add_distrib]
+      exact Finset.sum_congr rfl fun i _ => mul_add _ _ _
+    rw [hsplit, hb_sum, add_zero, ← trace_eq_sum_inner_of_john_decomposition hJD P,
+      hJD.sum_weights] at hsum_le
+    exact hsum_le
+  rw [← hP_det]
+  exact (det_le_one_and_eq_id_of_trace_le hP_symm hP_psd htr).1
+
+/-- **Complete Fritz John Characterization (Ball, Theorem 3.1):**
+when `closedBall 0 1 ⊆ K`, `K` is in John's position if and only if there exist contact points
+`u : Fin m → E` and positive weights `c : Fin m → ℝ` forming a balanced John decomposition. -/
+theorem isJohnPosition_iff_john_decomposition [FiniteDimensional ℝ E] [Nontrivial E]
+    (K : ConvexBody E) (hB : closedBall (0 : E) 1 ⊆ (K : Set E)) :
+    IsJohnPosition (K : Set E) ↔
+      ∃ (m : ℕ) (u : Fin m → E) (c : Fin m → ℝ),
+        IsJohnDecomposition u c ∧
+        (∑ i, c i • u i = 0) ∧
+        (∀ i, supportFn K (u i) = 1) :=
+  ⟨fun hJ => john_decomposition_of_john_position K hJ,
+    fun ⟨_, _, _, hJD, hcenter, hsup⟩ =>
+      isJohnPosition_of_john_decomposition K hB hJD hcenter hsup⟩
+
+/-- **Uniqueness of the John Ellipsoid in John's Position:**
+if `K` is in John's position and an inscribed affine ellipsoid `b + T(B₁) ⊆ K` attains the
+maximal volume `|det T| = 1`, then `b = 0` and `T(B₁) = B₁`. -/
+theorem eq_closedBall_of_isJohnPosition_of_det_eq_one [FiniteDimensional ℝ E] [Nontrivial E]
+    (K : ConvexBody E) (hJ : IsJohnPosition (K : Set E))
+    (T : E →ₗ[ℝ] E) (b : E)
+    (hsub : (fun x => T x + b) '' closedBall (0 : E) 1 ⊆ (K : Set E))
+    (hdet : |LinearMap.det T| = 1) :
+    b = 0 ∧ T '' closedBall (0 : E) 1 = closedBall (0 : E) 1 := by
+  obtain ⟨m, u, c, hJD, hcenter, hsup⟩ := john_decomposition_of_john_position K hJ
+  obtain ⟨P, hP_symm, hP_psd, hP_img, hP_det⟩ := exists_posSemidef_ellipsoid_eq T
+  have hinner_le : ∀ i, ⟪P (u i), u i⟫ + ⟪b, u i⟫ ≤ 1 := fun i => by
+    have huB : u i ∈ closedBall (0 : E) 1 := by
+      rw [mem_closedBall_zero_iff, hJD.norm_eq_one i]
+    have hPu : P (u i) ∈ T '' closedBall (0 : E) 1 := hP_img ▸ ⟨u i, huB, rfl⟩
+    rcases hPu with ⟨x, hxB, hxP⟩
+    have hmem : P (u i) + b ∈ (K : Set E) := by
+      rw [← hxP]; exact hsub ⟨x, hxB, rfl⟩
+    have hle := inner_le_supportFn hmem (u i)
+    rw [hsup i, inner_add_left] at hle
+    exact hle
+  have hb_sum : ∑ i, c i * ⟪b, u i⟫ = 0 := by
+    have : ∑ i, c i * ⟪b, u i⟫ = ⟪b, ∑ i, c i • u i⟫ := by
+      rw [inner_sum]
+      refine Finset.sum_congr rfl fun i _ => by rw [inner_smul_right]
+    rw [this, hcenter, inner_zero_right]
+  have htr : LinearMap.trace ℝ E P ≤ (Module.finrank ℝ E : ℝ) := by
+    have hsum_le : ∑ i, c i * (⟪P (u i), u i⟫ + ⟪b, u i⟫) ≤ ∑ i, c i := by
+      refine Finset.sum_le_sum fun i _ => ?_
+      simpa [mul_one] using mul_le_mul_of_nonneg_left (hinner_le i) (hJD.weight_pos i).le
+    have hsplit : ∑ i, c i * (⟪P (u i), u i⟫ + ⟪b, u i⟫) =
+        (∑ i, c i * ⟪P (u i), u i⟫) + ∑ i, c i * ⟪b, u i⟫ := by
+      rw [← Finset.sum_add_distrib]
+      exact Finset.sum_congr rfl fun i _ => mul_add _ _ _
+    rw [hsplit, hb_sum, add_zero, ← trace_eq_sum_inner_of_john_decomposition hJD P,
+      hJD.sum_weights] at hsum_le
+    exact hsum_le
+  have hP_id : P = LinearMap.id :=
+    (det_le_one_and_eq_id_of_trace_le hP_symm hP_psd htr).2 (hP_det.trans hdet)
+  have hT_img : T '' closedBall (0 : E) 1 = closedBall (0 : E) 1 := by
+    rw [← hP_img, hP_id]
+    simp
+  have hb_le : ∀ i, ⟪b, u i⟫ ≤ 0 := fun i => by
+    have h := hinner_le i
+    rw [hP_id, LinearMap.id_apply, real_inner_self_eq_norm_sq, hJD.norm_eq_one i, one_pow] at h
+    linarith
+  have hb_zero_i : ∀ i, ⟪b, u i⟫ = 0 := fun i => by
+    have hnn : ∀ j ∈ (Finset.univ : Finset (Fin m)), 0 ≤ c j * (-⟪b, u j⟫) := fun j _ =>
+      mul_nonneg (hJD.weight_pos j).le (neg_nonneg.mpr (hb_le j))
+    have hsum0 : ∑ j : Fin m, c j * (-⟪b, u j⟫) = 0 := by
+      simp_rw [mul_neg, Finset.sum_neg_distrib, hb_sum, neg_zero]
+    have hi0 := (Finset.sum_eq_zero_iff_of_nonneg hnn).mp hsum0 i (Finset.mem_univ i)
+    rcases mul_eq_zero.mp hi0 with hc0 | hbu0
+    · exact absurd hc0 (hJD.weight_pos i).ne'
+    · exact neg_eq_zero.mp hbu0
+  have hb_eq : b = 0 := by
+    have hnsq := hJD.norm_sq_eq_sum b
+    simp_rw [hb_zero_i, zero_pow two_ne_zero, mul_zero, Finset.sum_const_zero] at hnsq
+    exact norm_eq_zero.mp (sq_eq_zero_iff.mp hnsq)
+  exact ⟨hb_eq, hT_img⟩
+
+/-- **Uniqueness of the Maximal-Volume Inscribed Ellipsoid (John Ellipsoid):**
+any two maximal-volume inscribed affine ellipsoids of a convex body `K` with nonempty interior
+coincide as sets and have the same center. -/
+theorem unique_max_det_inscribed_ellipsoid [FiniteDimensional ℝ E] [Nontrivial E]
+    (K : ConvexBody E) (hint : (interior (K : Set E)).Nonempty)
+    {T₁ T₂ : E →ₗ[ℝ] E} {c₁ c₂ : E}
+    (hsub₁ : (fun x => T₁ x + c₁) '' closedBall (0 : E) 1 ⊆ (K : Set E))
+    (hsub₂ : (fun x => T₂ x + c₂) '' closedBall (0 : E) 1 ⊆ (K : Set E))
+    (hmax₁ : ∀ (S : E →ₗ[ℝ] E) (b : E),
+      (fun x => S x + b) '' closedBall (0 : E) 1 ⊆ (K : Set E) →
+        |LinearMap.det S| ≤ |LinearMap.det T₁|)
+    (hmax₂ : ∀ (S : E →ₗ[ℝ] E) (b : E),
+      (fun x => S x + b) '' closedBall (0 : E) 1 ⊆ (K : Set E) →
+        |LinearMap.det S| ≤ |LinearMap.det T₂|) :
+    (fun x => T₁ x + c₁) '' closedBall (0 : E) 1 =
+      (fun x => T₂ x + c₂) '' closedBall (0 : E) 1 ∧ c₁ = c₂ := by
+  obtain ⟨T₀, c₀, hsub₀, _⟩ := exists_max_det_inscribed_ellipsoid K hint
+  have hdet1_pos : 0 < |LinearMap.det T₁| :=
+    lt_of_lt_of_le (abs_pos.mpr T₀.isUnit_det'.ne_zero) (hmax₁ T₀ c₀ hsub₀)
+  have hdet1_ne : LinearMap.det T₁ ≠ 0 := abs_pos.mp hdet1_pos
+  have hdet_eq : |LinearMap.det T₁| = |LinearMap.det T₂| :=
+    le_antisymm (hmax₂ T₁ c₁ hsub₁) (hmax₁ T₂ c₂ hsub₂)
+  let e₁ : E ≃ₗ[ℝ] E := LinearMap.equivOfDetNeZero T₁ hdet1_ne
+  have he₁_coe : (e₁ : E →ₗ[ℝ] E) = T₁ := rfl
+  let KA : ConvexBody E :=
+    mapLinear e₁.symm.toContinuousLinearMap (K + bodySingleton (-c₁))
+  have hKA_coe : (KA : Set E) = (fun x => e₁.symm (x - c₁)) '' (K : Set E) := by
+    ext y
+    simp only [KA, coe_mapLinear, ConvexBody.coe_add, coe_bodySingleton, Set.mem_image,
+      Set.mem_add, Set.mem_singleton_iff]
+    constructor
+    · rintro ⟨_, ⟨x, hx, _, rfl, rfl⟩, rfl⟩
+      exact ⟨x, hx, by simp [sub_eq_add_neg]⟩
+    · rintro ⟨x, hx, rfl⟩
+      exact ⟨x + -c₁, ⟨x, hx, -c₁, rfl, rfl⟩, by simp [sub_eq_add_neg]⟩
+  have hKA_J : IsJohnPosition (KA : Set E) := by
+    refine ⟨?_, ?_⟩
+    · rw [hKA_coe]
+      intro x hx
+      refine ⟨T₁ x + c₁, hsub₁ ⟨x, hx, rfl⟩, ?_⟩
+      change e₁.symm (e₁ x + c₁ - c₁) = x
+      rw [add_sub_cancel_right, e₁.symm_apply_apply]
+    · intro S b hSsub
+      have hSsubK : (fun x => (T₁.comp S) x + (T₁ b + c₁)) '' closedBall (0 : E) 1 ⊆
+          (K : Set E) := by
+        rintro _ ⟨x, hx, rfl⟩
+        have hmem : S x + b ∈ (KA : Set E) := hSsub ⟨x, hx, rfl⟩
+        rw [hKA_coe] at hmem
+        rcases hmem with ⟨y, hyK, hy⟩
+        have hy' : T₁ (S x + b) = y - c₁ := by
+          change e₁ (S x + b) = y - c₁
+          rw [← hy, e₁.apply_symm_apply]
+        have hy_eq : (T₁.comp S) x + (T₁ b + c₁) = y := by
+          simp only [LinearMap.comp_apply]
+          have := map_add T₁ (S x) b
+          rw [← add_assoc, ← this, hy', sub_add_cancel]
+        dsimp only
+        rwa [hy_eq]
+      have hle := hmax₁ (T₁.comp S) (T₁ b + c₁) hSsubK
+      rw [LinearMap.det_comp, abs_mul] at hle
+      exact (mul_le_iff_le_one_right hdet1_pos).mp hle
+  let T' : E →ₗ[ℝ] E := (e₁.symm : E →ₗ[ℝ] E).comp T₂
+  let b' : E := e₁.symm (c₂ - c₁)
+  have hsub' : (fun x => T' x + b') '' closedBall (0 : E) 1 ⊆ (KA : Set E) := by
+    rw [hKA_coe]
+    rintro _ ⟨x, hx, rfl⟩
+    refine ⟨T₂ x + c₂, hsub₂ ⟨x, hx, rfl⟩, ?_⟩
+    dsimp only [T', b']
+    change e₁.symm (T₂ x + c₂ - c₁) = e₁.symm (T₂ x) + e₁.symm (c₂ - c₁)
+    rw [← map_add]
+    congr 1
+    abel
+  have hdet' : |LinearMap.det T'| = 1 := by
+    dsimp only [T']
+    rw [LinearMap.det_comp, abs_mul, LinearEquiv.det_coe_symm, he₁_coe, abs_inv, ← hdet_eq,
+      inv_mul_cancel₀ hdet1_pos.ne']
+  obtain ⟨hb'_eq, hT'_img⟩ :=
+    eq_closedBall_of_isJohnPosition_of_det_eq_one KA hKA_J T' b' hsub' hdet'
+  have hc_eq : c₁ = c₂ := by
+    have : c₂ - c₁ = 0 := by
+      have h := congrArg e₁ hb'_eq
+      simpa [b'] using h
+    exact (sub_eq_zero.mp this).symm
+  have hT_img : T₁ '' closedBall (0 : E) 1 = T₂ '' closedBall (0 : E) 1 := by
+    have h1 := congrArg (fun S : Set E => e₁ '' S) hT'_img
+    have hlhs : e₁ '' (T' '' closedBall (0 : E) 1) = T₂ '' closedBall (0 : E) 1 := by
+      ext y
+      simp only [Set.mem_image, T', LinearMap.comp_apply]
+      constructor
+      · rintro ⟨_, ⟨x, hx, rfl⟩, rfl⟩
+        exact ⟨x, hx, (e₁.apply_symm_apply (T₂ x)).symm⟩
+      · rintro ⟨x, hx, rfl⟩
+        exact ⟨e₁.symm (T₂ x), ⟨x, hx, rfl⟩, e₁.apply_symm_apply (T₂ x)⟩
+    rw [hlhs] at h1
+    exact h1.symm
+  refine ⟨?_, hc_eq⟩
+  subst hc_eq
+  ext y
+  simp only [Set.mem_image]
+  constructor
+  · rintro ⟨x, hx, rfl⟩
+    have hmem : T₁ x ∈ T₂ '' closedBall (0 : E) 1 := hT_img ▸ ⟨x, hx, rfl⟩
+    rcases hmem with ⟨z, hz, hz_eq⟩
+    exact ⟨z, hz, by rw [hz_eq]⟩
+  · rintro ⟨x, hx, rfl⟩
+    have hmem : T₂ x ∈ T₁ '' closedBall (0 : E) 1 := hT_img.symm ▸ ⟨x, hx, rfl⟩
+    rcases hmem with ⟨z, hz, hz_eq⟩
+    exact ⟨z, hz, by rw [hz_eq]⟩
 
 /-- **General containment in John's position (Ball, Lecture 3):**
 if `K : ConvexBody E` is in John's position in dimension `d = finrank ℝ E ≥ 1`, then
@@ -1463,14 +1765,187 @@ theorem john_theorem_symmetric [FiniteDimensional ℝ E] [Nontrivial E]
   rw [hKT_coe] at hsub
   exact ⟨T, hJ, hJ.1, hsub⟩
 
+/-- A set `K ⊆ E` is in **Löwner's position** if `K ⊆ closedBall 0 1` and the unit closed ball
+minimizes `|det T|` among all enclosing affine ellipsoids `K ⊆ c + T(closedBall 0 1)`. -/
+@[expose]
+def IsLoewnerPosition (K : Set E) : Prop :=
+  K ⊆ closedBall (0 : E) 1 ∧
+    ∀ (T : E →ₗ[ℝ] E) (c : E),
+      K ⊆ (fun x => T x + c) '' closedBall (0 : E) 1 → 1 ≤ |LinearMap.det T|
+
+/-- **Polarity bridge from John's position to Löwner's position:**
+for an origin-symmetric convex body `K` with `0 ∈ interior K`, if `polarBody K` is in John's
+position then `K` is in Löwner's position (i.e. `closedBall 0 1` has minimal volume among all
+enclosing affine ellipsoids `K ⊆ c + T(B₁)`). -/
+theorem isLoewnerPosition_of_polar_isJohnPosition [FiniteDimensional ℝ E]
+    (K : ConvexBody E) (hsym : IsOriginSymmetric (K : Set E))
+    (h0 : (0 : E) ∈ interior (K : Set E))
+    (hJ : IsJohnPosition (polarBody (K : Set E))) :
+    IsLoewnerPosition (K : Set E) := by
+  have hbipolar : (K : Set E) = polarBody (polarBody (K : Set E)) :=
+    (polarBody_polarBody K.convex K.isClosed (interior_subset h0)).symm
+  refine ⟨?_, fun T c hsub => ?_⟩
+  · rw [hbipolar]
+    have h1 := polarBody_antitone hJ.1
+    rwa [polarBody_closedBall one_pos, inv_one] at h1
+  · have hsub0 : (K : Set E) ⊆ T '' closedBall (0 : E) 1 := by
+      intro y hy
+      rcases hsub hy with ⟨x₁, hx₁, hx₁_eq⟩
+      rcases hsub (hsym y hy) with ⟨x₂, hx₂, hx₂_eq⟩
+      refine ⟨(1 / 2 : ℝ) • (x₁ - x₂), ?_, ?_⟩
+      · rw [mem_closedBall_zero_iff, norm_smul, Real.norm_eq_abs,
+          abs_of_nonneg (by norm_num : (0 : ℝ) ≤ 1 / 2)]
+        have h1 : ‖x₁‖ ≤ 1 := mem_closedBall_zero_iff.mp hx₁
+        have h2 : ‖x₂‖ ≤ 1 := mem_closedBall_zero_iff.mp hx₂
+        have htri : ‖x₁ - x₂‖ ≤ ‖x₁‖ + ‖x₂‖ := norm_sub_le x₁ x₂
+        linarith
+      · rw [map_smul, map_sub]
+        have hdiff : T x₁ - T x₂ = (2 : ℝ) • y := by
+          dsimp only at hx₁_eq hx₂_eq
+          have : T x₁ + c - (T x₂ + c) = y - (-y) := by rw [hx₁_eq, hx₂_eq]
+          rw [add_sub_add_right_eq_sub, sub_neg_eq_add, ← two_smul ℝ y] at this
+          exact this
+        rw [hdiff, smul_smul]
+        norm_num
+    obtain ⟨r, hr, hball⟩ := Metric.mem_nhds_iff.mp (mem_interior_iff_mem_nhds.mp h0)
+    have hsurj : Function.Surjective T := by
+      intro z
+      by_cases hz : z = 0
+      · exact ⟨0, by rw [hz, map_zero]⟩
+      · have hzn : 0 < ‖z‖ := norm_pos_iff.mpr hz
+        set s : ℝ := r / (2 * ‖z‖)
+        have hs : 0 < s := by positivity
+        have hsz : s • z ∈ (K : Set E) := hball (by
+          rw [mem_ball_zero_iff, norm_smul, Real.norm_eq_abs, abs_of_pos hs]
+          dsimp only [s]
+          have : r / (2 * ‖z‖) * ‖z‖ = r / 2 := by field_simp [hzn.ne']
+          linarith)
+        rcases hsub0 hsz with ⟨x, _, hx_eq⟩
+        refine ⟨s⁻¹ • x, ?_⟩
+        rw [map_smul, hx_eq, smul_smul, inv_mul_cancel₀ hs.ne', one_smul]
+    let Teq : E ≃ₗ[ℝ] E :=
+      LinearEquiv.ofBijective T ⟨LinearMap.injective_iff_surjective.mpr hsurj, hsurj⟩
+    have hTeq_coe : (Teq : E →ₗ[ℝ] E) = T := rfl
+    have hpol_sub : (fun x => (adjointLinearEquiv Teq.symm : E →ₗ[ℝ] E) x + 0) ''
+        closedBall (0 : E) 1 ⊆ polarBody (K : Set E) := by
+      have h1 : polarBody (ellipsoid Teq) ⊆ polarBody (K : Set E) :=
+        polarBody_antitone hsub0
+      rw [polarBody_ellipsoid, ellipsoid] at h1
+      simpa [add_zero] using h1
+    have hdet_le := hJ.2 (adjointLinearEquiv Teq.symm : E →ₗ[ℝ] E) 0 hpol_sub
+    rw [adjointLinearEquiv_toLinearMap, det_adjoint_eq_det, LinearEquiv.det_coe_symm,
+      hTeq_coe, abs_inv] at hdet_le
+    have hdet_pos : 0 < |LinearMap.det T| := abs_pos.mpr (hTeq_coe ▸ Teq.isUnit_det'.ne_zero)
+    exact (inv_le_one₀ hdet_pos).mp hdet_le
+
+/-- **Uniqueness of the Minimal-Volume Enclosing Ellipsoid (Löwner Ellipsoid):**
+for an origin-symmetric convex body `K` with `0 ∈ interior K` whose polar is in John's position,
+any enclosing affine ellipsoid `K ⊆ c + T(B₁)` attaining minimal volume `|det T| = 1` satisfies
+`c = 0` and `T(B₁) = B₁`. -/
+theorem eq_closedBall_of_isLoewnerPosition_of_det_eq_one [FiniteDimensional ℝ E] [Nontrivial E]
+    (K : ConvexBody E) (hsym : IsOriginSymmetric (K : Set E))
+    (h0 : (0 : E) ∈ interior (K : Set E))
+    (hJ : IsJohnPosition (polarBody (K : Set E)))
+    (T : E →ₗ[ℝ] E) (c : E)
+    (hsub : (K : Set E) ⊆ (fun x => T x + c) '' closedBall (0 : E) 1)
+    (hdet : |LinearMap.det T| = 1) :
+    c = 0 ∧ T '' closedBall (0 : E) 1 = closedBall (0 : E) 1 := by
+  have hdet_ne : LinearMap.det T ≠ 0 := by
+    intro h0det; rw [h0det, abs_zero] at hdet; norm_num at hdet
+  let Teq : E ≃ₗ[ℝ] E := LinearMap.equivOfDetNeZero T hdet_ne
+  have hTeq_coe : (Teq : E →ₗ[ℝ] E) = T := rfl
+  have hsub0 : (K : Set E) ⊆ T '' closedBall (0 : E) 1 := by
+    intro y hy
+    rcases hsub hy with ⟨x₁, hx₁, hx₁_eq⟩
+    rcases hsub (hsym y hy) with ⟨x₂, hx₂, hx₂_eq⟩
+    refine ⟨(1 / 2 : ℝ) • (x₁ - x₂), ?_, ?_⟩
+    · rw [mem_closedBall_zero_iff, norm_smul, Real.norm_eq_abs,
+        abs_of_nonneg (by norm_num : (0 : ℝ) ≤ 1 / 2)]
+      have h1 : ‖x₁‖ ≤ 1 := mem_closedBall_zero_iff.mp hx₁
+      have h2 : ‖x₂‖ ≤ 1 := mem_closedBall_zero_iff.mp hx₂
+      linarith [norm_sub_le x₁ x₂]
+    · rw [map_smul, map_sub]
+      have hdiff : T x₁ - T x₂ = (2 : ℝ) • y := by
+        dsimp only at hx₁_eq hx₂_eq
+        have : T x₁ + c - (T x₂ + c) = y - (-y) := by rw [hx₁_eq, hx₂_eq]
+        rw [add_sub_add_right_eq_sub, sub_neg_eq_add, ← two_smul ℝ y] at this
+        exact this
+      rw [hdiff, smul_smul]; norm_num
+  let Kpol : ConvexBody E := bodyPolar (K : Set E) h0
+  have hKpol_J : IsJohnPosition (Kpol : Set E) := by rwa [coe_bodyPolar]
+  have hpol_sub : (fun x => (adjointLinearEquiv Teq.symm : E →ₗ[ℝ] E) x + 0) ''
+      closedBall (0 : E) 1 ⊆ (Kpol : Set E) := by
+    rw [coe_bodyPolar]
+    have h1 : polarBody (ellipsoid Teq) ⊆ polarBody (K : Set E) :=
+      polarBody_antitone hsub0
+    rw [polarBody_ellipsoid, ellipsoid] at h1
+    simpa [add_zero] using h1
+  have hpol_det : |LinearMap.det (adjointLinearEquiv Teq.symm : E →ₗ[ℝ] E)| = 1 := by
+    rw [adjointLinearEquiv_toLinearMap, det_adjoint_eq_det, LinearEquiv.det_coe_symm,
+      hTeq_coe, abs_inv, hdet, inv_one]
+  have hpol_eq := (eq_closedBall_of_isJohnPosition_of_det_eq_one Kpol hKpol_J
+    (adjointLinearEquiv Teq.symm : E →ₗ[ℝ] E) 0 hpol_sub hpol_det).2
+  have hT_img : T '' closedBall (0 : E) 1 = closedBall (0 : E) 1 := by
+    have hconv_img : Convex ℝ (Teq '' closedBall (0 : E) 1) :=
+      (convex_closedBall (0 : E) 1).linear_image Teq.toLinearMap
+    have hcl_img : IsClosed (Teq '' closedBall (0 : E) 1) :=
+      ((isCompact_closedBall (0 : E) 1).image Teq.toContinuousLinearEquiv.continuous).isClosed
+    have h0_img : (0 : E) ∈ Teq '' closedBall (0 : E) 1 :=
+      ⟨0, mem_closedBall_self zero_le_one, map_zero Teq⟩
+    have hbip := polarBody_polarBody hconv_img hcl_img h0_img
+    have hpol_Teq : polarBody (Teq '' closedBall (0 : E) 1) = closedBall (0 : E) 1 := by
+      change polarBody (ellipsoid Teq) = closedBall (0 : E) 1
+      rw [polarBody_ellipsoid, ellipsoid]
+      exact hpol_eq
+    change Teq '' closedBall (0 : E) 1 = closedBall (0 : E) 1
+    rw [← hbip, hpol_Teq, polarBody_closedBall one_pos, inv_one]
+  obtain ⟨m, u, w, hJD, _, hsup⟩ := john_decomposition_of_john_position Kpol hKpol_J
+  have hm_pos : 0 < m := by
+    by_contra hm0
+    have hm_eq : m = 0 := Nat.eq_zero_of_not_pos hm0
+    subst hm_eq
+    have hsw := hJD.sum_weights
+    simp only [Finset.univ_eq_empty, Finset.sum_empty] at hsw
+    have hd_pos : (0 : ℝ) < Module.finrank ℝ E := Nat.cast_pos.mpr Module.finrank_pos
+    linarith
+  let u₀ : E := u ⟨0, hm_pos⟩
+  have hu₀_norm : ‖u₀‖ = 1 := hJD.norm_eq_one ⟨0, hm_pos⟩
+  have hu₀_mem : u₀ ∈ (K : Set E) := by
+    rw [← polarBody_polarBody K.convex K.isClosed (interior_subset h0), mem_polarBody]
+    intro y hy
+    have hy' : y ∈ (Kpol : Set E) := by rwa [coe_bodyPolar]
+    have hle := inner_le_supportFn hy' u₀
+    rwa [hsup ⟨0, hm_pos⟩] at hle
+  have hsub_shift : ∀ z ∈ (K : Set E), ‖z - c‖ ≤ 1 := fun z hz => by
+    rcases hsub hz with ⟨x, hx, hxz⟩
+    have hTx : T x ∈ closedBall (0 : E) 1 := hT_img ▸ ⟨x, hx, rfl⟩
+    have hdiff : z - c = T x := by rw [← hxz, add_sub_cancel_right]
+    rw [hdiff]
+    exact mem_closedBall_zero_iff.mp hTx
+  have hminus : ‖u₀ - c‖ ≤ 1 := hsub_shift u₀ hu₀_mem
+  have hplus : ‖u₀ + c‖ ≤ 1 := by
+    have h := hsub_shift (-u₀) (hsym u₀ hu₀_mem)
+    have heq : -u₀ - c = -(u₀ + c) := by abel
+    rwa [heq, norm_neg] at h
+  have hpar : ‖u₀ + c‖ ^ 2 + ‖u₀ - c‖ ^ 2 = 2 * (‖u₀‖ ^ 2 + ‖c‖ ^ 2) := by
+    rw [norm_add_sq_real, norm_sub_sq_real]; ring
+  have hc_sq : ‖c‖ ^ 2 ≤ 0 := by
+    have h1 : ‖u₀ + c‖ ^ 2 ≤ 1 := by nlinarith [norm_nonneg (u₀ + c)]
+    have h2 : ‖u₀ - c‖ ^ 2 ≤ 1 := by nlinarith [norm_nonneg (u₀ - c)]
+    rw [hu₀_norm, one_pow] at hpar
+    linarith
+  exact ⟨norm_eq_zero.mp (sq_eq_zero_iff.mp (le_antisymm hc_sq (sq_nonneg _))), hT_img⟩
+
 /-- **Löwner's Theorem (Minimal-Volume Enclosing Ellipsoid for Origin-Symmetric Bodies):**
 for every origin-symmetric `K : ConvexBody E` with `0 ∈ interior K` in dimension `d ≥ 1`, there
-exists `T : E ≃ₗ[ℝ] E` such that `(√d)⁻¹ • closedBall 0 1 ⊆ T '' K ⊆ closedBall 0 1` and
-`polarBody (T '' K)` is in John's position. -/
+exists `T : E ≃ₗ[ℝ] E` such that `T '' K` is in Löwner's position (minimal-volume enclosing
+ellipsoid among all enclosing affine ellipsoids), `polarBody (T '' K)` is in John's position, and
+`(√d)⁻¹ • closedBall 0 1 ⊆ T '' K ⊆ closedBall 0 1`. -/
 theorem loewner_theorem_symmetric [FiniteDimensional ℝ E] [Nontrivial E]
     (K : ConvexBody E) (hsym : IsOriginSymmetric (K : Set E))
     (h0 : (0 : E) ∈ interior (K : Set E)) :
     ∃ T : E ≃ₗ[ℝ] E,
+      IsLoewnerPosition (T '' (K : Set E)) ∧
       IsJohnPosition (polarBody (T '' (K : Set E))) ∧
       (Real.sqrt (Module.finrank ℝ E : ℝ))⁻¹ • closedBall (0 : E) 1 ⊆ T '' (K : Set E) ∧
       T '' (K : Set E) ⊆ closedBall (0 : E) 1 := by
@@ -1500,7 +1975,24 @@ theorem loewner_theorem_symmetric [FiniteDimensional ℝ E] [Nontrivial E]
     exact (polarBody_polarBody (K.convex.linear_image T.toLinearMap)
       (K.isCompact.image T.toContinuousLinearEquiv.continuous).isClosed
       ⟨0, interior_subset h0, map_zero T⟩).symm
-  refine ⟨T, hpol_eq.symm ▸ hSJ, ?_, ?_⟩
+  let KT : ConvexBody E := mapLinear T.toContinuousLinearMap K
+  have hKT_coe : (KT : Set E) = T '' (K : Set E) := coe_mapLinear _ K
+  have hKT_sym : IsOriginSymmetric (KT : Set E) := by
+    rw [hKT_coe]; exact isOriginSymmetric_linearMap_image T.toLinearMap hsym
+  have hKT_0 : (0 : E) ∈ interior (KT : Set E) := by
+    rw [hKT_coe]
+    have hT0 : T 0 = 0 := map_zero T
+    rw [← hT0]
+    have hint : interior (T '' (K : Set E)) = T '' interior (K : Set E) :=
+      (T.toContinuousLinearEquiv.toHomeomorph.image_interior (K : Set E)).symm
+    rw [hint]
+    exact ⟨0, h0, rfl⟩
+  have hKT_J : IsJohnPosition (polarBody (KT : Set E)) := by
+    rw [hKT_coe, hpol_eq]; exact hSJ
+  have hLoewner : IsLoewnerPosition (T '' (K : Set E)) := by
+    rw [← hKT_coe]
+    exact isLoewnerPosition_of_polar_isJohnPosition KT hKT_sym hKT_0 hKT_J
+  refine ⟨T, hLoewner, hpol_eq.symm ▸ hSJ, ?_, ?_⟩
   · rw [hbipolar]
     have h1 := polarBody_antitone hsubB
     rwa [polarBody_smul hsd_pos, polarBody_closedBall one_pos, inv_one] at h1
@@ -1570,7 +2062,8 @@ theorem banachMazurDist_closedBall_le_sqrt_finrank [FiniteDimensional ℝ E] [No
     rw [← Real.sqrt_one]; exact Real.sqrt_le_sqrt hd_ge1
   have hsd_pos : 0 < Real.sqrt (d : ℝ) := lt_of_lt_of_le zero_lt_one hsd_ge1
   obtain ⟨T, _, hBsub, hsubB⟩ := john_theorem_symmetric K hsym h0
-  let S : E ≃ₗ[ℝ] E := (smulLinearEquiv hsd_pos.ne').trans T.symm
+  let S : E ≃ₗ[ℝ] E :=
+    (LinearEquiv.smulOfNeZero ℝ E (Real.sqrt (d : ℝ)) hsd_pos.ne').trans T.symm
   have hmem : Real.sqrt (d : ℝ) ∈ banachMazurSet (K : Set E) (closedBall (0 : E) 1) := by
     refine ⟨hsd_ge1, S, ?_, ?_⟩
     · intro x hx
@@ -1578,13 +2071,14 @@ theorem banachMazurDist_closedBall_le_sqrt_finrank [FiniteDimensional ℝ E] [No
       rcases hTx with ⟨u, hu, huTx⟩
       refine ⟨u, hu, ?_⟩
       dsimp only [S]
-      rw [LinearEquiv.trans_apply, smulLinearEquiv_apply,
+      rw [LinearEquiv.trans_apply, LinearEquiv.smulOfNeZero_apply,
         show Real.sqrt (d : ℝ) • u = T x from huTx, T.symm_apply_apply]
     · rintro _ ⟨u, hu, rfl⟩
       rcases hBsub hu with ⟨x, hx, hTx⟩
       refine ⟨x, hx, ?_⟩
       dsimp only [S]
-      rw [LinearEquiv.trans_apply, smulLinearEquiv_apply, ← hTx, ← map_smul, T.symm_apply_apply]
+      rw [LinearEquiv.trans_apply, LinearEquiv.smulOfNeZero_apply, ← hTx, ← map_smul,
+        T.symm_apply_apply]
   exact csInf_le (bddBelow_banachMazurSet _ _) hmem
 
 /-- **John's Banach–Mazur Diameter Bound (Origin-Symmetric Bodies, Ball Lecture 4):**
@@ -1646,7 +2140,7 @@ theorem affineBanachMazurDist_closedBall_le_finrank [FiniteDimensional ℝ E] [N
       have hAx₀ : A x₀ = 0 := A.apply_symm_apply 0
       rw [hAx₀, sub_zero] at hsub
       rw [hsub, LinearEquiv.symm_apply_apply]
-  let S : E ≃ₗ[ℝ] E := (smulLinearEquiv hd_pos.ne').trans A.linear.symm
+  let S : E ≃ₗ[ℝ] E := (LinearEquiv.smulOfNeZero ℝ E (d : ℝ) hd_pos.ne').trans A.linear.symm
   have hmem : (d : ℝ) ∈ affineBanachMazurSet (K : Set E) (closedBall (0 : E) 1) := by
     refine ⟨hd_ge1, S, x₀, 0, ?_, ?_⟩
     · rw [hshift]
@@ -1654,12 +2148,12 @@ theorem affineBanachMazurDist_closedBall_le_finrank [FiniteDimensional ℝ E] [N
       rcases hsubB hw with ⟨u, hu, huw⟩
       refine ⟨u, ⟨u, hu, sub_zero u⟩, ?_⟩
       dsimp only [S]
-      rw [LinearEquiv.trans_apply, smulLinearEquiv_apply, show (d : ℝ) • u = w from huw]
+      rw [LinearEquiv.trans_apply, LinearEquiv.smulOfNeZero_apply, show (d : ℝ) • u = w from huw]
     · rw [hshift]
       rintro _ ⟨_, ⟨u, hu, rfl⟩, rfl⟩
       refine ⟨A.linear.symm u, ⟨u, hBsub hu, rfl⟩, ?_⟩
       dsimp only [S]
-      rw [LinearEquiv.trans_apply, smulLinearEquiv_apply, sub_zero, map_smul]
+      rw [LinearEquiv.trans_apply, LinearEquiv.smulOfNeZero_apply, sub_zero, map_smul]
   exact csInf_le (bddBelow_affineBanachMazurSet _ _) hmem
 
 /-- **John's Affine Banach–Mazur Diameter Bound (General Convex Bodies):**
@@ -2205,9 +2699,12 @@ lemma tendsto_banachMazurDist_one_of_tendsto_convexBody [FiniteDimensional ℝ E
       have := (supportFn_le_iff_subset (K := K₀) (L := (1 + δ) • K n)).mp hsup
       simpa [ConvexBody.coe_smul] using this
     have hmem : (1 + δ) ^ 2 ∈ banachMazurSet (K n : Set E) (K₀ : Set E) := by
-      refine ⟨by nlinarith, smulLinearEquiv h1δ_pos.ne', ?_, ?_⟩
-      · rwa [smulLinearEquiv_image]
-      · rw [smulLinearEquiv_image]
+      have himg : (LinearEquiv.smulOfNeZero ℝ E (1 + δ) h1δ_pos.ne') '' (K₀ : Set E) =
+          (1 + δ) • (K₀ : Set E) := by
+        ext x; simp [mem_smul_set]
+      refine ⟨by nlinarith, LinearEquiv.smulOfNeZero ℝ E (1 + δ) h1δ_pos.ne', ?_, ?_⟩
+      · rwa [himg]
+      · rw [himg]
         calc
           (1 + δ) • (K₀ : Set E) ⊆ (1 + δ) • ((1 + δ) • (K n : Set E)) := Set.smul_set_mono hsub2
           _ = (1 + δ) ^ 2 • (K n : Set E) := by rw [smul_smul, sq]

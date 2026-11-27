@@ -15,22 +15,28 @@ import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
 # Spherical Isotropic Identity and the Steiner Point
 
 Built on `ConvexGeom.Asymptotic.SphericalIntegration`, this file establishes the second-moment
-isotropy of the uniform spherical measure `sphereProb volume` and the Steiner point of a convex body
-(Schneider, *Convex Bodies*, §1.7):
+isotropy of the uniform spherical measure `sphereProb volume` and develops the Steiner point of a
+convex body.
 
-1. **Spherical Isotropic Identity (`integral_sphereProb_id`, `integral_inner_sq_sphereProb`,
-   `integral_inner_mul_inner_sphereProb`, `finrank_smul_integral_inner_smul_sphereProb`):**
-   On `sphere (0 : E) 1` in dimension `d = finrank ℝ E ≥ 1`:
-   `∫ u, u = 0`, `∫ u, ⟪u, v⟫ * ⟪u, w⟫ = ⟪v, w⟫ / d`, and `d • ∫ u, ⟪x, u⟫ • u = x`.
-2. **Steiner Point (`steinerPoint`):**
-   `steinerPoint K := d • ∫ u, supportFn K u • u ∂(sphereProb volume)`.
-   - Minkowski additivity, positive homogeneity, translation & orthogonal equivariance,
-     reflection anti-equivariance, and exact value on singletons and closed balls.
-   - **Intrinsic selection (`steinerPoint_mem`):** `steinerPoint K ∈ (K : Set E)` for every
-     `K : ConvexBody E`, proved via hyperplane reflection averaging and support-function
-     subadditivity.
-   - **Hausdorff stability (`dist_steinerPoint_le`, `lipschitzWith_steinerPoint`,
-     `continuous_steinerPoint`):** `dist (steinerPoint K) (steinerPoint L) ≤ √d * dist K L`.
+## Main definitions
+
+* `ConvexGeom.steinerPoint`: the Steiner point
+  `steinerPoint K := d • ∫ u, supportFn K u • u ∂(sphereProb volume)`.
+
+## Main statements
+
+* `ConvexGeom.integral_sphereProb_id`, `ConvexGeom.integral_inner_sq_sphereProb`,
+  `ConvexGeom.integral_inner_mul_inner_sphereProb`,
+  `ConvexGeom.finrank_smul_integral_inner_smul_sphereProb`: spherical isotropic identities
+  `∫ u, u = 0`, `∫ u, ⟪u, v⟫ * ⟪u, w⟫ = ⟪v, w⟫ / d`, and `d • ∫ u, ⟪x, u⟫ • u = x`.
+* `ConvexGeom.steinerPoint_mem`: intrinsic selection `steinerPoint K ∈ (K : Set E)`.
+* `ConvexGeom.dist_steinerPoint_le`, `ConvexGeom.lipschitzWith_steinerPoint`,
+  `ConvexGeom.continuous_steinerPoint`: Hausdorff stability
+  `dist (steinerPoint K) (steinerPoint L) ≤ √d * dist K L`.
+
+## References
+
+* [R. Schneider, *Convex Bodies: The Brunn–Minkowski Theory*][schneider2014], §1.7
 -/
 
 open MeasureTheory Set Metric

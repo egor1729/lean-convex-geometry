@@ -20,36 +20,45 @@ import Mathlib.MeasureTheory.Measure.Haar.Unique
 
 Built directly on Mathlib's generalized polar coordinate measure `Measure.toSphere`
 (`Mathlib.MeasureTheory.Constructions.HaarToSphere`), this file establishes the spherical
-integration layer underlying high-dimensional convex geometry (Ball, Lectures 1–2; Klartag;
-Artstein-Avidan–Giannopoulos–Milman, Ch. 1; Schneider, §1.7):
+integration layer underlying high-dimensional convex geometry.
 
-1. **Uniform Spherical Probability Measure (`sphereProb`):**
-   `sphereProb μ := (μ.toSphere univ)⁻¹ • μ.toSphere` is the normalized cone probability measure
-   on `sphere 0 1` (unique `O(E)`-invariant probability measure on the Euclidean unit sphere in
-   dimension `d ≥ 1`; in dimension `0`, `sphere 0 1 = ∅` so `sphereProb μ = 0`).
-   It is independent of the choice or normalization of the ambient additive Haar measure
-   (`sphereProb_smul`, `sphereProb_eq_of_isAddHaarMeasure`), invariant under antipodal negation
-   (`measurePreserving_sphereNeg_sphereProb`), and invariant under every linear isometry
-   preserving `μ` (in particular all `U : E ≃ₗᵢ[ℝ] E` for `volume`).
-2. **Polar-Coordinate Volume Formula:**
-   For any `ConvexBody E` with `0 ∈ interior K` and any add-Haar measure `μ`:
-   - `addHaar_real_eq_integral_gauge_inv_pow`:
-     $$\mu.\mathrm{real}(K) = \mu.\mathrm{real}(\overline{B}(0, 1)) \int_{S^{d-1}} (\mathrm{gauge}\,K\,u)^{-d}\,d\sigma(u).$$
-   - `addHaar_real_polarBody_eq_integral_supportFn_inv_pow`:
-     $$\mu.\mathrm{real}(K^\circ) = \mu.\mathrm{real}(\overline{B}(0, 1)) \int_{S^{d-1}} h_K(u)^{-d}\,d\sigma(u).$$
-3. **Mean Width (`meanWidth`):**
-   `meanWidth K := ∫ u, supportFn K u ∂(sphereProb volume)` is the **half mean breadth**
-   (normalized so `meanWidth (bodyClosedBall c r) = r`, with
-   `∫ u, width K u ∂(sphereProb volume) = 2 * meanWidth K` via `integral_width_eq_two_mul_meanWidth`),
-   with full algebraic & metric calculus: Minkowski additivity, positive homogeneity, translation
-   invariance, rotation invariance (`meanWidth_linearIsometry`, `meanWidth_mapLinearIsometry`),
-   monotonicity, 1-Lipschitz continuity (`lipschitzWith_meanWidth`), and symmetrization invariance.
-4. **Dual Urysohn Inequality (`dual_urysohn_inequality`) & Santaló–Urysohn Bridges
-   (`urysohn_of_santalo`, `urysohn_of_santalo_at`):**
-   For any `K : ConvexBody E` with `0 ∈ interior K`:
-   $$\left(\frac{\mathrm{vol}(\overline{B}(0, 1))}{\mathrm{vol}(K^\circ)}\right)^{1/d} \le w(K),$$
-   and hence any body satisfying the Blaschke–Santaló inequality about any interior point
-   `z ∈ interior K` satisfies Urysohn's inequality.
+## Main definitions
+
+* `ConvexGeom.sphereMap`: action of a linear isometry `U : E ≃ₗᵢ[ℝ] E` on `Metric.sphere 0 1`.
+* `ConvexGeom.sphereProb`: normalized cone probability measure
+  `(μ.toSphere univ)⁻¹ • μ.toSphere` on `Metric.sphere (0 : E) 1` (equals `0` when `finrank = 0`).
+* `ConvexGeom.meanWidth`: half mean breadth
+  `meanWidth K := ∫ u, supportFn K u ∂(sphereProb volume)` (normalized so
+  `meanWidth (bodyClosedBall c r) = r`).
+
+## Main statements
+
+* `ConvexGeom.sphereProb_smul`, `ConvexGeom.sphereProb_eq_of_isAddHaarMeasure`,
+  `ConvexGeom.measurePreserving_sphereMap_sphereProb`,
+  `ConvexGeom.measurePreserving_sphereNeg_sphereProb`: Haar-normalization independence and
+  invariance under antipodal negation and measure-preserving linear isometries.
+* `ConvexGeom.addHaar_real_eq_integral_gauge_inv_pow`,
+  `ConvexGeom.addHaar_real_polarBody_eq_integral_supportFn_inv_pow`: polar-coordinate volume
+  formulas via `gauge` and `supportFn`.
+* `ConvexGeom.integral_width_eq_two_mul_meanWidth`, `ConvexGeom.lipschitzWith_meanWidth`,
+  `ConvexGeom.meanWidth_linearIsometry`, `ConvexGeom.meanWidth_mapLinearIsometry`:
+  algebraic, metric, and invariance properties of `meanWidth`.
+* `ConvexGeom.dual_urysohn_inequality`, `ConvexGeom.urysohn_of_santalo`,
+  `ConvexGeom.urysohn_of_santalo_at`: dual Urysohn inequality and Santaló–Urysohn bridges.
+
+## Implementation notes
+
+Classically, on a Euclidean inner product space of dimension `d ≥ 1`, `sphereProb volume` is the
+unique `O(E)`-invariant Borel probability measure on `S^{d-1}` and coincides with normalized
+`(d - 1)`-dimensional Hausdorff surface measure; neither the uniqueness theorem nor the
+identification with Mathlib's `hausdorffMeasure` is formalized here.
+
+## References
+
+* [K. Ball, *An Elementary Introduction to Modern Convex Geometry*][ball1997], Lectures 1–2
+* [S. Artstein-Avidan, A. Giannopoulos, V. D. Milman, *Asymptotic Geometric Analysis,
+  Part I*][agm2015], Chapter 1
+* [R. Schneider, *Convex Bodies: The Brunn–Minkowski Theory*][schneider2014], §1.7
 -/
 
 open MeasureTheory Set Metric
@@ -100,9 +109,11 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 additive Haar measure `μ` on `E` (when `E` is nontrivial; in dimension `0` the sphere is empty
 and `sphereProb μ = 0`).
 
-On a Euclidean inner product space this coincides with normalized `(d - 1)`-dimensional surface
-measure on `S^{d-1}`, and is independent of the choice of additive Haar measure `μ`
-(`sphereProb_eq_of_isAddHaarMeasure`). -/
+It is independent of the choice of additive Haar measure `μ`
+(`sphereProb_eq_of_isAddHaarMeasure`) and invariant under `μ`-preserving linear isometries
+(`measurePreserving_sphereMap_sphereProb`). Classically, on a Euclidean space it is the unique
+`O(E)`-invariant Borel probability measure on `S^{d-1}` and agrees with normalized
+`(d - 1)`-dimensional Hausdorff surface measure (neither fact is formalized here). -/
 @[expose]
 noncomputable def sphereProb (μ : Measure E) : Measure (sphere (0 : E) 1) :=
   (μ.toSphere Set.univ)⁻¹ • μ.toSphere
@@ -155,19 +166,6 @@ theorem sphereProb_eq_of_isAddHaarMeasure
     exact lt_irrefl 0 hball_pos
   rw [huniq]
   exact sphereProb_smul ν hc0 ENNReal.coe_ne_top
-
-lemma addHaar_closedBall_eq_addHaar_ball [Nontrivial E]
-    (μ : Measure E) [μ.IsAddHaarMeasure] (c : E) {r : ℝ} (_hr : 0 ≤ r) :
-    μ (closedBall c r) = μ (ball c r) := by
-  have hunion : closedBall c r = ball c r ∪ sphere c r :=
-    (ball_union_sphere (x := c) (ε := r)).symm
-  have hdisj : Disjoint (ball c r) (sphere c r) := by
-    rw [Set.disjoint_left]
-    intro x h1 h2
-    rw [mem_ball] at h1; rw [mem_sphere] at h2
-    linarith
-  rw [hunion, measure_union hdisj isClosed_sphere.measurableSet,
-    Measure.addHaar_sphere μ c r, add_zero]
 
 /-- Any linear isometry preserving `μ` preserves `μ.toSphere`. -/
 theorem measurePreserving_sphereMap_toSphere
@@ -425,9 +423,9 @@ theorem addHaar_eq_lintegral_gauge_inv_pow [Nontrivial E]
   rw [lintegral_const_mul _ hmeas_g]
   -- Rewrite `∫⁻ ∂(sphereProb μ) = (μ.toSphere univ)⁻¹ * ∫⁻ ∂(μ.toSphere)`.
   rw [sphereProb, lintegral_smul_measure, smul_eq_mul, Measure.toSphere_apply_univ,
-    ← addHaar_closedBall_eq_addHaar_ball μ 0 zero_le_one]
+    ← Measure.addHaar_closedBall_eq_addHaar_ball μ 0 1]
   have hB0 : μ (closedBall (0 : E) 1) ≠ 0 := by
-    rw [addHaar_closedBall_eq_addHaar_ball μ 0 zero_le_one]
+    rw [Measure.addHaar_closedBall_eq_addHaar_ball μ 0 1]
     exact (isOpen_ball.measure_pos μ ⟨0, mem_ball_self zero_lt_one⟩).ne'
   have hBfin : μ (closedBall (0 : E) 1) ≠ ⊤ := (isCompact_closedBall (0 : E) 1).measure_lt_top.ne
   have hd0 : (d : ℝ≥0∞) ≠ 0 := Nat.cast_ne_zero.mpr hd_pos.ne'
@@ -739,7 +737,7 @@ theorem dual_urysohn_inequality [Nontrivial E]
   simp_rw [inv_pow] at hpol
   have hvB_pos : 0 < volume.real (closedBall (0 : E) 1) := by
     rw [Measure.real, ENNReal.toReal_pos_iff]
-    exact ⟨by rw [addHaar_closedBall_eq_addHaar_ball volume 0 zero_le_one]
+    exact ⟨by rw [Measure.addHaar_closedBall_eq_addHaar_ball volume 0 1]
               exact isOpen_ball.measure_pos volume ⟨0, mem_ball_self zero_lt_one⟩,
            (isCompact_closedBall (0 : E) 1).measure_lt_top⟩
   have hmw_pos : 0 < meanWidth K := by
@@ -783,7 +781,7 @@ theorem urysohn_of_santalo [Nontrivial E]
   have hd_rpos : (0 : ℝ) < d := Nat.cast_pos.mpr Module.finrank_pos
   have hvB_pos : 0 < volume.real (closedBall (0 : E) 1) := by
     rw [Measure.real, ENNReal.toReal_pos_iff]
-    exact ⟨by rw [addHaar_closedBall_eq_addHaar_ball volume 0 zero_le_one]
+    exact ⟨by rw [Measure.addHaar_closedBall_eq_addHaar_ball volume 0 1]
               exact isOpen_ball.measure_pos volume ⟨0, mem_ball_self zero_lt_one⟩,
            (isCompact_closedBall (0 : E) 1).measure_lt_top⟩
   have h0pol : (0 : E) ∈ interior (polarBody (K : Set E)) :=

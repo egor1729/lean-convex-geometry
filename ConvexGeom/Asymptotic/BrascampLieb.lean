@@ -38,45 +38,46 @@ import Mathlib.MeasureTheory.Measure.Prod
 # Loomis–Whitney, Rank-1 Brascamp–Lieb, Barthe's Reverse Brascamp–Lieb, and Ball's Volume Ratio
 
 This module establishes the Loomis–Whitney inequality, the geometric rank-1 **Brascamp–Lieb**
-and **Reverse Brascamp–Lieb** inequalities via Barthe's monotone Gaussian mass-transport method
-(Ball, *An Elementary Introduction to Modern Convex Geometry*, Lecture 6;
-Barthe, *On a reverse form of the Brascamp–Lieb inequality*, Invent. Math. 134 (1998), 335–361),
-and derives their central convex-geometric consequences:
+and **Reverse Brascamp–Lieb** inequalities via Barthe's monotone Gaussian mass-transport method,
+and derives their central convex-geometric consequences.
 
-1. **Gaussian Density & Product Integrals:**
-   - `stdGaussianDensity x := (2 * π)^(-d / 2) * exp (-‖x‖² / 2)` integrates to `1` on any
-     finite-dimensional real inner product space `E` (`lintegral_stdGaussianDensity_eq_one`).
-   - `measure_preimage_inner_null`: linear functionals pull back 1D Lebesgue-null sets to null sets.
-2. **Multilinear Hölder & Loomis–Whitney Inequality (Ball, Lecture 6):**
-   - `lintegral_prod_rpow_le`: multilinear Hölder inequality for nonnegative `ℝ≥0∞` functions.
-   - `loomis_whitney_lintegral`, `loomis_whitney_pi`, and `loomis_whitney`:
-     $$\mathrm{vol}_d(K)^{d - 1} \le \prod_{i=1}^d \mathrm{vol}_{d - 1}(P_{e_i^\perp}(K)).$$
-3. **1D Monotone Gaussian Transport:**
-   - `exists_gaussian_transport`: for any continuous, strictly positive probability density `f` on
-     an open connected nonempty interval `I ⊆ ℝ`, produces strictly increasing inverse differentiable
-     transports `T : I → ℝ` and `S : ℝ → I` pushing `f` to `gaussianPDFReal 0 1` and back.
-4. **Rank-1 Geometric Brascamp–Lieb Inequality (`brascamp_lieb_rankOne`):**
-   - For any John decomposition `IsJohnDecomposition u c` on `E` and any measurable
-     `f : ι → ℝ → ℝ≥0∞`:
-     $$\int_E \prod_i f_i(\langle x, u_i\rangle)^{c_i}\,dx \le \prod_i \left(\int_{\mathbb{R}} f_i\right)^{c_i}.$$
-5. **Barthe's Reverse Brascamp–Lieb Inequality (`reverse_brascamp_lieb_rankOne`):**
-   - For `IsJohnDecomposition u c`, continuous strictly positive integrable `f_i` on open connected
-     nonempty `I_i ⊆ ℝ`, and `h : E → ℝ≥0∞` dominating `∏_i f_i(y_i)^{c_i}` at `∑_i (c_i y_i) u_i`:
-     $$\prod_i \left(\int_{I_i} f_i\right)^{c_i} \le \int_E h.$$
-6. **Applications (Ball, Lecture 6; Barthe 1998):**
-   - **Ball's Volume Ratio Theorems** (`volume_le_two_pow_of_john_position_symmetric`,
-     `ball_volume_ratio_symmetric`, `volume_le_simplex_bound_of_john_position`, `ball_volume_ratio`):
-     in John's position, `vol(K) ≤ 2^d` (symmetric) and
-     `vol(K) ≤ d^{d/2} (d+1)^{(d+1)/2} / d!` (general, matching the regular simplex).
-   - **Ball's Reverse Isoperimetric Inequality** (`ball_reverse_isoperimetric_symmetric`,
-     `ball_reverse_isoperimetric`): every convex body has a linear (symmetric) or affine (general)
-     image whose isoperimetric ratio is bounded by that of the cube or regular simplex.
-   - **Barthe's Outer Volume Ratio / Polar Volume Bound**
-     (`barthe_polar_volume_of_john_position_symmetric`, `barthe_outer_volume_ratio_symmetric`):
-     in John's position for origin-symmetric `K`, `2^d / d! ≤ vol(K°)`.
-   - **John-Position Gaussian Measure Upper Bound** (`john_position_gaussian_measure_le`):
-     for origin-symmetric `K` in John's position and `r > 0`,
-     $$\gamma_d(r K) \le \gamma_1([-r, r])^d.$$
+## Main definitions
+
+* `ConvexGeom.stdGaussianDensity`: standard Gaussian density `(2 * π)^(-d / 2) * exp (-‖x‖² / 2)`
+  on a finite-dimensional real inner product space `E`.
+
+## Main statements
+
+* `ConvexGeom.lintegral_stdGaussianDensity_eq_one`, `ConvexGeom.measure_preimage_inner_null`:
+  Gaussian normalization and hyperplane null-set pullbacks.
+* `ConvexGeom.loomis_whitney_lintegral`, `ConvexGeom.loomis_whitney_pi`,
+  `ConvexGeom.loomis_whitney`: Loomis–Whitney inequality
+  `vol_d(K)^(d - 1) ≤ ∏ i, vol_{d - 1}(P_{e_i⊥}(K))`.
+* `ConvexGeom.exists_gaussian_transport`: 1D monotone Gaussian optimal transport on open intervals.
+* `ConvexGeom.brascamp_lieb_rankOne_of_continuous_pos`, `ConvexGeom.brascamp_lieb_rankOne`:
+  rank-1 geometric Brascamp–Lieb inequality for arbitrary measurable `ℝ≥0∞`-valued functions.
+* `ConvexGeom.reverse_brascamp_lieb_rankOne`: Barthe's rank-1 geometric reverse Brascamp–Lieb
+  inequality.
+* `ConvexGeom.volume_le_two_pow_of_john_position_symmetric`,
+  `ConvexGeom.ball_volume_ratio_symmetric`, `ConvexGeom.volume_le_simplex_bound_of_john_position`,
+  `ConvexGeom.ball_volume_ratio`: Ball's volume ratio theorems for symmetric and general bodies.
+* `ConvexGeom.ball_reverse_isoperimetric_symmetric`, `ConvexGeom.ball_reverse_isoperimetric`:
+  Ball's reverse isoperimetric inequalities (cube and regular-simplex bounds).
+* `ConvexGeom.barthe_polar_volume_of_john_position_symmetric`,
+  `ConvexGeom.barthe_outer_volume_ratio_symmetric`: Barthe's `2^d / d!` polar volume lower bound.
+* `ConvexGeom.john_position_gaussian_measure_le`: `γ_d(r K) ≤ γ_1([-r, r])^d` in John's position.
+
+## Implementation notes
+
+While `brascamp_lieb_rankOne` holds for arbitrary measurable `ℝ≥0∞`-valued functions,
+`reverse_brascamp_lieb_rankOne` is currently stated for continuous, strictly positive, integrable
+densities `f i` supported on open preconnected nonempty intervals `I i ⊆ ℝ` (matching the
+hypotheses of `exists_gaussian_transport`), rather than arbitrary measurable functions.
+
+## References
+
+* [K. Ball, *An Elementary Introduction to Modern Convex Geometry*][ball1997], Lecture 6
+* [F. Barthe, *On a reverse form of the Brascamp–Lieb inequality*][barthe1998]
 -/
 
 open MeasureTheory Set Filter Metric ProbabilityTheory
@@ -323,70 +324,6 @@ end GaussianDensity
 
 section LoomisWhitney
 
-/-- **Multilinear Hölder Inequality (`ℝ≥0∞`):** for nonnegative exponents `w i ≥ 0` summing to `1`
-over a finite set `s` and measurable functions `f i : α → ℝ≥0∞`:
-$$\int \prod_{i \in s} f_i(a)^{w_i}\,d\mu(a) \le \prod_{i \in s} \left(\int f_i\,d\mu\right)^{w_i}.$$ -/
-theorem lintegral_prod_rpow_le {α ι : Type*} [MeasurableSpace α] (μ : Measure α)
-    (s : Finset ι) (f : ι → α → ℝ≥0∞) (w : ι → ℝ)
-    (hf : ∀ i ∈ s, AEMeasurable (f i) μ)
-    (hw : ∀ i ∈ s, 0 ≤ w i) (hsum : ∑ i ∈ s, w i = 1) :
-    ∫⁻ a, ∏ i ∈ s, f i a ^ w i ∂μ ≤ ∏ i ∈ s, (∫⁻ a, f i a ∂μ) ^ w i := by
-  classical
-  induction s using Finset.induction_on generalizing w with
-  | empty =>
-      simp at hsum
-  | insert j s hj ih =>
-      rw [Finset.sum_insert hj] at hsum
-      have hwj : 0 ≤ w j := hw j (Finset.mem_insert_self j s)
-      set r : ℝ := ∑ i ∈ s, w i
-      have hr_nn : 0 ≤ r := Finset.sum_nonneg fun i hi => hw i (Finset.mem_insert_of_mem hi)
-      have hwr : w j + r = 1 := hsum
-      by_cases hr0 : r = 0
-      · have hwj1 : w j = 1 := by linarith
-        have hwi0 : ∀ i ∈ s, w i = 0 := by
-          intro i hi
-          have hle := Finset.single_le_sum (fun k hk => hw k (Finset.mem_insert_of_mem hk)) hi
-          linarith [hw i (Finset.mem_insert_of_mem hi)]
-        simp_rw [Finset.prod_insert hj]
-        have h1 : ∀ a, f j a ^ w j * ∏ i ∈ s, f i a ^ w i = f j a := fun a => by
-          rw [hwj1, ENNReal.rpow_one]
-          have : ∏ i ∈ s, f i a ^ w i = 1 :=
-            Finset.prod_eq_one fun i hi => by rw [hwi0 i hi, ENNReal.rpow_zero]
-          rw [this, mul_one]
-        have h2 : ∏ i ∈ s, (∫⁻ a, f i a ∂μ) ^ w i = 1 :=
-          Finset.prod_eq_one fun i hi => by rw [hwi0 i hi, ENNReal.rpow_zero]
-        simp_rw [h1]
-        rw [hwj1, ENNReal.rpow_one, h2, mul_one]
-      · have hr_pos : 0 < r := lt_of_le_of_ne hr_nn (Ne.symm hr0)
-        let g : α → ℝ≥0∞ := fun a => ∏ i ∈ s, f i a ^ (w i / r)
-        have hg_meas : AEMeasurable g μ :=
-          Finset.aemeasurable_fun_prod s fun i hi =>
-            (hf i (Finset.mem_insert_of_mem hi)).pow_const _
-        have hprod_eq : ∀ a, ∏ i ∈ insert j s, f i a ^ w i = f j a ^ w j * g a ^ r := fun a => by
-          rw [Finset.prod_insert hj]
-          congr 1
-          dsimp only [g]
-          rw [ennreal_finset_prod_rpow s _ hr_pos.le]
-          refine Finset.prod_congr rfl fun i _ => ?_
-          rw [← ENNReal.rpow_mul, div_mul_cancel₀ _ hr_pos.ne']
-        simp_rw [hprod_eq]
-        have hholder := ENNReal.lintegral_mul_norm_pow_le
-          (hf j (Finset.mem_insert_self j s)) hg_meas hwj hr_pos.le hwr
-        have hih := ih (fun i => w i / r)
-          (fun i hi => hf i (Finset.mem_insert_of_mem hi))
-          (fun i hi => div_nonneg (hw i (Finset.mem_insert_of_mem hi)) hr_pos.le)
-          (by rw [← Finset.sum_div, div_self hr_pos.ne'])
-        calc
-          ∫⁻ a, f j a ^ w j * g a ^ r ∂μ
-            ≤ (∫⁻ a, f j a ∂μ) ^ w j * (∫⁻ a, g a ∂μ) ^ r := hholder
-          _ ≤ (∫⁻ a, f j a ∂μ) ^ w j * (∏ i ∈ s, (∫⁻ a, f i a ∂μ) ^ (w i / r)) ^ r := by
-              gcongr
-          _ = ∏ i ∈ insert j s, (∫⁻ a, f i a ∂μ) ^ w i := by
-              rw [Finset.prod_insert hj, ennreal_finset_prod_rpow s _ hr_pos.le]
-              congr 1
-              refine Finset.prod_congr rfl fun i _ => ?_
-              rw [← ENNReal.rpow_mul, div_mul_cancel₀ _ hr_pos.ne']
-
 /-- **Functional Loomis–Whitney Inequality (Ball, Lecture 6):**
 on `Fin (n + 2) → ℝ` (dimension `d = n + 2 ≥ 2`), for any family of measurable functions
 `f i : (Fin (n + 1) → ℝ) → ℝ≥0∞`:
@@ -519,14 +456,14 @@ theorem loomis_whitney_lintegral : ∀ {n : ℕ}
         (hg_meas_prod j).lintegral_prod_right'
       have houter : ∫⁻ t : ℝ, ∏ j : Fin (n + 2), h j t ^ (1 / (d : ℝ)) ≤
           ∏ j : Fin (n + 2), (∫⁻ t : ℝ, h j t) ^ (1 / (d : ℝ)) :=
-        lintegral_prod_rpow_le volume Finset.univ h (fun _ => 1 / (d : ℝ))
+        ENNReal.lintegral_prod_norm_pow_le Finset.univ
           (fun j _ => (hh_meas j).aemeasurable)
-          (fun _ _ => by positivity)
           (by
             rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
             dsimp only [d]; push_cast
             have hne : (n : ℝ) + 1 + 1 ≠ 0 := by positivity
             field_simp [hne]; ring)
+          (fun _ _ => by positivity)
       have htonelli : ∀ j : Fin (n + 2), ∫⁻ t : ℝ, h j t = ∫⁻ y : Fin (n + 2) → ℝ, f j.succ y := fun j => by
         dsimp only [h, g]
         rw [← lintegral_prod _ (hg_meas_prod j).aemeasurable, ← Measure.volume_eq_prod]
@@ -1062,14 +999,14 @@ private lemma transport_injective {ι : Type*} [Fintype ι] {u : ι → E} {c : 
 
 omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
 /-- Helper: Fréchet derivative of `x ↦ ∑ i, (c i * T i ⟪x, u i⟫) • u i` is
-`∑ i, (c i * T' i ⟪x, u i⟫) • rankOneCLM (u i) (u i)`. -/
+`∑ i, (c i * T' i ⟪x, u i⟫) • InnerProductSpace.rankOne ℝ (u i) (u i)`. -/
 private lemma hasFDerivAt_transport {ι : Type*} [Fintype ι] (u : ι → E) (c : ι → ℝ)
     (T T' : ι → ℝ → ℝ) (x : E) (hT : ∀ i, HasDerivAt (T i) (T' i ⟪x, u i⟫) ⟪x, u i⟫) :
     HasFDerivAt (fun z : E => ∑ i, (c i * T i ⟪z, u i⟫) • u i)
-      (∑ i, (c i * T' i ⟪x, u i⟫) • rankOneCLM (u i) (u i)) x := by
+      (∑ i, (c i * T' i ⟪x, u i⟫) • InnerProductSpace.rankOne ℝ (u i) (u i)) x := by
   have hterm : ∀ i : ι,
       HasFDerivAt (fun z : E => (c i * T i ⟪z, u i⟫) • u i)
-        ((c i * T' i ⟪x, u i⟫) • rankOneCLM (u i) (u i)) x := fun i => by
+        ((c i * T' i ⟪x, u i⟫) • InnerProductSpace.rankOne ℝ (u i) (u i)) x := fun i => by
     have hlin : HasFDerivAt (fun z : E => ⟪z, u i⟫) (innerSL ℝ (u i)) x := by
       have heq : (fun z : E => ⟪z, u i⟫) = (innerSL ℝ (u i) : E → ℝ) := by
         ext z; exact real_inner_comm (u i) z
@@ -1083,10 +1020,10 @@ private lemma hasFDerivAt_transport {ι : Type*} [Fintype ι] (u : ι → E) (c 
     convert hvec using 1
     ext v
     simp only [ContinuousLinearMap.smulRight_apply, smul_apply,
-      rankOneCLM_apply, innerSL_apply_apply, smul_eq_mul, smul_smul]
+      InnerProductSpace.rankOne_apply, innerSL_apply_apply, smul_eq_mul, smul_smul]
   have hfin : ∀ s : Finset ι,
       HasFDerivAt (fun z : E => ∑ i ∈ s, (c i * T i ⟪z, u i⟫) • u i)
-        (∑ i ∈ s, (c i * T' i ⟪x, u i⟫) • rankOneCLM (u i) (u i)) x := by
+        (∑ i ∈ s, (c i * T' i ⟪x, u i⟫) • InnerProductSpace.rankOne ℝ (u i) (u i)) x := by
     intro s
     classical
     induction s using Finset.induction_on with
@@ -1120,7 +1057,8 @@ theorem brascamp_lieb_rankOne_of_continuous_pos {ι : Type*} [Fintype ι]
   have hT'_pos : ∀ i t, 0 < T' i t := fun i t =>
     div_pos (hf_pos i t) (gaussianPDFReal_pos 0 1 (T i t) one_ne_zero)
   let Θ : E → E := fun x => ∑ i, (c i * T i ⟪x, u i⟫) • u i
-  let DΘ : E → (E →L[ℝ] E) := fun x => ∑ i, (c i * T' i ⟪x, u i⟫) • rankOneCLM (u i) (u i)
+  let DΘ : E → (E →L[ℝ] E) :=
+    fun x => ∑ i, (c i * T' i ⟪x, u i⟫) • InnerProductSpace.rankOne ℝ (u i) (u i)
   have hΘ_inj : Function.Injective Θ := transport_injective h hT_mono
   have hΘ_fderiv : ∀ x : E, HasFDerivAt Θ (DΘ x) x := fun x =>
     hasFDerivAt_transport u c T T' x (fun i => hT_deriv i ⟪x, u i⟫)
@@ -1132,7 +1070,7 @@ theorem brascamp_lieb_rankOne_of_continuous_pos {ι : Type*} [Fintype ι]
       change LinearMap.det (DΘ x : E →ₗ[ℝ] E) = _
       congr 1
       ext v
-      simp [DΘ, rankOne_apply]
+      simp [DΘ, rankOne_apply, real_inner_comm]
     have hdet_ge : ∏ i, T' i ⟪x, u i⟫ ^ c i ≤ (DΘ x).det := by
       rw [hdet_eq]
       exact h.det_sum_rankOne_ge_prod (fun i => hT'_pos i ⟪x, u i⟫)
@@ -1200,6 +1138,116 @@ theorem brascamp_lieb_rankOne_of_continuous_pos {ι : Type*} [Fintype ι]
     _ ≤ ∫⁻ y : E, ENNReal.ofReal (stdGaussianDensity y) := setLIntegral_le_lintegral _ _
     _ = 1 := lintegral_stdGaussianDensity_eq_one
 
+/-- Helper: every measurable nonnegative probability density `g : ℝ → ℝ` (`∫ g = 1`) can be
+approximated a.e. and in `L¹` by a sequence `phi n` of continuous, strictly positive integrable
+functions with `∫ phi n → 1`. -/
+private lemma exists_continuous_pos_approx_of_integrable
+    {g : ℝ → ℝ} (hg_meas : Measurable g) (hg_nn : ∀ t, 0 ≤ g t)
+    (hg_int : Integrable g) (hg_one : ∫ t, g t = 1) :
+    ∃ phi : ℕ → ℝ → ℝ,
+      (∀ n, Continuous (phi n)) ∧
+      (∀ n t, 0 < phi n t) ∧
+      (∀ n, Integrable (phi n)) ∧
+      (∀ n, 0 < ∫ t, phi n t) ∧
+      Tendsto (fun n => ∫ t, phi n t) atTop (𝓝 1) ∧
+      (∀ᵐ t : ℝ, Tendsto (fun n => phi n t) atTop (𝓝 (g t))) := by
+  have hex_approx : ∀ n : ℕ, ∃ k : ℝ → ℝ,
+      Continuous k ∧ Integrable k ∧ ∫ t, ‖g t - k t‖ ≤ (1 / 2 : ℝ) ^ n := fun n => by
+    obtain ⟨k, _, hdist, hk_cont, hk_int⟩ :=
+      hg_int.exists_hasCompactSupport_integral_sub_le (show (0 : ℝ) < (1 / 2 : ℝ) ^ n by positivity)
+    exact ⟨k, hk_cont, hk_int, hdist⟩
+  choose k hk_cont hk_int hk_dist using hex_approx
+  let γ : ℝ → ℝ := gaussianPDFReal 0 1
+  have hγ_cont : Continuous γ := by unfold γ gaussianPDFReal; fun_prop
+  have hγ_pos : ∀ t, 0 < γ t := fun t => gaussianPDFReal_pos 0 1 t one_ne_zero
+  have hγ_int : Integrable γ := integrable_gaussianPDFReal 0 1
+  have hγ_one : ∫ t, γ t = 1 := integral_gaussianPDFReal_eq_one 0 one_ne_zero
+  let phi : ℕ → ℝ → ℝ := fun n t => max (k n t) 0 + (1 / 2 : ℝ) ^ n * γ t
+  have hphi_cont : ∀ n, Continuous (phi n) := fun n =>
+    ((hk_cont n).max continuous_const).add (continuous_const.mul hγ_cont)
+  have hphi_pos : ∀ n t, 0 < phi n t := fun n t =>
+    add_pos_of_nonneg_of_pos (le_max_right _ _) (mul_pos (by positivity) (hγ_pos t))
+  have hphi_int : ∀ n, Integrable (phi n) := fun n =>
+    ((hk_int n).sup (integrable_zero _ _ _)).add (hγ_int.const_mul _)
+  have hM_pos : ∀ n, 0 < ∫ t, phi n t := fun n =>
+    integral_pos_of_integrable_nonneg_ne_zero (hphi_cont n) (hphi_int n)
+      (fun t => (hphi_pos n t).le) (hphi_pos n 0).ne'
+  have hdiff_le : ∀ n t, |phi n t - g t| ≤ ‖g t - k n t‖ + (1 / 2 : ℝ) ^ n * γ t := fun n t => by
+    have hmax : |max (k n t) 0 - g t| ≤ |g t - k n t| := by
+      have hg0 := hg_nn t
+      rw [abs_le]
+      rcases le_total (k n t) 0 with hk0 | hk0
+      · rw [max_eq_right hk0]
+        have h1 : |g t - k n t| = g t - k n t := abs_of_nonneg (by linarith)
+        rw [h1]; constructor <;> linarith
+      · rw [max_eq_left hk0, abs_sub_comm]
+        exact ⟨neg_abs_le _, le_abs_self _⟩
+    have htri : |phi n t - g t| ≤ |max (k n t) 0 - g t| + |(1 / 2 : ℝ) ^ n * γ t| := by
+      simpa [phi, sub_eq_add_neg, add_assoc, add_left_comm, add_comm] using
+        abs_add_le (max (k n t) 0 - g t) ((1 / 2 : ℝ) ^ n * γ t)
+    have hpos2 : |(1 / 2 : ℝ) ^ n * γ t| = (1 / 2 : ℝ) ^ n * γ t :=
+      abs_of_pos (mul_pos (by positivity) (hγ_pos t))
+    rw [Real.norm_eq_abs]
+    linarith
+  have hL1_le : ∀ n, ∫ t, |phi n t - g t| ≤ 2 * (1 / 2 : ℝ) ^ n := fun n => by
+    have hnorm_int : Integrable (fun t => ‖g t - k n t‖) volume :=
+      (hg_int.sub (hk_int n)).norm
+    calc
+      ∫ t, |phi n t - g t| ≤ ∫ t, (‖g t - k n t‖ + (1 / 2 : ℝ) ^ n * γ t) :=
+        integral_mono_of_nonneg (ae_of_all _ fun _ => abs_nonneg _)
+          (hnorm_int.add (hγ_int.const_mul _)) (ae_of_all _ (hdiff_le n))
+      _ = (∫ t, ‖g t - k n t‖) + (1 / 2 : ℝ) ^ n * ∫ t, γ t := by
+        rw [integral_add hnorm_int (hγ_int.const_mul _), integral_const_mul]
+      _ ≤ (1 / 2 : ℝ) ^ n + (1 / 2 : ℝ) ^ n * 1 := by rw [hγ_one]; linarith [hk_dist n]
+      _ = 2 * (1 / 2 : ℝ) ^ n := by ring
+  have hM_tendsto : Tendsto (fun n => ∫ t, phi n t) atTop (𝓝 1) := by
+    rw [Metric.tendsto_atTop]
+    intro ε hε
+    have htend : Tendsto (fun n : ℕ => 2 * (1 / 2 : ℝ) ^ n) atTop (𝓝 0) := by
+      simpa using (tendsto_pow_atTop_nhds_zero_of_lt_one (by norm_num : (0 : ℝ) ≤ 1 / 2)
+        (by norm_num : (1 / 2 : ℝ) < 1)).const_mul 2
+    obtain ⟨N, hN⟩ := (htend.eventually (Iio_mem_nhds hε)).exists_forall_of_atTop
+    refine ⟨N, fun n hn => ?_⟩
+    rw [Real.dist_eq]
+    have hsub : (∫ t, phi n t) - 1 = ∫ t, (phi n t - g t) := by
+      rw [integral_sub (hphi_int n) hg_int, hg_one]
+    calc
+      |(∫ t, phi n t) - 1| = |∫ t, (phi n t - g t)| := by rw [hsub]
+      _ ≤ ∫ t, |phi n t - g t| := abs_integral_le_integral_abs
+      _ ≤ 2 * (1 / 2 : ℝ) ^ n := hL1_le n
+      _ < ε := hN n hn
+  have hae_conv : ∀ᵐ t : ℝ, Tendsto (fun n => phi n t) atTop (𝓝 (g t)) := by
+    have hmeas_diff : ∀ n, Measurable (fun t => ENNReal.ofReal |phi n t - g t|) := fun n =>
+      (continuous_abs.measurable.comp ((hphi_cont n).measurable.sub hg_meas)).ennreal_ofReal
+    have htsum_lt : ∫⁻ t : ℝ, ∑' n : ℕ, ENNReal.ofReal |phi n t - g t| < ⊤ := by
+      rw [lintegral_tsum fun n => (hmeas_diff n).aemeasurable]
+      have hterm_le : ∀ n : ℕ, ∫⁻ t : ℝ, ENNReal.ofReal |phi n t - g t| ≤
+          ENNReal.ofReal (2 * (1 / 2 : ℝ) ^ n) := fun n => by
+        have habs_int : Integrable (fun t => |phi n t - g t|) volume :=
+          ((hphi_int n).sub hg_int).abs
+        rw [← ofReal_integral_eq_lintegral_ofReal habs_int (ae_of_all _ fun _ => abs_nonneg _)]
+        exact ENNReal.ofReal_le_ofReal (hL1_le n)
+      calc
+        ∑' n : ℕ, ∫⁻ t, ENNReal.ofReal |phi n t - g t|
+          ≤ ∑' n : ℕ, ENNReal.ofReal (2 * (1 / 2 : ℝ) ^ n) := tsum_le_tsum hterm_le
+        _ = ENNReal.ofReal (∑' n : ℕ, 2 * (1 / 2 : ℝ) ^ n) :=
+            (ENNReal.ofReal_tsum_of_nonneg (fun _ => by positivity)
+              ((summable_geometric_of_lt_one (by norm_num) (by norm_num)).mul_left 2)).symm
+        _ < ⊤ := ENNReal.ofReal_lt_top
+    have hae_fin : ∀ᵐ t : ℝ, ∑' n : ℕ, ENNReal.ofReal |phi n t - g t| < ⊤ :=
+      ae_lt_top (Measurable.tsum hmeas_diff) htsum_lt.ne
+    filter_upwards [hae_fin] with t ht
+    have h0 : Tendsto (fun n => ENNReal.ofReal |phi n t - g t|) atTop (𝓝 0) :=
+      ENNReal.tendsto_atTop_zero_of_tsum_ne_top ht.ne
+    rw [Metric.tendsto_atTop]
+    intro ε hε
+    obtain ⟨N, hN⟩ :=
+      (h0.eventually (Iio_mem_nhds (ENNReal.ofReal_pos.mpr hε))).exists_forall_of_atTop
+    refine ⟨N, fun n hn => ?_⟩
+    rw [Real.dist_eq]
+    exact (ENNReal.ofReal_lt_ofReal_iff hε).mp (hN n hn)
+  exact ⟨phi, hphi_cont, hphi_pos, hphi_int, hM_pos, hM_tendsto, hae_conv⟩
+
 /-- **Rank-1 Geometric Brascamp–Lieb Inequality (Ball, Lecture 6; Barthe 1998):**
 for any John decomposition `IsJohnDecomposition u c` on a finite-dimensional real inner product
 space `E` and any measurable functions `f : ι → ℝ → ℝ≥0∞`:
@@ -1210,7 +1258,6 @@ theorem brascamp_lieb_rankOne {ι : Type*} [Fintype ι]
     {f : ι → ℝ → ℝ≥0∞} (hf : ∀ i, Measurable (f i)) :
     ∫⁻ x : E, ∏ i, f i ⟪x, u i⟫ ^ c i ≤
       ∏ i, (∫⁻ t : ℝ, f i t) ^ c i := by
-  -- Case 1: some factor has integral `0` → integrand vanishes a.e. on `E`.
   by_cases hzero : ∃ i, ∫⁻ t : ℝ, f i t = 0
   · obtain ⟨i₀, hi₀⟩ := hzero
     have hae : f i₀ =ᵐ[volume] 0 := (lintegral_eq_zero_iff (hf i₀)).mp hi₀
@@ -1233,7 +1280,6 @@ theorem brascamp_lieb_rankOne {ι : Type*} [Fintype ι]
     rw [lintegral_congr_ae hprod_ae, lintegral_zero]
     exact zero_le
   push Not at hzero
-  -- Case 2: some factor has integral `⊤` → RHS is `⊤` (all factors are nonzero).
   by_cases htop : ∃ i, ∫⁻ t : ℝ, f i t = ⊤
   · obtain ⟨i₀, hi₀⟩ := htop
     have hrhs_top : ∏ i, (∫⁻ t : ℝ, f i t) ^ c i = ⊤ := by
@@ -1245,11 +1291,12 @@ theorem brascamp_lieb_rankOne {ι : Type*} [Fintype ι]
     rw [hrhs_top]
     exact le_top
   push Not at htop
-  -- Case 3: all integrals are finite and strictly positive. Normalize each `f i` to integral `1`.
   let I : ι → ℝ≥0∞ := fun i => ∫⁻ t : ℝ, f i t
   have hI_ne_top : ∀ i, I i ≠ ⊤ := htop
   let g : ι → ℝ → ℝ := fun i t => ((I i)⁻¹ * f i t).toReal
   have hg_nn : ∀ i t, 0 ≤ g i t := fun _ _ => ENNReal.toReal_nonneg
+  have hg_meas : ∀ i, Measurable (g i) := fun i =>
+    ((hf i).const_mul (I i)⁻¹).ennreal_toReal
   have hg_int : ∀ i, Integrable (g i) := fun i => by
     refine integrable_toReal_of_lintegral_ne_top
       (((hf i).const_mul (I i)⁻¹).aemeasurable) ?_
@@ -1271,110 +1318,9 @@ theorem brascamp_lieb_rankOne {ι : Type*} [Fintype ι]
         ENNReal.inv_mul_cancel (hzero i) (hI_ne_top i)]
     rwa [← ENNReal.ofReal_one,
       ENNReal.ofReal_eq_ofReal_iff (integral_nonneg (hg_nn i)) zero_le_one] at h1
-  have hex_approx : ∀ (i : ι) (n : ℕ), ∃ k : ℝ → ℝ,
-      Continuous k ∧ Integrable k ∧ ∫ t, ‖g i t - k t‖ ≤ (1 / 2 : ℝ) ^ n := fun i n => by
-    obtain ⟨k, _, hdist, hk_cont, hk_int⟩ :=
-      (hg_int i).exists_hasCompactSupport_integral_sub_le (show (0 : ℝ) < (1 / 2 : ℝ) ^ n by positivity)
-    exact ⟨k, hk_cont, hk_int, hdist⟩
-  choose k hk_cont hk_int hk_dist using hex_approx
-  let γ : ℝ → ℝ := gaussianPDFReal 0 1
-  have hγ_cont : Continuous γ := by unfold γ gaussianPDFReal; fun_prop
-  have hγ_pos : ∀ t, 0 < γ t := fun t => gaussianPDFReal_pos 0 1 t one_ne_zero
-  have hγ_int : Integrable γ := integrable_gaussianPDFReal 0 1
-  have hγ_one : ∫ t, γ t = 1 := integral_gaussianPDFReal_eq_one 0 one_ne_zero
-  let phi : ι → ℕ → ℝ → ℝ := fun i n t => max (k i n t) 0 + (1 / 2 : ℝ) ^ n * γ t
-  have hphi_cont : ∀ i n, Continuous (phi i n) := fun i n =>
-    ((hk_cont i n).max continuous_const).add (continuous_const.mul hγ_cont)
-  have hphi_pos : ∀ i n t, 0 < phi i n t := fun i n t =>
-    add_pos_of_nonneg_of_pos (le_max_right _ _) (mul_pos (by positivity) (hγ_pos t))
-  have hphi_int : ∀ i n, Integrable (phi i n) := fun i n =>
-    ((hk_int i n).sup (integrable_zero _ _ _)).add (hγ_int.const_mul _)
+  choose phi hphi_cont hphi_pos hphi_int hM_pos hM_tendsto hae_conv using
+    fun i => exists_continuous_pos_approx_of_integrable (hg_meas i) (hg_nn i) (hg_int i) (hg_one i)
   let M : ι → ℕ → ℝ := fun i n => ∫ t, phi i n t
-  have hM_pos : ∀ i n, 0 < M i n := fun i n =>
-    integral_pos_of_integrable_nonneg_ne_zero (hphi_cont i n) (hphi_int i n)
-      (fun t => (hphi_pos i n t).le) (hphi_pos i n 0).ne'
-  have hdiff_le : ∀ i n t, |phi i n t - g i t| ≤ ‖g i t - k i n t‖ + (1 / 2 : ℝ) ^ n * γ t := fun i n t => by
-    have hmax : |max (k i n t) 0 - g i t| ≤ |g i t - k i n t| := by
-      have hg0 := hg_nn i t
-      rw [abs_le]
-      rcases le_total (k i n t) 0 with hk0 | hk0
-      · rw [max_eq_right hk0]
-        have h1 : |g i t - k i n t| = g i t - k i n t := abs_of_nonneg (by linarith)
-        rw [h1]; constructor <;> linarith
-      · rw [max_eq_left hk0, abs_sub_comm]
-        exact ⟨neg_abs_le _, le_abs_self _⟩
-    have htri : |phi i n t - g i t| ≤ |max (k i n t) 0 - g i t| + |(1 / 2 : ℝ) ^ n * γ t| := by
-      simpa [phi, sub_eq_add_neg, add_assoc, add_left_comm, add_comm] using
-        abs_add_le (max (k i n t) 0 - g i t) ((1 / 2 : ℝ) ^ n * γ t)
-    have hpos2 : |(1 / 2 : ℝ) ^ n * γ t| = (1 / 2 : ℝ) ^ n * γ t :=
-      abs_of_pos (mul_pos (by positivity) (hγ_pos t))
-    rw [Real.norm_eq_abs]
-    linarith
-  have hM_dist : ∀ i n, |M i n - 1| ≤ 2 * (1 / 2 : ℝ) ^ n := fun i n => by
-    have hsub : M i n - 1 = ∫ t, (phi i n t - g i t) := by
-      rw [integral_sub (hphi_int i n) (hg_int i), hg_one i]
-    have hnorm_int : Integrable (fun t => ‖g i t - k i n t‖) volume :=
-      ((hg_int i).sub (hk_int i n)).norm
-    calc
-      |M i n - 1| = |∫ t, (phi i n t - g i t)| := by rw [hsub]
-      _ ≤ ∫ t, |phi i n t - g i t| := abs_integral_le_integral_abs
-      _ ≤ ∫ t, (‖g i t - k i n t‖ + (1 / 2 : ℝ) ^ n * γ t) :=
-          integral_mono_of_nonneg (ae_of_all _ fun _ => abs_nonneg _)
-            (hnorm_int.add (hγ_int.const_mul _))
-            (ae_of_all _ (hdiff_le i n))
-      _ = (∫ t, ‖g i t - k i n t‖) + (1 / 2 : ℝ) ^ n * ∫ t, γ t := by
-          rw [integral_add hnorm_int (hγ_int.const_mul _), integral_const_mul]
-      _ ≤ (1 / 2 : ℝ) ^ n + (1 / 2 : ℝ) ^ n * 1 := by rw [hγ_one]; linarith [hk_dist i n]
-      _ = 2 * (1 / 2 : ℝ) ^ n := by ring
-  have hM_tendsto : ∀ i, Tendsto (M i) atTop (𝓝 1) := fun i => by
-    rw [Metric.tendsto_atTop]
-    intro ε hε
-    have htend : Tendsto (fun n : ℕ => 2 * (1 / 2 : ℝ) ^ n) atTop (𝓝 0) := by
-      simpa using (tendsto_pow_atTop_nhds_zero_of_lt_one (by norm_num : (0 : ℝ) ≤ 1 / 2)
-        (by norm_num : (1 / 2 : ℝ) < 1)).const_mul 2
-    obtain ⟨N, hN⟩ := (htend.eventually (Iio_mem_nhds hε)).exists_forall_of_atTop
-    exact ⟨N, fun n hn => by rw [Real.dist_eq]; exact (hM_dist i n).trans_lt (hN n hn)⟩
-  have hg_meas : ∀ i, Measurable (g i) := fun i =>
-    ((hf i).const_mul (I i)⁻¹).ennreal_toReal
-  have hae_conv : ∀ i, ∀ᵐ t : ℝ, Tendsto (fun n => phi i n t) atTop (𝓝 (g i t)) := fun i => by
-    have hmeas_diff : ∀ n, Measurable (fun t => ENNReal.ofReal |phi i n t - g i t|) := fun n =>
-      (continuous_abs.measurable.comp ((hphi_cont i n).measurable.sub (hg_meas i))).ennreal_ofReal
-    have htsum_lt : ∫⁻ t : ℝ, ∑' n : ℕ, ENNReal.ofReal |phi i n t - g i t| < ⊤ := by
-      rw [lintegral_tsum fun n => (hmeas_diff n).aemeasurable]
-      have hterm_le : ∀ n : ℕ, ∫⁻ t : ℝ, ENNReal.ofReal |phi i n t - g i t| ≤
-          ENNReal.ofReal (2 * (1 / 2 : ℝ) ^ n) := fun n => by
-        have habs_int : Integrable (fun t => |phi i n t - g i t|) volume :=
-          ((hphi_int i n).sub (hg_int i)).abs
-        have hnorm_int : Integrable (fun t => ‖g i t - k i n t‖) volume :=
-          ((hg_int i).sub (hk_int i n)).norm
-        rw [← ofReal_integral_eq_lintegral_ofReal habs_int (ae_of_all _ fun _ => abs_nonneg _)]
-        refine ENNReal.ofReal_le_ofReal ?_
-        calc
-          ∫ t, |phi i n t - g i t| ≤ ∫ t, (‖g i t - k i n t‖ + (1 / 2 : ℝ) ^ n * γ t) :=
-            integral_mono_of_nonneg (ae_of_all _ fun _ => abs_nonneg _)
-              (hnorm_int.add (hγ_int.const_mul _))
-              (ae_of_all _ (hdiff_le i n))
-          _ = (∫ t, ‖g i t - k i n t‖) + (1 / 2 : ℝ) ^ n * ∫ t, γ t := by
-            rw [integral_add hnorm_int (hγ_int.const_mul _), integral_const_mul]
-          _ ≤ 2 * (1 / 2 : ℝ) ^ n := by rw [hγ_one]; linarith [hk_dist i n]
-      calc
-        ∑' n : ℕ, ∫⁻ t, ENNReal.ofReal |phi i n t - g i t|
-          ≤ ∑' n : ℕ, ENNReal.ofReal (2 * (1 / 2 : ℝ) ^ n) := tsum_le_tsum hterm_le
-        _ = ENNReal.ofReal (∑' n : ℕ, 2 * (1 / 2 : ℝ) ^ n) :=
-            (ENNReal.ofReal_tsum_of_nonneg (fun _ => by positivity)
-              ((summable_geometric_of_lt_one (by norm_num) (by norm_num)).mul_left 2)).symm
-        _ < ⊤ := ENNReal.ofReal_lt_top
-    have hae_fin : ∀ᵐ t : ℝ, ∑' n : ℕ, ENNReal.ofReal |phi i n t - g i t| < ⊤ :=
-      ae_lt_top (Measurable.tsum hmeas_diff) htsum_lt.ne
-    filter_upwards [hae_fin] with t ht
-    have h0 : Tendsto (fun n => ENNReal.ofReal |phi i n t - g i t|) atTop (𝓝 0) :=
-      ENNReal.tendsto_atTop_zero_of_tsum_ne_top ht.ne
-    rw [Metric.tendsto_atTop]
-    intro ε hε
-    obtain ⟨N, hN⟩ := (h0.eventually (Iio_mem_nhds (ENNReal.ofReal_pos.mpr hε))).exists_forall_of_atTop
-    refine ⟨N, fun n hn => ?_⟩
-    rw [Real.dist_eq]
-    exact (ENNReal.ofReal_lt_ofReal_iff hε).mp (hN n hn)
   have hae_E : ∀ᵐ x : E, ∀ i : ι,
       Tendsto (fun n => ENNReal.ofReal (phi i n ⟪x, u i⟫) ^ c i) atTop
         (𝓝 (((I i)⁻¹ * f i ⟪x, u i⟫) ^ c i)) ∧
@@ -1534,7 +1480,8 @@ theorem reverse_brascamp_lieb_rankOne {ι : Type*} [Fintype ι]
     div_pos (gaussianPDFReal_pos 0 1 y one_ne_zero)
       (div_pos (hf_pos i (S i y) (hS_mem i y)) (hM_pos i))
   let Ψ : E → E := fun x => ∑ i, (c i * S i ⟪x, u i⟫) • u i
-  let DΨ : E → (E →L[ℝ] E) := fun x => ∑ i, (c i * S' i ⟪x, u i⟫) • rankOneCLM (u i) (u i)
+  let DΨ : E → (E →L[ℝ] E) :=
+    fun x => ∑ i, (c i * S' i ⟪x, u i⟫) • InnerProductSpace.rankOne ℝ (u i) (u i)
   have hΨ_inj : Function.Injective Ψ := transport_injective h hS_mono
   have hΨ_fderiv : ∀ x : E, HasFDerivAt Ψ (DΨ x) x := fun x =>
     hasFDerivAt_transport u c S S' x (fun i => hS_deriv i ⟪x, u i⟫)
@@ -1567,7 +1514,7 @@ theorem reverse_brascamp_lieb_rankOne {ι : Type*} [Fintype ι]
     have hdet_eq : (DΨ x).det =
         LinearMap.det (∑ i, (c i * S' i ⟪x, u i⟫) • rankOne (u i) (u i)) := by
       change LinearMap.det (DΨ x : E →ₗ[ℝ] E) = _
-      congr 1; ext v; simp [DΨ, rankOne_apply]
+      congr 1; ext v; simp [DΨ, rankOne_apply, real_inner_comm]
     have hdet_ge : ∏ i, S' i ⟪x, u i⟫ ^ c i ≤ (DΨ x).det := by
       rw [hdet_eq]
       exact h.det_sum_rankOne_ge_prod (fun i => hS'_pos i ⟪x, u i⟫)
@@ -1689,6 +1636,259 @@ theorem ball_volume_ratio_symmetric [Nontrivial E]
   have hvol := volume_le_two_pow_of_john_position_symmetric TK hTK_sym (hTK_coe ▸ hJ)
   exact ⟨T, hJ.1, hTK_coe ▸ hvol⟩
 
+omit [MeasurableSpace E] [BorelSpace E] in
+/-- Helper (Ball's `(d + 1)`-dimensional cone lifting): a balanced John decomposition `(u, c)` on
+`E` lifts to a John decomposition `(v, c')` on `WithLp 2 (E × ℝ)` with
+`v i = (-√(d/(d+1)) • u i, 1/√(d+1))` and `c' i = ((d+1)/d) * c i`. -/
+private lemma isJohnDecomposition_lift_cone [Nontrivial E] {m : ℕ}
+    {u : Fin m → E} {c : Fin m → ℝ}
+    (hdecomp : IsJohnDecomposition u c) (hsum0 : ∑ i, c i • u i = 0) :
+    IsJohnDecomposition
+      (fun i : Fin m => WithLp.toLp 2
+        ((-Real.sqrt ((Module.finrank ℝ E : ℝ) / ((Module.finrank ℝ E : ℝ) + 1))) • u i,
+          1 / Real.sqrt ((Module.finrank ℝ E : ℝ) + 1)))
+      (fun i : Fin m => (((Module.finrank ℝ E : ℝ) + 1) / (Module.finrank ℝ E : ℝ)) * c i) := by
+  set d := Module.finrank ℝ E
+  have hd_pos : (0 : ℝ) < d := Nat.cast_pos.mpr Module.finrank_pos
+  have hd1_pos : (0 : ℝ) < (d : ℝ) + 1 := by linarith
+  let F := WithLp 2 (E × ℝ)
+  let v : Fin m → F := fun i =>
+    WithLp.toLp 2 ((-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1))) • u i, 1 / Real.sqrt ((d : ℝ) + 1))
+  let c' : Fin m → ℝ := fun i => (((d : ℝ) + 1) / (d : ℝ)) * c i
+  have hv_inner : ∀ (i : Fin m) (z : F),
+      ⟪z, v i⟫ = -Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * ⟪(WithLp.ofLp z).1, u i⟫ +
+        (WithLp.ofLp z).2 / Real.sqrt ((d : ℝ) + 1) := fun i z => by
+    change ⟪(WithLp.ofLp z).1, (-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1))) • u i⟫ +
+        ⟪(WithLp.ofLp z).2, 1 / Real.sqrt ((d : ℝ) + 1)⟫ = _
+    rw [inner_smul_right, RCLike.inner_apply, conj_trivial]
+    ring
+  refine ⟨?_, ?_, ?_⟩
+  · intro i
+    have hsq : ‖v i‖ ^ 2 = 1 := by
+      rw [WithLp.prod_norm_sq_eq_of_L2]
+      change ‖(-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1))) • u i‖ ^ 2 +
+          ‖1 / Real.sqrt ((d : ℝ) + 1)‖ ^ 2 = 1
+      rw [norm_smul, hdecomp.norm_eq_one i, mul_one, Real.norm_eq_abs, Real.norm_eq_abs,
+        sq_abs, sq_abs, neg_sq, div_pow, one_pow,
+        Real.sq_sqrt (div_nonneg hd_pos.le hd1_pos.le), Real.sq_sqrt hd1_pos.le]
+      field_simp [hd1_pos.ne']
+    nlinarith [norm_nonneg (v i)]
+  · intro i
+    exact mul_pos (div_pos hd1_pos hd_pos) (hdecomp.weight_pos i)
+  · ext z
+    simp only [LinearMap.sum_apply, LinearMap.smul_apply, rankOne_apply, LinearMap.id_apply]
+    apply WithLp.ofLp_injective 2
+    have h1 : (WithLp.ofLp (∑ i, c' i • (⟪z, v i⟫ • v i))).1 = (WithLp.ofLp z).1 := by
+      rw [WithLp.ofLp_sum, Prod.fst_sum]
+      have hterm : ∀ i : Fin m,
+          (WithLp.ofLp (c' i • (⟪z, v i⟫ • v i))).1 =
+            (c i * ⟪(WithLp.ofLp z).1, u i⟫) • u i -
+              ((WithLp.ofLp z).2 / Real.sqrt (d : ℝ)) • (c i • u i) := fun i => by
+        have hlhs_eq : (WithLp.ofLp (c' i • (⟪z, v i⟫ • v i))).1 =
+            (c' i * ⟪z, v i⟫ * (-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)))) • u i := by
+          change c' i • (⟪z, v i⟫ • ((-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1))) • u i)) = _
+          rw [smul_smul, smul_smul]
+        rw [hlhs_eq, hv_inner]
+        have hcoeff : c' i * (-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * ⟪(WithLp.ofLp z).1, u i⟫ +
+            (WithLp.ofLp z).2 / Real.sqrt ((d : ℝ) + 1)) *
+            (-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1))) =
+            c i * ⟪(WithLp.ofLp z).1, u i⟫ - (WithLp.ofLp z).2 / Real.sqrt (d : ℝ) * c i := by
+          dsimp only [c']
+          have hsq1 : Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) =
+              (d : ℝ) / ((d : ℝ) + 1) := Real.mul_self_sqrt (div_nonneg hd_pos.le hd1_pos.le)
+          have hsq2 : Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) / Real.sqrt ((d : ℝ) + 1) =
+              Real.sqrt (d : ℝ) / ((d : ℝ) + 1) := by
+            rw [Real.sqrt_div hd_pos.le, div_div, Real.mul_self_sqrt hd1_pos.le]
+          have hsqd : Real.sqrt (d : ℝ) / (d : ℝ) = 1 / Real.sqrt (d : ℝ) := by
+            field_simp [(Real.sqrt_pos.mpr hd_pos).ne']
+            rw [Real.sq_sqrt hd_pos.le]
+          calc
+            ((d : ℝ) + 1) / (d : ℝ) * c i *
+                (-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * ⟪(WithLp.ofLp z).1, u i⟫ +
+                  (WithLp.ofLp z).2 / Real.sqrt ((d : ℝ) + 1)) *
+                -Real.sqrt ((d : ℝ) / ((d : ℝ) + 1))
+              = ((d : ℝ) + 1) / (d : ℝ) * c i *
+                  (Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * Real.sqrt ((d : ℝ) / ((d : ℝ) + 1))) *
+                  ⟪(WithLp.ofLp z).1, u i⟫ -
+                ((d : ℝ) + 1) / (d : ℝ) * c i * (WithLp.ofLp z).2 *
+                  (Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) / Real.sqrt ((d : ℝ) + 1)) := by ring
+            _ = ((d : ℝ) + 1) / (d : ℝ) * c i * ((d : ℝ) / ((d : ℝ) + 1)) *
+                  ⟪(WithLp.ofLp z).1, u i⟫ -
+                ((d : ℝ) + 1) / (d : ℝ) * c i * (WithLp.ofLp z).2 *
+                  (Real.sqrt (d : ℝ) / ((d : ℝ) + 1)) := by rw [hsq1, hsq2]
+            _ = c i * ⟪(WithLp.ofLp z).1, u i⟫ -
+                (WithLp.ofLp z).2 * (Real.sqrt (d : ℝ) / (d : ℝ)) * c i := by
+                field_simp [hd_pos.ne', hd1_pos.ne']
+            _ = c i * ⟪(WithLp.ofLp z).1, u i⟫ -
+                (WithLp.ofLp z).2 / Real.sqrt (d : ℝ) * c i := by rw [hsqd]; ring
+        rw [hcoeff, sub_smul, smul_smul]
+      simp_rw [hterm, Finset.sum_sub_distrib, ← Finset.smul_sum, hsum0, smul_zero, sub_zero]
+      simpa [smul_smul] using hdecomp.sum_smul_inner (WithLp.ofLp z).1
+    have h2 : (WithLp.ofLp (∑ i, c' i • (⟪z, v i⟫ • v i))).2 = (WithLp.ofLp z).2 := by
+      rw [WithLp.ofLp_sum, Prod.snd_sum]
+      have hterm : ∀ i : Fin m,
+          (WithLp.ofLp (c' i • (⟪z, v i⟫ • v i))).2 =
+            -(1 / Real.sqrt (d : ℝ)) * ⟪(WithLp.ofLp z).1, c i • u i⟫ +
+              ((WithLp.ofLp z).2 / (d : ℝ)) * c i := fun i => by
+        have hlhs_eq : (WithLp.ofLp (c' i • (⟪z, v i⟫ • v i))).2 =
+            c' i * (⟪z, v i⟫ * (1 / Real.sqrt ((d : ℝ) + 1))) := rfl
+        rw [hlhs_eq, hv_inner, inner_smul_right]
+        have hsq1 : Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * (1 / Real.sqrt ((d : ℝ) + 1)) =
+            Real.sqrt (d : ℝ) / ((d : ℝ) + 1) := by
+          rw [Real.sqrt_div hd_pos.le, mul_one_div, div_div, Real.mul_self_sqrt hd1_pos.le]
+        have hsq2 : (1 / Real.sqrt ((d : ℝ) + 1)) * (1 / Real.sqrt ((d : ℝ) + 1)) =
+            1 / ((d : ℝ) + 1) := by
+          rw [mul_comm, one_div_mul_one_div, Real.mul_self_sqrt hd1_pos.le]
+        have hsqd : Real.sqrt (d : ℝ) / (d : ℝ) = 1 / Real.sqrt (d : ℝ) := by
+          field_simp [(Real.sqrt_pos.mpr hd_pos).ne']
+          rw [Real.sq_sqrt hd_pos.le]
+        dsimp only [c']
+        calc
+          ((d : ℝ) + 1) / (d : ℝ) * c i *
+              ((-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * ⟪(WithLp.ofLp z).1, u i⟫ +
+                (WithLp.ofLp z).2 / Real.sqrt ((d : ℝ) + 1)) * (1 / Real.sqrt ((d : ℝ) + 1)))
+            = -(((d : ℝ) + 1) / (d : ℝ) *
+                (Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * (1 / Real.sqrt ((d : ℝ) + 1)))) *
+                (c i * ⟪(WithLp.ofLp z).1, u i⟫) +
+              ((d : ℝ) + 1) / (d : ℝ) * c i * (WithLp.ofLp z).2 *
+                ((1 / Real.sqrt ((d : ℝ) + 1)) * (1 / Real.sqrt ((d : ℝ) + 1))) := by
+              rw [div_eq_mul_one_div (WithLp.ofLp z).2]; ring
+          _ = -(((d : ℝ) + 1) / (d : ℝ) * (Real.sqrt (d : ℝ) / ((d : ℝ) + 1))) *
+                (c i * ⟪(WithLp.ofLp z).1, u i⟫) +
+              ((d : ℝ) + 1) / (d : ℝ) * c i * (WithLp.ofLp z).2 * (1 / ((d : ℝ) + 1)) := by
+              rw [hsq1, hsq2]
+          _ = -(Real.sqrt (d : ℝ) / (d : ℝ)) * (c i * ⟪(WithLp.ofLp z).1, u i⟫) +
+              (WithLp.ofLp z).2 / (d : ℝ) * c i := by
+              field_simp [hd_pos.ne', hd1_pos.ne']
+          _ = -(1 / Real.sqrt (d : ℝ)) * (c i * ⟪(WithLp.ofLp z).1, u i⟫) +
+              (WithLp.ofLp z).2 / (d : ℝ) * c i := by rw [hsqd]
+      simp_rw [hterm, Finset.sum_add_distrib, ← Finset.mul_sum, ← inner_sum, hsum0,
+        inner_zero_right, mul_zero, zero_add, hdecomp.sum_weights]
+      dsimp only [d] at hd_pos ⊢
+      rw [div_mul_cancel₀ _ hd_pos.ne']
+    exact Prod.ext h1 h2
+
+/-- Helper: exact evaluation of the exponential integral over the cone
+`{(x, r) : E × ℝ | 0 < r ∧ x ∈ (r / √d) • K}` on `WithLp 2 (E × ℝ)`. -/
+private lemma lintegral_exp_cone [Nontrivial E] (K : ConvexBody E) :
+    ∫⁻ z : WithLp 2 (E × ℝ),
+      ({p : E × ℝ | 0 < p.2 ∧
+          p.1 ∈ (p.2 / Real.sqrt (Module.finrank ℝ E : ℝ)) • (K : Set E)}).indicator
+        (fun p : E × ℝ => ENNReal.ofReal (Real.exp (-p.2 * Real.sqrt ((Module.finrank ℝ E : ℝ) + 1))))
+        (WithLp.ofLp z) =
+      volume (K : Set E) * ENNReal.ofReal ((Module.finrank ℝ E : ℝ) ^ (-(Module.finrank ℝ E : ℝ) / 2) *
+        ((Module.finrank ℝ E : ℝ) + 1) ^ (-((Module.finrank ℝ E : ℝ) + 1) / 2) *
+        (Nat.factorial (Module.finrank ℝ E) : ℝ)) := by
+  set d := Module.finrank ℝ E
+  have hd_pos : (0 : ℝ) < d := Nat.cast_pos.mpr Module.finrank_pos
+  have hd1_pos : (0 : ℝ) < (d : ℝ) + 1 := by linarith
+  let cone : Set (E × ℝ) := {p : E × ℝ | 0 < p.2 ∧ p.1 ∈ (p.2 / Real.sqrt (d : ℝ)) • (K : Set E)}
+  let g : E × ℝ → ℝ≥0∞ :=
+    cone.indicator fun p => ENNReal.ofReal (Real.exp (-p.2 * Real.sqrt ((d : ℝ) + 1)))
+  have hg_meas : Measurable g := by
+    have hcone_meas : MeasurableSet cone := by
+      have heq : cone =
+          {p : E × ℝ | 0 < p.2} ∩
+            (fun p : E × ℝ => (Real.sqrt (d : ℝ) / p.2) • p.1) ⁻¹' (K : Set E) := by
+        ext ⟨x, r⟩
+        simp only [cone, mem_ofPred_eq, mem_inter_iff, mem_preimage, Set.mem_smul_set]
+        constructor
+        · rintro ⟨hr, k, hk, rfl⟩
+          refine ⟨hr, ?_⟩
+          rw [smul_smul]
+          have h1 : Real.sqrt (d : ℝ) / r * (r / Real.sqrt (d : ℝ)) = 1 := by
+            field_simp [hr.ne', (Real.sqrt_pos.mpr hd_pos).ne']
+          rwa [h1, one_smul]
+        · rintro ⟨hr, hk⟩
+          refine ⟨hr, (Real.sqrt (d : ℝ) / r) • x, hk, ?_⟩
+          rw [smul_smul]
+          have h1 : r / Real.sqrt (d : ℝ) * (Real.sqrt (d : ℝ) / r) = 1 := by
+            field_simp [hr.ne', (Real.sqrt_pos.mpr hd_pos).ne']
+          rw [h1, one_smul]
+      rw [heq]
+      refine (isOpen_lt continuous_const continuous_snd).measurableSet.inter ?_
+      have hmap : Measurable (fun p : E × ℝ => (Real.sqrt (d : ℝ) / p.2) • p.1) :=
+        (measurable_const.div measurable_snd).smul measurable_fst
+      exact K.isCompact.isClosed.measurableSet.preimage hmap
+    have hfun_meas : Measurable (fun p : E × ℝ =>
+        ENNReal.ofReal (Real.exp (-p.2 * Real.sqrt ((d : ℝ) + 1)))) := by
+      fun_prop
+    exact hfun_meas.indicator hcone_meas
+  have hmp_ofLp := WithLp.volume_preserving_ofLp (U := E) (V := ℝ)
+  change ∫⁻ z : WithLp 2 (E × ℝ), g (WithLp.ofLp z) = _
+  rw [hmp_ofLp.lintegral_comp_emb (MeasurableEquiv.toLp 2 (E × ℝ)).symm.measurableEmbedding g,
+    Measure.volume_eq_prod, lintegral_prod_symm _ hg_meas.aemeasurable]
+  have hslice : ∀ r : ℝ, ∫⁻ x : E, g (x, r) =
+      (Ioi (0 : ℝ)).indicator (fun r =>
+        volume (K : Set E) * ENNReal.ofReal ((d : ℝ) ^ (-(d : ℝ) / 2) *
+          (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r)))) r := fun r => by
+    by_cases hr : 0 < r
+    · rw [indicator_of_mem hr]
+      have hg_r : ∀ x : E, g (x, r) =
+          ((r / Real.sqrt (d : ℝ)) • (K : Set E)).indicator
+            (fun _ => ENNReal.ofReal (Real.exp (-r * Real.sqrt ((d : ℝ) + 1)))) x := fun x => by
+        dsimp only [g]
+        by_cases hx : x ∈ (r / Real.sqrt (d : ℝ)) • (K : Set E)
+        · rw [indicator_of_mem (show (x, r) ∈ cone from ⟨hr, hx⟩), indicator_of_mem hx]
+        · rw [indicator_of_notMem (show (x, r) ∉ cone from fun h => hx h.2), indicator_of_notMem hx]
+      simp_rw [hg_r]
+      have hsmul_meas : MeasurableSet ((r / Real.sqrt (d : ℝ)) • (K : Set E)) :=
+        (K.isCompact.smul _).isClosed.measurableSet
+      rw [lintegral_indicator_const hsmul_meas,
+        Measure.addHaar_smul volume (r / Real.sqrt (d : ℝ)) (K : Set E),
+        abs_of_pos (pow_pos (div_pos hr (Real.sqrt_pos.mpr hd_pos)) d),
+        mul_comm (ENNReal.ofReal (Real.exp _)), ← mul_assoc,
+        mul_comm _ (volume (K : Set E)), mul_assoc]
+      congr 1
+      rw [← ENNReal.ofReal_mul (by positivity)]
+      congr 1
+      rw [Real.rpow_natCast, div_pow]
+      have hsqrt_inv : ((Real.sqrt (d : ℝ)) ^ d)⁻¹ = (d : ℝ) ^ (-(d : ℝ) / 2) := by
+        rw [Real.sqrt_eq_rpow, ← Real.rpow_natCast, ← Real.rpow_mul hd_pos.le,
+          ← Real.rpow_neg hd_pos.le]
+        congr 1; ring
+      rw [div_eq_mul_inv, hsqrt_inv]
+      ring_nf
+    · rw [indicator_of_notMem hr]
+      have hg_r : ∀ x : E, g (x, r) = 0 := fun x =>
+        indicator_of_notMem (show (x, r) ∉ cone from fun h => hr h.1) _
+      simp [hg_r]
+  simp_rw [hslice]
+  rw [lintegral_indicator measurableSet_Ioi]
+  have hpull : ∫⁻ r in Ioi (0 : ℝ),
+      volume (K : Set E) * ENNReal.ofReal ((d : ℝ) ^ (-(d : ℝ) / 2) *
+        (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r))) =
+      volume (K : Set E) * ∫⁻ r in Ioi (0 : ℝ),
+        ENNReal.ofReal ((d : ℝ) ^ (-(d : ℝ) / 2) *
+          (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r))) :=
+    lintegral_const_mul _ (by fun_prop)
+  rw [hpull]
+  congr 1
+  have hpull2 : ∫⁻ r in Ioi (0 : ℝ),
+      ENNReal.ofReal ((d : ℝ) ^ (-(d : ℝ) / 2) *
+        (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r))) =
+      ENNReal.ofReal ((d : ℝ) ^ (-(d : ℝ) / 2)) *
+        ∫⁻ r in Ioi (0 : ℝ), ENNReal.ofReal (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r)) := by
+    simp_rw [ENNReal.ofReal_mul (Real.rpow_nonneg hd_pos.le _)]
+    exact lintegral_const_mul _ (by fun_prop)
+  rw [hpull2]
+  have hgam_int : ∫⁻ r in Ioi (0 : ℝ),
+      ENNReal.ofReal (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r)) =
+      ENNReal.ofReal (((d : ℝ) + 1) ^ (-((d : ℝ) + 1) / 2) * (Nat.factorial d : ℝ)) := by
+    rw [← ofReal_integral_eq_lintegral_ofReal
+      (integrableOn_Ioi_rpow_mul_exp_neg_mul (by linarith) (Real.sqrt_pos.mpr hd1_pos))]
+    · have hg := integral_rpow_mul_exp_neg_mul_rpow (p := 1) (q := (d : ℝ))
+        (b := Real.sqrt ((d : ℝ) + 1)) zero_lt_one (by linarith) (Real.sqrt_pos.mpr hd1_pos)
+      simp only [Real.rpow_one, div_one, mul_one, Real.Gamma_nat_eq_factorial] at hg
+      rw [hg]
+      congr 1
+      rw [Real.sqrt_eq_rpow, ← Real.rpow_mul hd1_pos.le]
+      congr 2; ring
+    · filter_upwards [ae_restrict_mem measurableSet_Ioi] with r hr
+      exact mul_nonneg (Real.rpow_nonneg hr.le _) (Real.exp_pos _).le
+  rw [hgam_int, ← ENNReal.ofReal_mul (Real.rpow_nonneg hd_pos.le _)]
+  congr 1; ring
+
 /-- **Ball's Volume Ratio Bound in John's Position (General / Simplex Bound, Ball, Lecture 6):**
 for ANY convex body `K : ConvexBody E` in John's position in dimension `d = finrank ℝ E ≥ 1`:
 $$\mathrm{vol}(K) \le \frac{d^{d/2} (d + 1)^{(d + 1)/2}}{d!},$$
@@ -1699,7 +1899,6 @@ theorem volume_le_simplex_bound_of_john_position [Nontrivial E]
       ENNReal.ofReal ((Module.finrank ℝ E : ℝ) ^ ((Module.finrank ℝ E : ℝ) / 2) *
         ((Module.finrank ℝ E : ℝ) + 1) ^ (((Module.finrank ℝ E : ℝ) + 1) / 2) /
         (Nat.factorial (Module.finrank ℝ E) : ℝ)) := by
-  classical
   set d := Module.finrank ℝ E
   have hd_pos : (0 : ℝ) < d := Nat.cast_pos.mpr Module.finrank_pos
   have hd1_pos : (0 : ℝ) < (d : ℝ) + 1 := by linarith
@@ -1715,140 +1914,31 @@ theorem volume_le_simplex_bound_of_john_position [Nontrivial E]
         ⟪(WithLp.ofLp z).2, 1 / Real.sqrt ((d : ℝ) + 1)⟫ = _
     rw [inner_smul_right, RCLike.inner_apply, conj_trivial]
     ring
-  have hv_decomp : IsJohnDecomposition v c' := by
-    refine ⟨?_, ?_, ?_⟩
-    · intro i
-      have hsq : ‖v i‖ ^ 2 = 1 := by
-        rw [WithLp.prod_norm_sq_eq_of_L2]
-        change ‖(-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1))) • u i‖ ^ 2 +
-            ‖1 / Real.sqrt ((d : ℝ) + 1)‖ ^ 2 = 1
-        rw [norm_smul, hdecomp.norm_eq_one i, mul_one, Real.norm_eq_abs, Real.norm_eq_abs,
-          sq_abs, sq_abs, neg_sq, div_pow, one_pow,
-          Real.sq_sqrt (div_nonneg hd_pos.le hd1_pos.le), Real.sq_sqrt hd1_pos.le]
-        field_simp [hd1_pos.ne']
-      have hnn : 0 ≤ ‖v i‖ := norm_nonneg _
-      nlinarith
-    · intro i
-      exact mul_pos (div_pos hd1_pos hd_pos) (hdecomp.weight_pos i)
-    · ext z
-      simp only [LinearMap.sum_apply, LinearMap.smul_apply, rankOne_apply, LinearMap.id_apply]
-      apply WithLp.ofLp_injective 2
-      have h1 : (WithLp.ofLp (∑ i, c' i • (⟪z, v i⟫ • v i))).1 = (WithLp.ofLp z).1 := by
-        rw [WithLp.ofLp_sum, Prod.fst_sum]
-        have hterm : ∀ i : Fin m,
-            (WithLp.ofLp (c' i • (⟪z, v i⟫ • v i))).1 =
-              (c i * ⟪(WithLp.ofLp z).1, u i⟫) • u i -
-                ((WithLp.ofLp z).2 / Real.sqrt (d : ℝ)) • (c i • u i) := fun i => by
-          have hlhs_eq : (WithLp.ofLp (c' i • (⟪z, v i⟫ • v i))).1 =
-              (c' i * ⟪z, v i⟫ * (-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)))) • u i := by
-            change c' i • (⟪z, v i⟫ • ((-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1))) • u i)) = _
-            rw [smul_smul, smul_smul]
-          rw [hlhs_eq, hv_inner]
-          have hcoeff : c' i * (-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * ⟪(WithLp.ofLp z).1, u i⟫ +
-              (WithLp.ofLp z).2 / Real.sqrt ((d : ℝ) + 1)) *
-              (-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1))) =
-              c i * ⟪(WithLp.ofLp z).1, u i⟫ - (WithLp.ofLp z).2 / Real.sqrt (d : ℝ) * c i := by
-            dsimp only [c']
-            have hsq1 : Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) =
-                (d : ℝ) / ((d : ℝ) + 1) := Real.mul_self_sqrt (div_nonneg hd_pos.le hd1_pos.le)
-            have hsq2 : Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) / Real.sqrt ((d : ℝ) + 1) =
-                Real.sqrt (d : ℝ) / ((d : ℝ) + 1) := by
-              rw [Real.sqrt_div hd_pos.le, div_div, Real.mul_self_sqrt hd1_pos.le]
-            have hsqd : Real.sqrt (d : ℝ) / (d : ℝ) = 1 / Real.sqrt (d : ℝ) := by
-              field_simp [(Real.sqrt_pos.mpr hd_pos).ne']
-              rw [Real.sq_sqrt hd_pos.le]
-            calc
-              ((d : ℝ) + 1) / (d : ℝ) * c i *
-                  (-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * ⟪(WithLp.ofLp z).1, u i⟫ +
-                    (WithLp.ofLp z).2 / Real.sqrt ((d : ℝ) + 1)) *
-                  -Real.sqrt ((d : ℝ) / ((d : ℝ) + 1))
-                = ((d : ℝ) + 1) / (d : ℝ) * c i *
-                    (Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * Real.sqrt ((d : ℝ) / ((d : ℝ) + 1))) *
-                    ⟪(WithLp.ofLp z).1, u i⟫ -
-                  ((d : ℝ) + 1) / (d : ℝ) * c i * (WithLp.ofLp z).2 *
-                    (Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) / Real.sqrt ((d : ℝ) + 1)) := by ring
-              _ = ((d : ℝ) + 1) / (d : ℝ) * c i * ((d : ℝ) / ((d : ℝ) + 1)) *
-                    ⟪(WithLp.ofLp z).1, u i⟫ -
-                  ((d : ℝ) + 1) / (d : ℝ) * c i * (WithLp.ofLp z).2 *
-                    (Real.sqrt (d : ℝ) / ((d : ℝ) + 1)) := by rw [hsq1, hsq2]
-              _ = c i * ⟪(WithLp.ofLp z).1, u i⟫ -
-                  (WithLp.ofLp z).2 * (Real.sqrt (d : ℝ) / (d : ℝ)) * c i := by
-                  field_simp [hd_pos.ne', hd1_pos.ne']
-              _ = c i * ⟪(WithLp.ofLp z).1, u i⟫ -
-                  (WithLp.ofLp z).2 / Real.sqrt (d : ℝ) * c i := by rw [hsqd]; ring
-          rw [hcoeff, sub_smul, smul_smul]
-        simp_rw [hterm, Finset.sum_sub_distrib, ← Finset.smul_sum, hsum0, smul_zero, sub_zero]
-        simpa [smul_smul] using hdecomp.sum_smul_inner (WithLp.ofLp z).1
-      have h2 : (WithLp.ofLp (∑ i, c' i • (⟪z, v i⟫ • v i))).2 = (WithLp.ofLp z).2 := by
-        rw [WithLp.ofLp_sum, Prod.snd_sum]
-        have hterm : ∀ i : Fin m,
-            (WithLp.ofLp (c' i • (⟪z, v i⟫ • v i))).2 =
-              -(1 / Real.sqrt (d : ℝ)) * ⟪(WithLp.ofLp z).1, c i • u i⟫ +
-                ((WithLp.ofLp z).2 / (d : ℝ)) * c i := fun i => by
-          have hlhs_eq : (WithLp.ofLp (c' i • (⟪z, v i⟫ • v i))).2 =
-              c' i * (⟪z, v i⟫ * (1 / Real.sqrt ((d : ℝ) + 1))) := rfl
-          rw [hlhs_eq, hv_inner, inner_smul_right]
-          have hsq1 : Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * (1 / Real.sqrt ((d : ℝ) + 1)) =
-              Real.sqrt (d : ℝ) / ((d : ℝ) + 1) := by
-            rw [Real.sqrt_div hd_pos.le, mul_one_div, div_div, Real.mul_self_sqrt hd1_pos.le]
-          have hsq2 : (1 / Real.sqrt ((d : ℝ) + 1)) * (1 / Real.sqrt ((d : ℝ) + 1)) =
-              1 / ((d : ℝ) + 1) := by
-            rw [mul_comm, one_div_mul_one_div, Real.mul_self_sqrt hd1_pos.le]
-          have hsqd : Real.sqrt (d : ℝ) / (d : ℝ) = 1 / Real.sqrt (d : ℝ) := by
-            field_simp [(Real.sqrt_pos.mpr hd_pos).ne']
-            rw [Real.sq_sqrt hd_pos.le]
-          dsimp only [c']
-          calc
-            ((d : ℝ) + 1) / (d : ℝ) * c i *
-                ((-Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * ⟪(WithLp.ofLp z).1, u i⟫ +
-                  (WithLp.ofLp z).2 / Real.sqrt ((d : ℝ) + 1)) * (1 / Real.sqrt ((d : ℝ) + 1)))
-              = -(((d : ℝ) + 1) / (d : ℝ) *
-                  (Real.sqrt ((d : ℝ) / ((d : ℝ) + 1)) * (1 / Real.sqrt ((d : ℝ) + 1)))) *
-                  (c i * ⟪(WithLp.ofLp z).1, u i⟫) +
-                ((d : ℝ) + 1) / (d : ℝ) * c i * (WithLp.ofLp z).2 *
-                  ((1 / Real.sqrt ((d : ℝ) + 1)) * (1 / Real.sqrt ((d : ℝ) + 1))) := by
-                rw [div_eq_mul_one_div (WithLp.ofLp z).2]; ring
-            _ = -(((d : ℝ) + 1) / (d : ℝ) * (Real.sqrt (d : ℝ) / ((d : ℝ) + 1))) *
-                  (c i * ⟪(WithLp.ofLp z).1, u i⟫) +
-                ((d : ℝ) + 1) / (d : ℝ) * c i * (WithLp.ofLp z).2 * (1 / ((d : ℝ) + 1)) := by
-                rw [hsq1, hsq2]
-            _ = -(Real.sqrt (d : ℝ) / (d : ℝ)) * (c i * ⟪(WithLp.ofLp z).1, u i⟫) +
-                (WithLp.ofLp z).2 / (d : ℝ) * c i := by
-                field_simp [hd_pos.ne', hd1_pos.ne']
-            _ = -(1 / Real.sqrt (d : ℝ)) * (c i * ⟪(WithLp.ofLp z).1, u i⟫) +
-                (WithLp.ofLp z).2 / (d : ℝ) * c i := by rw [hsqd]
-        simp_rw [hterm, Finset.sum_add_distrib, ← Finset.mul_sum, ← inner_sum, hsum0,
-          inner_zero_right, mul_zero, zero_add, hdecomp.sum_weights]
-        dsimp only [d] at hd_pos ⊢
-        rw [div_mul_cancel₀ _ hd_pos.ne']
-      exact Prod.ext h1 h2
-  let f : Fin m → ℝ → ℝ≥0∞ := fun _ t => (Ici (0 : ℝ)).indicator (fun s => ENNReal.ofReal (Real.exp (-s))) t
+  have hv_decomp : IsJohnDecomposition v c' := isJohnDecomposition_lift_cone hdecomp hsum0
+  let f : Fin m → ℝ → ℝ≥0∞ :=
+    fun _ t => (Ici (0 : ℝ)).indicator (fun s => ENNReal.ofReal (Real.exp (-s))) t
   have hf : ∀ i, Measurable (f i) := fun _ =>
     (Real.continuous_exp.comp continuous_neg).measurable.ennreal_ofReal.indicator measurableSet_Ici
   have hf_int : ∀ i, ∫⁻ t : ℝ, f i t = 1 := fun _ => by
     dsimp only [f]
-    rw [lintegral_indicator measurableSet_Ici]
-    have hioi : ∫⁻ t in Ici (0 : ℝ), ENNReal.ofReal (Real.exp (-t)) =
-        ∫⁻ t in Ioi (0 : ℝ), ENNReal.ofReal (Real.exp (-t)) :=
-      setLIntegral_congr Ioi_ae_eq_Ici.symm
-    rw [hioi, ← ofReal_integral_eq_lintegral_ofReal (integrableOn_exp_neg_Ioi 0)
-      (ae_of_all _ fun _ => (Real.exp_pos _).le)]
+    rw [lintegral_indicator measurableSet_Ici,
+      setLIntegral_congr Ioi_ae_eq_Ici.symm,
+      ← ofReal_integral_eq_lintegral_ofReal (integrableOn_exp_neg_Ioi 0)
+        (ae_of_all _ fun _ => (Real.exp_pos _).le)]
     have hexp := integral_exp_neg_rpow zero_lt_one
     simp only [Real.rpow_one, div_one] at hexp
-    have hgam : Real.Gamma (1 + 1) = 1 := by
-      simpa using Real.Gamma_nat_eq_factorial 1
+    have hgam : Real.Gamma (1 + 1) = 1 := by simpa using Real.Gamma_nat_eq_factorial 1
     rw [hexp, hgam, ENNReal.ofReal_one]
   have hbl := brascamp_lieb_rankOne hv_decomp hf
   simp_rw [hf_int, ENNReal.one_rpow, Finset.prod_const_one] at hbl
-  let g : E × ℝ → ℝ≥0∞ := fun p =>
-    if 0 < p.2 ∧ p.1 ∈ (p.2 / Real.sqrt (d : ℝ)) • (K : Set E) then
-      ENNReal.ofReal (Real.exp (-p.2 * Real.sqrt ((d : ℝ) + 1)))
-    else 0
-  have hpt_le : ∀ z : F, g (WithLp.ofLp z) ≤ ∏ i, f i ⟪z, v i⟫ ^ c' i := fun z => by
-    dsimp only [g]
-    split_ifs with hcond
-    · rcases hcond with ⟨hr_pos, hxK⟩
-      rcases hxK with ⟨k, hk, hkx⟩
+  have hpt_le : ∀ z : F,
+      ({p : E × ℝ | 0 < p.2 ∧ p.1 ∈ (p.2 / Real.sqrt (d : ℝ)) • (K : Set E)}).indicator
+        (fun p : E × ℝ => ENNReal.ofReal (Real.exp (-p.2 * Real.sqrt ((d : ℝ) + 1))))
+        (WithLp.ofLp z) ≤ ∏ i, f i ⟪z, v i⟫ ^ c' i := fun z => by
+    by_cases hcond : 0 < (WithLp.ofLp z).2 ∧
+        (WithLp.ofLp z).1 ∈ ((WithLp.ofLp z).2 / Real.sqrt (d : ℝ)) • (K : Set E)
+    · rw [indicator_of_mem hcond]
+      rcases hcond with ⟨hr_pos, k, hk, hkx⟩
       have hge0 : ∀ i, 0 ≤ ⟪z, v i⟫ := fun i => by
         rw [hv_inner, ← hkx, inner_smul_left, RCLike.conj_to_real]
         have hk_le : ⟪k, u i⟫ ≤ 1 := by rw [← hsup i]; exact inner_le_supportFn hk (u i)
@@ -1897,114 +1987,11 @@ theorem volume_le_simplex_bound_of_john_position [Nontrivial E]
           Finset.sum_neg_distrib, hsum_inner]
         congr 2; ring
       rw [hprod_eq]
-    · exact zero_le
-  have hg_meas : Measurable g := by
-    have hcone_meas : MeasurableSet {p : E × ℝ | 0 < p.2 ∧ p.1 ∈ (p.2 / Real.sqrt (d : ℝ)) • (K : Set E)} := by
-      have heq : {p : E × ℝ | 0 < p.2 ∧ p.1 ∈ (p.2 / Real.sqrt (d : ℝ)) • (K : Set E)} =
-          {p : E × ℝ | 0 < p.2} ∩
-            (fun p : E × ℝ => (Real.sqrt (d : ℝ) / p.2) • p.1) ⁻¹' (K : Set E) := by
-        ext ⟨x, r⟩
-        simp only [mem_ofPred_eq, mem_inter_iff, mem_preimage, Set.mem_smul_set]
-        constructor
-        · rintro ⟨hr, k, hk, rfl⟩
-          refine ⟨hr, ?_⟩
-          rw [smul_smul]
-          have h1 : Real.sqrt (d : ℝ) / r * (r / Real.sqrt (d : ℝ)) = 1 := by
-            field_simp [hr.ne', (Real.sqrt_pos.mpr hd_pos).ne']
-          rwa [h1, one_smul]
-        · rintro ⟨hr, hk⟩
-          refine ⟨hr, (Real.sqrt (d : ℝ) / r) • x, hk, ?_⟩
-          rw [smul_smul]
-          have h1 : r / Real.sqrt (d : ℝ) * (Real.sqrt (d : ℝ) / r) = 1 := by
-            field_simp [hr.ne', (Real.sqrt_pos.mpr hd_pos).ne']
-          rw [h1, one_smul]
-      rw [heq]
-      refine (isOpen_lt continuous_const continuous_snd).measurableSet.inter ?_
-      have hmap : Measurable (fun p : E × ℝ => (Real.sqrt (d : ℝ) / p.2) • p.1) :=
-        (measurable_const.div measurable_snd).smul measurable_fst
-      exact K.isCompact.isClosed.measurableSet.preimage hmap
-    have hfun_meas : Measurable (fun p : E × ℝ =>
-        ENNReal.ofReal (Real.exp (-p.2 * Real.sqrt ((d : ℝ) + 1)))) := by
-      fun_prop
-    exact Measurable.ite hcone_meas hfun_meas measurable_const
-  have hmp_ofLp := WithLp.volume_preserving_ofLp (U := E) (V := ℝ)
-  have hcone_int : ∫⁻ z : F, g (WithLp.ofLp z) =
-      volume (K : Set E) * ENNReal.ofReal ((d : ℝ) ^ (-(d : ℝ) / 2) *
-        ((d : ℝ) + 1) ^ (-((d : ℝ) + 1) / 2) * (Nat.factorial d : ℝ)) := by
-    rw [hmp_ofLp.lintegral_comp_emb (MeasurableEquiv.toLp 2 (E × ℝ)).symm.measurableEmbedding g,
-      Measure.volume_eq_prod, lintegral_prod_symm _ hg_meas.aemeasurable]
-    have hslice : ∀ r : ℝ, ∫⁻ x : E, g (x, r) =
-        (Ioi (0 : ℝ)).indicator (fun r =>
-          volume (K : Set E) * ENNReal.ofReal ((d : ℝ) ^ (-(d : ℝ) / 2) *
-            (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r)))) r := fun r => by
-      by_cases hr : 0 < r
-      · rw [indicator_of_mem hr]
-        have hg_r : ∀ x : E, g (x, r) =
-            ((r / Real.sqrt (d : ℝ)) • (K : Set E)).indicator
-              (fun _ => ENNReal.ofReal (Real.exp (-r * Real.sqrt ((d : ℝ) + 1)))) x := fun x => by
-          dsimp only [g]
-          by_cases hx : x ∈ (r / Real.sqrt (d : ℝ)) • (K : Set E)
-          · simp [hr, hx]
-          · simp [hr, hx]
-        simp_rw [hg_r]
-        have hsmul_meas : MeasurableSet ((r / Real.sqrt (d : ℝ)) • (K : Set E)) :=
-          (K.isCompact.smul _).isClosed.measurableSet
-        rw [lintegral_indicator_const hsmul_meas,
-          Measure.addHaar_smul volume (r / Real.sqrt (d : ℝ)) (K : Set E),
-          abs_of_pos (pow_pos (div_pos hr (Real.sqrt_pos.mpr hd_pos)) d)]
-        rw [mul_comm (ENNReal.ofReal (Real.exp _)), ← mul_assoc,
-          mul_comm _ (volume (K : Set E)), mul_assoc]
-        congr 1
-        rw [← ENNReal.ofReal_mul (by positivity)]
-        congr 1
-        rw [Real.rpow_natCast, div_pow]
-        have hsqrt_inv : ((Real.sqrt (d : ℝ)) ^ d)⁻¹ = (d : ℝ) ^ (-(d : ℝ) / 2) := by
-          rw [Real.sqrt_eq_rpow, ← Real.rpow_natCast, ← Real.rpow_mul hd_pos.le,
-            ← Real.rpow_neg hd_pos.le]
-          congr 1; ring
-        rw [div_eq_mul_inv, hsqrt_inv]
-        ring_nf
-      · rw [indicator_of_notMem hr]
-        have hg_r : ∀ x : E, g (x, r) = 0 := fun x => by simp [g, hr]
-        simp [hg_r]
-    simp_rw [hslice]
-    rw [lintegral_indicator measurableSet_Ioi]
-    have hpull : ∫⁻ r in Ioi (0 : ℝ),
-        volume (K : Set E) * ENNReal.ofReal ((d : ℝ) ^ (-(d : ℝ) / 2) *
-          (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r))) =
-        volume (K : Set E) * ∫⁻ r in Ioi (0 : ℝ),
-          ENNReal.ofReal ((d : ℝ) ^ (-(d : ℝ) / 2) *
-            (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r))) :=
-      lintegral_const_mul _ (by fun_prop)
-    rw [hpull]
-    congr 1
-    have hpull2 : ∫⁻ r in Ioi (0 : ℝ),
-        ENNReal.ofReal ((d : ℝ) ^ (-(d : ℝ) / 2) *
-          (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r))) =
-        ENNReal.ofReal ((d : ℝ) ^ (-(d : ℝ) / 2)) *
-          ∫⁻ r in Ioi (0 : ℝ), ENNReal.ofReal (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r)) := by
-      simp_rw [ENNReal.ofReal_mul (Real.rpow_nonneg hd_pos.le _)]
-      exact lintegral_const_mul _ (by fun_prop)
-    rw [hpull2]
-    have hgam_int : ∫⁻ r in Ioi (0 : ℝ),
-        ENNReal.ofReal (r ^ (d : ℝ) * Real.exp (-Real.sqrt ((d : ℝ) + 1) * r)) =
-        ENNReal.ofReal (((d : ℝ) + 1) ^ (-((d : ℝ) + 1) / 2) * (Nat.factorial d : ℝ)) := by
-      rw [← ofReal_integral_eq_lintegral_ofReal
-        (integrableOn_Ioi_rpow_mul_exp_neg_mul (by linarith) (Real.sqrt_pos.mpr hd1_pos))]
-      · have hg := integral_rpow_mul_exp_neg_mul_rpow (p := 1) (q := (d : ℝ))
-          (b := Real.sqrt ((d : ℝ) + 1)) zero_lt_one (by linarith) (Real.sqrt_pos.mpr hd1_pos)
-        simp only [Real.rpow_one, div_one, mul_one, Real.Gamma_nat_eq_factorial] at hg
-        rw [hg]
-        congr 1
-        rw [Real.sqrt_eq_rpow, ← Real.rpow_mul hd1_pos.le]
-        congr 2; ring
-      · filter_upwards [ae_restrict_mem measurableSet_Ioi] with r hr
-        exact mul_nonneg (Real.rpow_nonneg hr.le _) (Real.exp_pos _).le
-    rw [hgam_int, ← ENNReal.ofReal_mul (Real.rpow_nonneg hd_pos.le _)]
-    congr 1; ring
+    · rw [indicator_of_notMem hcond]
+      exact zero_le
   have hle1 : volume (K : Set E) * ENNReal.ofReal ((d : ℝ) ^ (-(d : ℝ) / 2) *
       ((d : ℝ) + 1) ^ (-((d : ℝ) + 1) / 2) * (Nat.factorial d : ℝ)) ≤ 1 := by
-    rw [← hcone_int]
+    rw [← lintegral_exp_cone K]
     exact (lintegral_mono hpt_le).trans hbl
   set C : ℝ := (d : ℝ) ^ (-(d : ℝ) / 2) * ((d : ℝ) + 1) ^ (-((d : ℝ) + 1) / 2) * (Nat.factorial d : ℝ)
   have hC_pos : 0 < C := by positivity
