@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 public import ConvexGeom.Metric.Polarity
@@ -537,9 +542,9 @@ lemma mem_facetCone_iff {S : Finset E} {u : E} (hu : u ∈ polarBody (S : Set E)
       (sub_nonneg.mpr ht1) ht0 (by ring)
 
 /-- **Radial Facet-Cone Covering:**
-When `0 ∈ interior (convexHull ℝ S)` and `E` is nontrivial, the cones `facetCone S u` over
-`u ∈ facetNormals S` cover `convexHull ℝ S`. -/
-theorem iUnion_facetCone_eq [Nontrivial E] {S : Finset E}
+When `0 ∈ interior (convexHull ℝ S)`, the cones `facetCone S u` over `u ∈ facetNormals S` cover
+`convexHull ℝ S`. -/
+theorem iUnion_facetCone_eq {S : Finset E}
     (h0 : (0 : E) ∈ interior (convexHull ℝ (S : Set E))) :
     (⋃ u ∈ facetNormals S, facetCone S u) = convexHull ℝ (S : Set E) := by
   have hU_ne : (facetNormals S).Nonempty := by
@@ -645,9 +650,9 @@ theorem pairwise_aedisjoint_facetCone [MeasurableSpace E] [BorelSpace E]
   exact measure_mono_null hsub (Measure.addHaar_submodule μ _ hne_top)
 
 /-- **Radial Facet-Cone Volume Sum Formula:**
-When `0 ∈ interior (convexHull ℝ S)` and `E` is nontrivial, the additive Haar measure of
+When `0 ∈ interior (convexHull ℝ S)`, the additive Haar measure of
 `convexHull ℝ S` equals the sum of the measures of its origin-apex facet cones `facetCone S u`. -/
-theorem addHaar_convexHull_eq_sum_facetCone [Nontrivial E] [MeasurableSpace E] [BorelSpace E]
+theorem addHaar_convexHull_eq_sum_facetCone [MeasurableSpace E] [BorelSpace E]
     (μ : Measure E) [μ.IsAddHaarMeasure] {S : Finset E}
     (h0 : (0 : E) ∈ interior (convexHull ℝ (S : Set E))) :
     μ (convexHull ℝ (S : Set E)) = ∑ u ∈ facetNormals S, μ (facetCone S u) := by

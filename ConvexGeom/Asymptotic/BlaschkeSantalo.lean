@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 public import ConvexGeom.Asymptotic.GaussianConcentration
@@ -2885,7 +2890,9 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
         by_cases ht : t ∈ Ioi (0 : ℝ)
         · have hnt : -t ∈ Iio (0 : ℝ) := by simp [mem_Iio, mem_Ioi.mp ht]
           rw [indicator_of_mem ht, indicator_of_mem hnt]
-        · have hnt : -t ∉ Iio (0 : ℝ) := by simp [mem_Iio, mem_Ioi] at ht ⊢; exact ht
+        · have hnt : -t ∉ Iio (0 : ℝ) := by
+            simp only [mem_Iio, mem_Ioi, Left.neg_neg_iff] at ht ⊢
+            exact ht
           rw [indicator_of_notMem ht, indicator_of_notMem hnt]
       rw [hneg_sub]
       have hzero_gt : ∀ t : ℝ, M_g < t → ENNReal.ofReal (g t) = 0 := fun t ht => by

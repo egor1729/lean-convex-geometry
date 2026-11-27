@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 public import Mathlib.Analysis.Convex.Body
@@ -257,8 +262,12 @@ private lemma lintegral_Ioo_meas_lt_eq {f : ℝ → ℝ} (hf_m : Measurable f)
   rw [hlc]
   have hsplit : (Ioi (0 : ℝ)) = Ioo 0 1 ∪ Ici 1 := by
     ext s; simp only [mem_Ioi, mem_union, mem_Ioo, mem_Ici]; constructor <;> intro h
-    · rcases lt_or_ge s 1 with h1 | h1; exact Or.inl ⟨h, h1⟩; exact Or.inr h1
-    · rcases h with ⟨h0, _⟩ | h1; exact h0; linarith
+    · rcases lt_or_ge s 1 with h1 | h1
+      · exact Or.inl ⟨h, h1⟩
+      · exact Or.inr h1
+    · rcases h with ⟨h0, _⟩ | h1
+      · exact h0
+      · linarith
   have hdisj : Disjoint (Ioo (0 : ℝ) 1) (Ici 1) := by
     rw [Set.disjoint_left]; intro s ⟨_, h1⟩ h2; rw [mem_Ici] at h2; linarith
   rw [hsplit, lintegral_union measurableSet_Ici hdisj]

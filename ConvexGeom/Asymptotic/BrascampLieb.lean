@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 public import ConvexGeom.Asymptotic.JohnEllipsoid
@@ -2039,7 +2044,7 @@ theorem ball_volume_ratio [Nontrivial E]
 /-- **Outer Minkowski Content Upper Bound from Inscribed Unit Ball:**
 if `closedBall 0 1 ⊆ K` for a convex body `K`, then `K + t • B₁ ⊆ (1 + t) • K` for all `t > 0`,
 and consequently `minkowskiSurfaceArea K ≤ d * volume K`. -/
-theorem minkowskiSurfaceArea_le_finrank_mul_volume_of_closedBall_subset [Nontrivial E]
+theorem minkowskiSurfaceArea_le_finrank_mul_volume_of_closedBall_subset
     (K : ConvexBody E) (hB : closedBall (0 : E) 1 ⊆ (K : Set E)) :
     minkowskiSurfaceArea (K : Set E) ≤ (Module.finrank ℝ E : ℝ≥0∞) * volume (K : Set E) := by
   set d := Module.finrank ℝ E

@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 public import ConvexGeom.Asymptotic.BanachMazur
@@ -153,7 +158,7 @@ lemma trace_rankOne [FiniteDimensional ℝ E] (u v : E) :
   refine (Finset.sum_congr rfl fun i _ => ?_).trans hsum
   ring
 
-lemma linearMap_id_eq_sum_rankOne [FiniteDimensional ℝ E]
+lemma linearMap_id_eq_sum_rankOne
     (b : OrthonormalBasis (Fin (Module.finrank ℝ E)) ℝ E) :
     (LinearMap.id : E →ₗ[ℝ] E) = ∑ i, rankOne (b i) (b i) := by
   ext x
@@ -598,7 +603,7 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 /-- A set `K ⊆ E` is in **John's position** if the unit closed ball `closedBall 0 1` is inscribed
 in `K` and maximizes `|det T|` among all affine ellipsoids `c + T(closedBall 0 1) ⊆ K`. -/
 @[expose]
-def IsJohnPosition [FiniteDimensional ℝ E] (K : Set E) : Prop :=
+def IsJohnPosition (K : Set E) : Prop :=
   closedBall (0 : E) 1 ⊆ K ∧
     ∀ (T : E →ₗ[ℝ] E) (c : E),
       (fun x => T x + c) '' closedBall (0 : E) 1 ⊆ K → |LinearMap.det T| ≤ 1

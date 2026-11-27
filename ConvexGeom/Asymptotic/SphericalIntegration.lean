@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 public import ConvexGeom.Metric.Polarity
@@ -134,7 +139,7 @@ theorem sphereProb_smul (μ : Measure E) {c : ℝ≥0∞} (hc0 : c ≠ 0) (hctop
 /-- **Haar-normalization independence of `sphereProb`:**
 any two additive Haar measures on `E` induce the exact same normalized spherical probability
 measure on `Metric.sphere (0 : E) 1`. -/
-theorem sphereProb_eq_of_isAddHaarMeasure [Nontrivial E]
+theorem sphereProb_eq_of_isAddHaarMeasure
     (μ ν : Measure E) [μ.IsAddHaarMeasure] [ν.IsAddHaarMeasure] :
     sphereProb μ = sphereProb ν := by
   have huniq : μ = ((Measure.addHaarScalarFactor μ ν : ℝ≥0) : ℝ≥0∞) • ν := by
@@ -165,8 +170,8 @@ lemma addHaar_closedBall_eq_addHaar_ball [Nontrivial E]
     Measure.addHaar_sphere μ c r, add_zero]
 
 /-- Any linear isometry preserving `μ` preserves `μ.toSphere`. -/
-theorem measurePreserving_sphereMap_toSphere [Nontrivial E]
-    (μ : Measure E) [μ.IsAddHaarMeasure] (U : E ≃ₗᵢ[ℝ] E)
+theorem measurePreserving_sphereMap_toSphere
+    (μ : Measure E) (U : E ≃ₗᵢ[ℝ] E)
     (hU : MeasurePreserving U μ μ) :
     MeasurePreserving (sphereMap U) μ.toSphere μ.toSphere := by
   refine ⟨(sphereMap U).continuous.measurable, ?_⟩
@@ -229,8 +234,8 @@ theorem measurePreserving_sphereMap_toSphere [Nontrivial E]
   rw [hpre, hU.measure_preimage hmeas.nullMeasurableSet]
 
 /-- Any linear isometry preserving `μ` preserves the uniform spherical probability measure. -/
-theorem measurePreserving_sphereMap_sphereProb [Nontrivial E]
-    (μ : Measure E) [μ.IsAddHaarMeasure] (U : E ≃ₗᵢ[ℝ] E)
+theorem measurePreserving_sphereMap_sphereProb
+    (μ : Measure E) (U : E ≃ₗᵢ[ℝ] E)
     (hU : MeasurePreserving U μ μ) :
     MeasurePreserving (sphereMap U) (sphereProb μ) (sphereProb μ) := by
   have hmp := measurePreserving_sphereMap_toSphere μ U hU
@@ -239,7 +244,7 @@ theorem measurePreserving_sphereMap_sphereProb [Nontrivial E]
   exact hmp.measurable.aemeasurable
 
 /-- Antipodal negation `u ↦ -u` preserves `sphereProb μ` for every add-Haar measure `μ`. -/
-theorem measurePreserving_sphereNeg_sphereProb [Nontrivial E]
+theorem measurePreserving_sphereNeg_sphereProb
     (μ : Measure E) [μ.IsAddHaarMeasure] :
     MeasurePreserving (sphereMap (LinearIsometryEquiv.neg ℝ (E := E)))
       (sphereProb μ) (sphereProb μ) := by
@@ -376,7 +381,7 @@ theorem addHaar_eq_lintegral_gauge_inv_pow [Nontrivial E]
       have hglt : gauge (K : Set E) ((r : ℝ) • u.1) < 1 := by
         rw [gauge_smul_of_nonneg r.2.out.le]
         simpa [smul_eq_mul] using (lt_div_iff₀ hgu_pos).mp hrlt
-      show (r : ℝ) • u.1 ∈ (K : Set E)
+      change (r : ℝ) • u.1 ∈ (K : Set E)
       exact interior_subset ((gauge_lt_one_iff_mem_interior K.convex hnhds).mp hglt)
     have hhi : Prod.mk u ⁻¹' A ⊆ Iic r₀ := by
       intro r hr
@@ -503,13 +508,13 @@ theorem meanWidth_add [Nontrivial E] (K L : ConvexBody E) :
   exact integral_add (integrable_supportFn_sphereProb K) (integrable_supportFn_sphereProb L)
 
 /-- Positive homogeneity of mean width: `meanWidth (c • K) = c * meanWidth K` for `c ≥ 0`. -/
-theorem meanWidth_smul [Nontrivial E] (K : ConvexBody E) {c : ℝ} (hc : 0 ≤ c) :
+theorem meanWidth_smul (K : ConvexBody E) {c : ℝ} (hc : 0 ≤ c) :
     meanWidth (c • K) = c * meanWidth K := by
   simp only [meanWidth, supportFn_body_smul K hc]
   exact integral_const_mul c _
 
 /-- Negation invariance: `meanWidth ((-1) • K) = meanWidth K`. -/
-theorem meanWidth_neg_one_smul [Nontrivial E] (K : ConvexBody E) :
+theorem meanWidth_neg_one_smul (K : ConvexBody E) :
     meanWidth ((-1 : ℝ) • K) = meanWidth K := by
   simp only [meanWidth, supportFn_neg_one_smul]
   have hmp := measurePreserving_sphereNeg_sphereProb (E := E) (volume : Measure E)
@@ -535,7 +540,7 @@ theorem integral_width_eq_two_mul_meanWidth [Nontrivial E] (K : ConvexBody E) :
   ring
 
 /-- Singletons have zero mean width (by antipodal symmetry of the sphere). -/
-theorem meanWidth_bodySingleton [Nontrivial E] (a : E) :
+theorem meanWidth_bodySingleton (a : E) :
     meanWidth (bodySingleton a) = 0 := by
   have h1 : meanWidth (bodySingleton a) = meanWidth ((-1 : ℝ) • bodySingleton a) :=
     (meanWidth_neg_one_smul (bodySingleton a)).symm
@@ -610,7 +615,7 @@ theorem lipschitzWith_meanWidth [Nontrivial E] :
 
 /-- Rotation / reflection invariance of mean width: any linear isometry `U : E ≃ₗᵢ[ℝ] E`
 preserves `meanWidth`. -/
-theorem meanWidth_linearIsometry [Nontrivial E] (U : E ≃ₗᵢ[ℝ] E) (K L : ConvexBody E)
+theorem meanWidth_linearIsometry (U : E ≃ₗᵢ[ℝ] E) (K L : ConvexBody E)
     (hL : ∀ v : E, supportFn L v = supportFn K (U.symm v)) :
     meanWidth L = meanWidth K := by
   simp only [meanWidth, hL]
@@ -621,7 +626,7 @@ theorem meanWidth_linearIsometry [Nontrivial E] (U : E ≃ₗᵢ[ℝ] E) (K L : 
       (fun u : sphere (0 : E) 1 => supportFn K u.1)
 
 /-- Direct `mapLinear` form of orthogonal invariance of `meanWidth`. -/
-theorem meanWidth_mapLinearIsometry [Nontrivial E] (U : E ≃ₗᵢ[ℝ] E) (K : ConvexBody E) :
+theorem meanWidth_mapLinearIsometry (U : E ≃ₗᵢ[ℝ] E) (K : ConvexBody E) :
     meanWidth (mapLinear U.toLinearIsometry.toContinuousLinearMap K) = meanWidth K :=
   meanWidth_linearIsometry U K _ (supportFn_mapLinearIsometry U K)
 

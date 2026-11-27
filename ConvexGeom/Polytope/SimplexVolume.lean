@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 public import Mathlib.Analysis.Convex.Hull
@@ -418,7 +423,9 @@ lemma convexHull_range_eq_image_solidSimplex {d : ℕ} (v : Fin (d + 1) → (Fin
     -- Extend `w` by `0` outside `s`, then take `y j = w' j.succ`.
     let w' : Fin (d + 1) → ℝ := fun i => if i ∈ s then w i else 0
     have hw'_nonneg : ∀ i, 0 ≤ w' i := fun i => by
-      dsimp [w']; split_ifs with hi; exact hw0 i hi; exact le_rfl
+      dsimp [w']; split_ifs with hi
+      · exact hw0 i hi
+      · exact le_rfl
     have hw'_sum : ∑ i : Fin (d + 1), w' i = 1 := by
       simpa [w', Finset.sum_ite_mem, Finset.univ_inter] using hw1
     let y : Fin d → ℝ := fun j => w' j.succ

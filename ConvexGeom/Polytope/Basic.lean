@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 public import ConvexGeom.Metric.SupportFunction
@@ -70,7 +75,7 @@ theorem supportFn_bodyConvexHull (S : Finset E) (hS : S.Nonempty) (u : E) :
 
 /-- **1-Lipschitz continuity of convex hulls in the Hausdorff metric:**
 if `∀ i, dist (v i) (w i) ≤ r`, then `hausdorffDist (convexHull ℝ (range v)) (convexHull ℝ (range w)) ≤ r`. -/
-theorem hausdorffDist_convexHull_range_le {ι : Type*} [Fintype ι] [Nonempty ι]
+theorem hausdorffDist_convexHull_range_le {ι : Type*}
     (v w : ι → E) {r : ℝ} (hr : 0 ≤ r) (hvw : ∀ i, dist (v i) (w i) ≤ r) :
     Metric.hausdorffDist (convexHull ℝ (Set.range v)) (convexHull ℝ (Set.range w)) ≤ r := by
   have h1 : ∀ x ∈ convexHull ℝ (Set.range v),

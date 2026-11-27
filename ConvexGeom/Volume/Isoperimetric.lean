@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 public import ConvexGeom.Volume.BrunnMinkowski
@@ -228,7 +233,7 @@ lemma closedBall_add_smul_unitClosedBall (c : E) {r t : ℝ} (hr : 0 ≤ r) (ht 
 
 /-- **Exact Minkowski surface area of a closed Euclidean ball:**
 for `r > 0`, `minkowskiSurfaceArea (closedBall c r) = d * r ^ (d - 1) * volume (closedBall 0 1)`. -/
-theorem minkowskiSurfaceArea_closedBall [Nontrivial E] (c : E) {r : ℝ} (hr : 0 < r) :
+theorem minkowskiSurfaceArea_closedBall (c : E) {r : ℝ} (hr : 0 < r) :
     minkowskiSurfaceArea (Metric.closedBall c r) =
       (Module.finrank ℝ E : ℝ≥0∞) * ENNReal.ofReal (r ^ (Module.finrank ℝ E - 1)) *
         volume (Metric.closedBall (0 : E) 1) := by

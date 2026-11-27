@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 public import ConvexGeom.Metric.Polarity
@@ -240,7 +245,6 @@ lemma smulLinearEquiv_apply {c : ℝ} (hc : c ≠ 0) (x : E) :
     smulLinearEquiv hc x = c • x := by
   rfl
 
-@[simp]
 lemma smulLinearEquiv_image {c : ℝ} (hc : c ≠ 0) (S : Set E) :
     (smulLinearEquiv hc) '' S = c • S := by
   ext x

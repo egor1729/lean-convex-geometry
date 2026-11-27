@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 public import ConvexGeom.Asymptotic.BrascampLieb
@@ -426,7 +431,8 @@ theorem measurePreserving_linearComb_stdGaussian {k : ℕ} {z : Fin k → ℝ}
           Set.univ.pi (fun j : Fin k =>
             (fun x : E => WithLp.ofLp (b.repr x)) ⁻¹' Set.univ.pi (fun l : Fin d => s (j, l))) := by
         ext g
-        simp [eOfLp, enc]
+        simp only [mem_preimage, Function.comp_apply, Set.mem_pi, mem_univ, forall_const,
+          Prod.forall, eOfLp, enc]
         exact ⟨fun h j l => h j l, fun h j l => h j l⟩
       rw [hpre, Measure.pi_pi]
       have hrow : ∀ j : Fin k,
@@ -2035,7 +2041,7 @@ private lemma log_one_add_sub_le {ε : ℝ} (hε0 : 0 ≤ ε) (hε1 : ε ≤ 1) 
     apply antitoneOn_of_deriv_nonpos (convex_Icc 0 1)
     · refine ContinuousOn.add (ContinuousOn.sub ?_ continuousOn_id) (continuousOn_pow 2 |>.div_const 4)
       exact (continuousOn_const.add continuousOn_id).log fun x hx => by
-        show 1 + x ≠ 0; linarith [hx.1]
+        change 1 + x ≠ 0; linarith [hx.1]
     · intro x hx
       rw [interior_Icc] at hx
       exact (hderiv x (by linarith [hx.1])).differentiableAt.differentiableWithinAt
@@ -2065,7 +2071,7 @@ private lemma log_one_sub_add_le {ε : ℝ} (hε0 : 0 ≤ ε) (hε1 : ε < 1) :
     apply antitoneOn_of_deriv_nonpos (convex_Ico 0 1)
     · refine ContinuousOn.add (ContinuousOn.add ?_ continuousOn_id) (continuousOn_pow 2 |>.div_const 2)
       exact (continuousOn_const.sub continuousOn_id).log fun x hx => by
-        show 1 - x ≠ 0; linarith [hx.2]
+        change 1 - x ≠ 0; linarith [hx.2]
     · intro x hx
       rw [interior_Ico] at hx
       exact (hderiv x (by linarith [hx.2])).differentiableAt.differentiableWithinAt

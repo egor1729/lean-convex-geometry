@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 public import ConvexGeom.Metric.SupportFunction
@@ -383,9 +388,10 @@ theorem continuous_addHaarReal_convexBody (μ : Measure E) [μ.IsAddHaarMeasure]
 For any nonempty finite index type `ι`, the map `v ↦ μ (convexHull ℝ (Set.range v))` is
 continuous on `ι → E`. -/
 theorem continuous_addHaar_convexHull_range (μ : Measure E) [μ.IsAddHaarMeasure]
-    {ι : Type*} [Fintype ι] [Nonempty ι] :
+    {ι : Type*} [Finite ι] [Nonempty ι] :
     Continuous (fun v : ι → E => μ (convexHull ℝ (Set.range v))) := by
   classical
+  have : Fintype ι := Fintype.ofFinite ι
   let hullBody : (ι → E) → ConvexBody E := fun v =>
     bodyConvexHull (Finset.univ.image v) (Finset.univ_nonempty.image v)
   have hcoe : ∀ v, (hullBody v : Set E) = convexHull ℝ (Set.range v) := fun v => by
@@ -403,9 +409,10 @@ theorem continuous_addHaar_convexHull_range (μ : Measure E) [μ.IsAddHaarMeasur
 /-- Real-valued continuity of finite convex-hull volume:
 `v ↦ μ.real (convexHull ℝ (Set.range v))` is continuous on `ι → E`. -/
 theorem continuous_addHaarReal_convexHull_range (μ : Measure E) [μ.IsAddHaarMeasure]
-    {ι : Type*} [Fintype ι] [Nonempty ι] :
+    {ι : Type*} [Finite ι] [Nonempty ι] :
     Continuous (fun v : ι → E => μ.real (convexHull ℝ (Set.range v))) := by
   classical
+  have : Fintype ι := Fintype.ofFinite ι
   rw [continuous_iff_continuousAt]
   intro v
   have hc : IsCompact (convexHull ℝ (Set.range v)) := by
@@ -421,7 +428,7 @@ theorem continuous_addHaarReal_convexHull_range (μ : Measure E) [μ.IsAddHaarMe
 for any compact nonempty `S ⊆ E` and nonempty finite index type `ι`, there exists `v : ι → E`
 with vertices in `S` maximizing `μ (convexHull ℝ (Set.range v))`. -/
 theorem exists_max_addHaar_convexHull_of_isCompact (μ : Measure E) [μ.IsAddHaarMeasure]
-    {ι : Type*} [Fintype ι] [Nonempty ι] {S : Set E} (hSc : IsCompact S) (hSne : S.Nonempty) :
+    {ι : Type*} [Finite ι] [Nonempty ι] {S : Set E} (hSc : IsCompact S) (hSne : S.Nonempty) :
     ∃ v : ι → E, (∀ i, v i ∈ S) ∧
       ∀ w : ι → E, (∀ i, w i ∈ S) →
         μ (convexHull ℝ (Set.range w)) ≤ μ (convexHull ℝ (Set.range v)) := by
@@ -435,11 +442,12 @@ theorem exists_max_addHaar_convexHull_of_isCompact (μ : Measure E) [μ.IsAddHaa
 
 /-- Real-valued version of `exists_max_addHaar_convexHull_of_isCompact`. -/
 theorem exists_max_addHaarReal_convexHull_of_isCompact (μ : Measure E) [μ.IsAddHaarMeasure]
-    {ι : Type*} [Fintype ι] [Nonempty ι] {S : Set E} (hSc : IsCompact S) (hSne : S.Nonempty) :
+    {ι : Type*} [Finite ι] [Nonempty ι] {S : Set E} (hSc : IsCompact S) (hSne : S.Nonempty) :
     ∃ v : ι → E, (∀ i, v i ∈ S) ∧
       ∀ w : ι → E, (∀ i, w i ∈ S) →
         μ.real (convexHull ℝ (Set.range w)) ≤ μ.real (convexHull ℝ (Set.range v)) := by
   classical
+  have : Fintype ι := Fintype.ofFinite ι
   obtain ⟨v, hv_mem, hv_max⟩ := exists_max_addHaar_convexHull_of_isCompact μ (ι := ι) hSc hSne
   have hc : IsCompact (convexHull ℝ (Set.range v)) := by
     have hcoe : (bodyConvexHull (Finset.univ.image v) (Finset.univ_nonempty.image v) : Set E) =
@@ -451,7 +459,7 @@ theorem exists_max_addHaarReal_convexHull_of_isCompact (μ : Measure E) [μ.IsAd
 /-- Existence of a maximal-volume polytope with vertices on `Metric.sphere 0 r` (`r ≥ 0`)
 in any nontrivial finite-dimensional real inner product space. -/
 theorem exists_max_addHaar_convexHull_sphere [Nontrivial E] (μ : Measure E) [μ.IsAddHaarMeasure]
-    {ι : Type*} [Fintype ι] [Nonempty ι] {r : ℝ} (hr : 0 ≤ r) :
+    {ι : Type*} [Finite ι] [Nonempty ι] {r : ℝ} (hr : 0 ≤ r) :
     ∃ v : ι → E, (∀ i, v i ∈ Metric.sphere (0 : E) r) ∧
       ∀ w : ι → E, (∀ i, w i ∈ Metric.sphere (0 : E) r) →
         μ (convexHull ℝ (Set.range w)) ≤ μ (convexHull ℝ (Set.range v)) := by
@@ -465,7 +473,7 @@ theorem exists_max_addHaar_convexHull_sphere [Nontrivial E] (μ : Measure E) [μ
 
 /-- Existence of a maximal-volume polytope with vertices in `Metric.closedBall 0 r` (`r ≥ 0`). -/
 theorem exists_max_addHaar_convexHull_closedBall (μ : Measure E) [μ.IsAddHaarMeasure]
-    {ι : Type*} [Fintype ι] [Nonempty ι] {r : ℝ} (hr : 0 ≤ r) :
+    {ι : Type*} [Finite ι] [Nonempty ι] {r : ℝ} (hr : 0 ≤ r) :
     ∃ v : ι → E, (∀ i, v i ∈ Metric.closedBall (0 : E) r) ∧
       ∀ w : ι → E, (∀ i, w i ∈ Metric.closedBall (0 : E) r) →
         μ (convexHull ℝ (Set.range w)) ≤ μ (convexHull ℝ (Set.range v)) :=
@@ -555,12 +563,13 @@ theorem strict_addHaar_convexHull_insert_of_notMem (μ : Measure E) [μ.IsAddHaa
 /-- Pushing vertices from `closedBall 0 r` onto `sphere 0 r` preserves the supremum of polytope
 volume for any finite vertex budget in a nontrivial space. -/
 theorem iSup_addHaar_convexHull_closedBall_eq_sphere [Nontrivial E]
-    (μ : Measure E) [μ.IsAddHaarMeasure] {ι : Type*} [Fintype ι] [Nonempty ι]
+    (μ : Measure E) [μ.IsAddHaarMeasure] {ι : Type*} [Finite ι] [Nonempty ι]
     (r : ℝ) :
     (⨆ (v : ι → E) (_ : ∀ i, v i ∈ Metric.closedBall (0 : E) r),
         μ (convexHull ℝ (Set.range v))) =
       ⨆ (v : ι → E) (_ : ∀ i, v i ∈ Metric.sphere (0 : E) r),
         μ (convexHull ℝ (Set.range v)) := by
+  have : Fintype ι := Fintype.ofFinite ι
   apply le_antisymm
   · refine iSup₂_le fun v hv => ?_
     by_cases hcard : 2 ≤ Fintype.card ι
@@ -581,7 +590,7 @@ omit [FiniteDimensional ℝ E] in
 /-- Every extreme vertex of a full-dimensional maximal-volume polytope in `closedBall 0 r`
 lies on the boundary sphere `sphere 0 r` (in any nontrivial space). -/
 theorem mem_sphere_of_max_addHaar_convexHull_closedBall [Nontrivial E]
-    (μ : Measure E) [μ.IsAddHaarMeasure] {ι : Type*} [Fintype ι] {r : ℝ}
+    (μ : Measure E) [μ.IsAddHaarMeasure] {ι : Type*} [Finite ι] {r : ℝ}
     {v : ι → E} (hv : ∀ i, v i ∈ Metric.closedBall (0 : E) r)
     (hmax : ∀ w : ι → E, (∀ j, w j ∈ Metric.closedBall (0 : E) r) →
       μ (convexHull ℝ (Set.range w)) ≤ μ (convexHull ℝ (Set.range v)))
@@ -675,7 +684,7 @@ theorem mem_sphere_of_max_addHaar_convexHull_closedBall [Nontrivial E]
 supremum restricted to configurations in `InSphericalGeneralPosition r`. -/
 theorem iSup_addHaar_convexHull_sphere_eq_generalPosition
     (hd : 2 ≤ Module.finrank ℝ E) (μ : Measure E) [μ.IsAddHaarMeasure]
-    {ι : Type*} [Fintype ι] [Nonempty ι] {r : ℝ} (hr : 0 < r) :
+    {ι : Type*} [Finite ι] [Nonempty ι] {r : ℝ} (hr : 0 < r) :
     (⨆ (v : ι → E) (_ : ∀ i, v i ∈ Metric.sphere (0 : E) r),
         μ (convexHull ℝ (Set.range v))) =
       ⨆ (v : ι → E) (_ : InSphericalGeneralPosition r v),

@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 public import ConvexGeom.Asymptotic.SphericalIntegration
@@ -41,7 +46,7 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 /-! ### 1. Spherical Isotropic Identity -/
 
 /-- The mean of the unit vector on `sphere 0 1` under `sphereProb volume` is `0`. -/
-theorem integral_sphereProb_id [Nontrivial E] :
+theorem integral_sphereProb_id :
     ∫ u : sphere (0 : E) 1, (u : E) ∂(sphereProb (volume : Measure E)) = 0 := by
   have hmp := measurePreserving_sphereNeg_sphereProb (volume : Measure E)
   have hneg : ∫ u : sphere (0 : E) 1, (u : E) ∂(sphereProb (volume : Measure E)) =
@@ -227,7 +232,7 @@ theorem steinerPoint_add [Nontrivial E] (K L : ConvexBody E) :
   rw [hfun, integral_add (integrable_supportFn_smul_sphereProb K)
     (integrable_supportFn_smul_sphereProb L), smul_add]
 
-theorem steinerPoint_smul [Nontrivial E] (K : ConvexBody E) {c : ℝ} (hc : 0 ≤ c) :
+theorem steinerPoint_smul (K : ConvexBody E) {c : ℝ} (hc : 0 ≤ c) :
     steinerPoint (c • K) = c • steinerPoint K := by
   unfold steinerPoint
   have hfun : (fun u : sphere (0 : E) 1 => supportFn (c • K) u.1 • (u.1 : E)) =
@@ -239,7 +244,7 @@ theorem steinerPoint_translate [Nontrivial E] (K : ConvexBody E) (x : E) :
     steinerPoint (K + bodySingleton x) = steinerPoint K + x := by
   rw [steinerPoint_add, steinerPoint_bodySingleton]
 
-theorem steinerPoint_neg_one_smul [Nontrivial E] (K : ConvexBody E) :
+theorem steinerPoint_neg_one_smul (K : ConvexBody E) :
     steinerPoint ((-1 : ℝ) • K) = -steinerPoint K := by
   unfold steinerPoint
   have hmp := measurePreserving_sphereNeg_sphereProb (volume : Measure E)

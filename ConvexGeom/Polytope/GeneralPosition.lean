@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 public import ConvexGeom.Polytope.Basic
@@ -52,27 +57,25 @@ section GeneralPositionBasic
 
 variable {E : Type*} [AddCommGroup E] [Module ℝ E]
 
-/-- A family `v : ι → E` in a finite-dimensional real vector space `E` is in **affine general
-position** if every finite subfamily of cardinality at most `finrank ℝ E + 1` is affinely
-independent over `ℝ`.
+/-- A family `v : ι → E` in a real vector space `E` is in **affine general position** if every
+finite subfamily of cardinality at most `finrank ℝ E + 1` is affinely independent over `ℝ`.
 
-Note: `[FiniteDimensional ℝ E]` is required explicitly so `Module.finrank ℝ E` equals the true
-vector-space dimension (rather than defaulting to `0` in infinite dimensions). In dimension `0`,
-`finrank ℝ E + 1 = 1` and every family satisfies `InGeneralPosition` (since singletons are
-affinely independent). -/
+This definition is intended for finite-dimensional spaces (where `Module.finrank ℝ E` equals the
+vector-space dimension); in dimension `0`, `finrank ℝ E + 1 = 1` and every family satisfies
+`InGeneralPosition` (since singletons are affinely independent). -/
 @[expose]
-def InGeneralPosition [FiniteDimensional ℝ E] {ι : Type*} (v : ι → E) : Prop :=
+def InGeneralPosition {ι : Type*} (v : ι → E) : Prop :=
   ∀ s : Finset ι, s.card ≤ Module.finrank ℝ E + 1 →
     AffineIndepOn ℝ v (s : Set ι)
 
 /-- Equivalent `AffineIndependent` form on subtypes of cardinality `≤ finrank ℝ E + 1`. -/
-lemma InGeneralPosition.affineIndependent [FiniteDimensional ℝ E] {ι : Type*} {v : ι → E}
+lemma InGeneralPosition.affineIndependent {ι : Type*} {v : ι → E}
     (hv : InGeneralPosition v) {s : Finset ι} (hs : s.card ≤ Module.finrank ℝ E + 1) :
     AffineIndependent ℝ (fun i : (s : Set ι) => v i) :=
   hv s hs
 
 /-- Pulling back a general-position family along an injective map preserves general position. -/
-lemma InGeneralPosition.comp_injective [FiniteDimensional ℝ E] {ι κ : Type*} {v : ι → E}
+lemma InGeneralPosition.comp_injective {ι κ : Type*} {v : ι → E}
     (hv : InGeneralPosition v) {f : κ → ι} (hf : Function.Injective f) :
     InGeneralPosition (v ∘ f) := by
   classical
@@ -88,7 +91,6 @@ lemma InGeneralPosition.comp_injective [FiniteDimensional ℝ E] {ι κ : Type*}
 
 /-- Any invertible affine transformation preserves general position. -/
 lemma InGeneralPosition.affineEquiv {F : Type*} [AddCommGroup F] [Module ℝ F]
-    [FiniteDimensional ℝ E] [FiniteDimensional ℝ F]
     {ι : Type*} {v : ι → E} (hv : InGeneralPosition v) (e : E ≃ᵃ[ℝ] F) :
     InGeneralPosition (e ∘ v) := by
   intro s hs
@@ -173,6 +175,7 @@ private lemma exists_avoiding_affineSpans {m : ℕ} (w : Fin m → E) (p : E) {�
   exact Set.mem_biUnion (x := t)
     (Finset.mem_filter.mpr ⟨Finset.mem_powerset.mpr (Finset.subset_univ t), ht⟩) hmem
 
+omit [FiniteDimensional ℝ E] in
 /-- Helper: appending a point `q` outside every affine span of at most `finrank ℝ E` points of `w`
 preserves affine general position. -/
 private lemma inGeneralPosition_snoc_of_notMem_affineSpan {m : ℕ} {w : Fin m → E}
@@ -271,9 +274,10 @@ theorem exists_generalPosition_dist_lt {m : ℕ} (v : Fin m → E) {ε : ℝ} (h
 /-- **Density of Affine General Position (arbitrary `Fintype` index set):**
 for any finite-indexed family `v : ι → E` and `ε > 0`, there exists `w : ι → E` in general
 position with `dist (w i) (v i) < ε` for every `i : ι`. -/
-theorem exists_generalPosition_dist_lt_of_fintype {ι : Type*} [Fintype ι]
+theorem exists_generalPosition_dist_lt_of_fintype {ι : Type*} [Finite ι]
     (v : ι → E) {ε : ℝ} (hε : 0 < ε) :
     ∃ w : ι → E, InGeneralPosition w ∧ ∀ i, dist (w i) (v i) < ε := by
+  have : Fintype ι := Fintype.ofFinite ι
   let e : ι ≃ Fin (Fintype.card ι) := Fintype.equivFin ι
   obtain ⟨w', hw'_gp, hw'_dist⟩ := exists_generalPosition_dist_lt (v ∘ e.symm) hε
   refine ⟨w' ∘ e, hw'_gp.comp_injective e.injective, fun i => ?_⟩
@@ -865,10 +869,11 @@ theorem exists_sphericalGeneralPosition_dist_lt
 generalizes `exists_sphericalGeneralPosition_dist_lt` to any finite index type `ι`. -/
 theorem exists_sphericalGeneralPosition_dist_lt_of_fintype
     (hd : 2 ≤ Module.finrank ℝ E) {r : ℝ} (hr : 0 < r)
-    {ι : Type*} [Fintype ι] (v : ι → E) (hv : ∀ i, v i ∈ Metric.sphere (0 : E) r)
+    {ι : Type*} [Finite ι] (v : ι → E) (hv : ∀ i, v i ∈ Metric.sphere (0 : E) r)
     {ε : ℝ} (hε : 0 < ε) :
     ∃ w : ι → E, InSphericalGeneralPosition r w ∧ ∀ i, dist (w i) (v i) < ε := by
   classical
+  have : Fintype ι := Fintype.ofFinite ι
   let e := Fintype.equivFin ι
   obtain ⟨w₀, hw₀_gp, hw₀_dist⟩ :=
     exists_sphericalGeneralPosition_dist_lt hd hr (v ∘ e.symm) (fun j => hv (e.symm j)) hε
