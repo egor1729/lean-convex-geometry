@@ -11,7 +11,7 @@ import ConvexGeom.Asymptotic
 
 namespace ConvexGeomChecks
 
-open ConvexGeom MeasureTheory Metric Set
+open ConvexGeom MeasureTheory Metric ProbabilityTheory Set
 open scoped ENNReal Pointwise
 
 /-- On `K = [-1, ε]` (`0 < ε < 1`) and `B = [-1, 1]`, the origin-fixed (linear) Banach–Mazur
@@ -68,14 +68,14 @@ example {ε : ℝ} (hε0 : 0 < ε) :
   let rad : ℝ := (ε + 1) / 2
   have hrad_pos : 0 < rad := by dsimp only [rad]; linarith
   have h1 : (1 : ℝ) ∈ affineBanachMazurSet (Icc (-1 : ℝ) ε) (Icc (-1 : ℝ) 1) := by
-    refine ⟨le_rfl, smulLinearEquiv hrad_pos.ne', mid, 0, ?_, ?_⟩
+    refine ⟨le_rfl, LinearEquiv.smulOfNeZero ℝ ℝ rad hrad_pos.ne', mid, 0, ?_, ?_⟩
     · rintro _ ⟨x, ⟨hx1, hx2⟩, rfl⟩
       refine ⟨rad⁻¹ * (x - mid), ⟨rad⁻¹ * (x - mid), ⟨?_, ?_⟩, by simp⟩, ?_⟩
       · rw [← div_eq_inv_mul, le_div_iff₀ hrad_pos]; dsimp only [mid, rad]; linarith
       · rw [← div_eq_inv_mul, div_le_iff₀ hrad_pos]; dsimp only [mid, rad]; linarith
-      · simp [smulLinearEquiv_apply, smul_eq_mul, ← mul_assoc, mul_inv_cancel₀ hrad_pos.ne']
+      · simp [smul_eq_mul, ← mul_assoc, mul_inv_cancel₀ hrad_pos.ne']
     · rintro _ ⟨_, ⟨y, ⟨hy1, hy2⟩, rfl⟩, rfl⟩
-      refine ⟨rad * y, ⟨mid + rad * y, ⟨?_, ?_⟩, by ring⟩, by simp [smulLinearEquiv_apply]⟩
+      refine ⟨rad * y, ⟨mid + rad * y, ⟨?_, ?_⟩, by ring⟩, by simp⟩
       · dsimp only [mid, rad]; nlinarith
       · dsimp only [mid, rad]; nlinarith
   exact le_antisymm (csInf_le (bddBelow_affineBanachMazurSet _ _) h1)
@@ -222,5 +222,50 @@ example :
   refine ⟨blaschke_santalo _ ⟨0, ?_⟩, urysohn_inequality _⟩
   rw [coe_bodyClosedBall]
   exact mem_interior_iff_mem_nhds.mpr (closedBall_mem_nhds 0 (by norm_num))
+
+/-- `IsOriginSymmetric` bridges cleanly to Mathlib's `Balanced` and `gaugeSeminorm`. -/
+example (hsym : IsOriginSymmetric (bodyClosedBall (0 : ℝ) zero_le_one : Set ℝ)) :
+    Balanced ℝ (bodyClosedBall (0 : ℝ) zero_le_one : Set ℝ) ∧
+      gaugeSeminorm_of_isOriginSymmetric hsym
+        (bodyClosedBall (0 : ℝ) zero_le_one).convex
+        (absorbent_nhds_zero (by
+          rw [coe_bodyClosedBall]; exact closedBall_mem_nhds 0 zero_lt_one))
+        (3 : ℝ) = 3 := by
+  refine ⟨hsym.balanced (bodyClosedBall (0 : ℝ) zero_le_one).convex, ?_⟩
+  rw [gaugeSeminorm_of_isOriginSymmetric_apply, coe_bodyClosedBall]
+  simp
+
+/-- Fritz John converse and Löwner minimality on the unit interval `[-1, 1]`. -/
+example :
+    IsJohnPosition (bodyClosedBall (0 : ℝ) zero_le_one : Set ℝ) ∧
+      IsLoewnerPosition (bodyClosedBall (0 : ℝ) zero_le_one : Set ℝ) := by
+  let B := bodyClosedBall (0 : ℝ) zero_le_one
+  have hB : (B : Set ℝ) = closedBall (0 : ℝ) 1 := coe_bodyClosedBall 0 zero_le_one
+  have hsym : IsOriginSymmetric (B : Set ℝ) := fun x hx => by
+    simpa [hB, mem_closedBall_zero_iff] using hx
+  have h0 : (0 : ℝ) ∈ interior (B : Set ℝ) := by
+    rw [hB]; exact mem_interior_iff_mem_nhds.mpr (closedBall_mem_nhds 0 zero_lt_one)
+  let u : Fin 2 → ℝ := ![1, -1]
+  let c : Fin 2 → ℝ := ![1 / 2, 1 / 2]
+  have hJ : IsJohnPosition (B : Set ℝ) := by
+    refine isJohnPosition_of_john_decomposition B (by rw [hB]) (u := u) (c := c) ?_ ?_ ?_
+    · refine ⟨fun i => by fin_cases i <;> simp [u],
+        fun i => by fin_cases i <;> norm_num [c], ?_⟩
+      ext
+      simp [Fin.sum_univ_two, u, c, rankOne_apply]
+      ring
+    · simp [Fin.sum_univ_two, u, c]
+    · intro i
+      fin_cases i <;> simp [B, u, supportFn_bodyClosedBall]
+  have hL : IsLoewnerPosition (B : Set ℝ) := by
+    have hpol : polarBody (B : Set ℝ) = (B : Set ℝ) := by
+      rw [hB, polarBody_closedBall zero_lt_one, inv_one]
+    exact isLoewnerPosition_of_polar_isJohnPosition B hsym h0 (by rwa [hpol])
+  exact ⟨hJ, hL⟩
+
+/-- `ProbabilityTheory.stdGaussian` agrees with `volume.withDensity` of `stdGaussianDensity`. -/
+example :
+    stdGaussian ℝ = volume.withDensity (fun x : ℝ => ENNReal.ofReal (stdGaussianDensity x)) :=
+  stdGaussian_eq_withDensity
 
 end ConvexGeomChecks

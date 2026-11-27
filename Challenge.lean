@@ -17,6 +17,7 @@ public import Mathlib.MeasureTheory.Constructions.HaarToSphere
 public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import Mathlib.MeasureTheory.Measure.Haar.InnerProductSpace
 public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+public import Mathlib.Probability.Distributions.Gaussian.Multivariate
 
 public section
 
@@ -76,14 +77,6 @@ noncomputable def meanWidth {E : Type*} [NormedAddCommGroup E] [InnerProductSpac
     [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] (K : ConvexBody E) : ℝ :=
   ∫ u : Metric.sphere (0 : E) 1,
     sSup ((fun x : E => ⟪x, u.1⟫) '' (K : Set E)) ∂(sphereProb (E := E))
-
-/-- Standard Gaussian probability measure `γ_E` on a finite-dimensional real inner product space `E`,
-with density $(2\pi)^{-d/2}\exp(-\|x\|^2/2)$ relative to Lebesgue `volume`. -/
-@[expose]
-noncomputable def stdGaussian (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] : Measure E :=
-  volume.withDensity fun x : E =>
-    ENNReal.ofReal ((2 * Real.pi) ^ (-(Module.finrank ℝ E : ℝ) / 2) * Real.exp (-(‖x‖ ^ 2) / 2))
 
 /-! ### 1. Metric & Duality -/
 
@@ -330,7 +323,8 @@ function `f : E → ℝ` (`L > 0`) and `t ≥ 0`,
 theorem gaussian_lipschitz_concentration {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
     {L : ℝ≥0} (hL : 0 < L) {f : E → ℝ} (hf : LipschitzWith L f) {t : ℝ} (ht : 0 ≤ t) :
-    stdGaussian E {x : E | t ≤ |f x - ∫ y : E, f y ∂stdGaussian E|} ≤
+    ProbabilityTheory.stdGaussian E
+        {x : E | t ≤ |f x - ∫ y : E, f y ∂ProbabilityTheory.stdGaussian E|} ≤
       ENNReal.ofReal (2 * Real.exp (-(t ^ 2) / (4 * (L : ℝ) ^ 2))) := by
   sorry
 

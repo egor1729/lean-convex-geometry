@@ -44,12 +44,6 @@ noncomputable def meanWidth {E : Type*} [NormedAddCommGroup E] [InnerProductSpac
   ∫ u : Metric.sphere (0 : E) 1,
     sSup ((fun x : E => ⟪x, u.1⟫) '' (K : Set E)) ∂(sphereProb (E := E))
 
-@[expose]
-noncomputable def stdGaussian (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] : Measure E :=
-  volume.withDensity fun x : E =>
-    ENNReal.ofReal ((2 * Real.pi) ^ (-(Module.finrank ℝ E : ℝ) / 2) * Real.exp (-(‖x‖ ^ 2) / 2))
-
 /-! ### 1. Metric & Duality -/
 
 theorem blaschke_selection {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
@@ -255,7 +249,8 @@ theorem ball_reverse_isoperimetric {E : Type*} [NormedAddCommGroup E] [InnerProd
 theorem gaussian_lipschitz_concentration {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
     {L : ℝ≥0} (hL : 0 < L) {f : E → ℝ} (hf : LipschitzWith L f) {t : ℝ} (ht : 0 ≤ t) :
-    stdGaussian E {x : E | t ≤ |f x - ∫ y : E, f y ∂stdGaussian E|} ≤
+    ProbabilityTheory.stdGaussian E
+        {x : E | t ≤ |f x - ∫ y : E, f y ∂ProbabilityTheory.stdGaussian E|} ≤
       ENNReal.ofReal (2 * Real.exp (-(t ^ 2) / (4 * (L : ℝ) ^ 2))) :=
   ConvexGeom.gaussian_lipschitz_concentration_mean hL hf ht
 

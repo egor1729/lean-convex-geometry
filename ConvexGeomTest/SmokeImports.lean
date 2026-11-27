@@ -73,7 +73,7 @@ example (K : ConvexBody ℝ) (hsym : IsOriginSymmetric (K : Set ℝ))
   ball_volume_ratio_symmetric K hsym h0
 
 example (K : ConvexBody ℝ) :
-    gaussianWidth K = (∫ x : ℝ, ‖x‖ ∂stdGaussian ℝ) * meanWidth K :=
+    gaussianWidth K = (∫ x : ℝ, ‖x‖ ∂ProbabilityTheory.stdGaussian ℝ) * meanWidth K :=
   gaussianWidth_eq_integral_norm_mul_meanWidth K
 
 example (K : ConvexBody ℝ) (hne : (interior (K : Set ℝ)).Nonempty) :

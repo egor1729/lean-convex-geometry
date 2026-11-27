@@ -10,6 +10,7 @@ public import ConvexGeom.Asymptotic.SphericalIntegration
 public import ConvexGeom.Volume.BrunnMinkowski
 public import ConvexGeom.Volume.CoveringNumbers
 public import ConvexGeom.Volume.Symmetrization
+public import Mathlib.Probability.Distributions.Gaussian.Multivariate
 public import Mathlib.Probability.Distributions.Gaussian.Real
 
 import Mathlib.Analysis.Calculus.Deriv.Mul
@@ -32,49 +33,41 @@ import Mathlib.MeasureTheory.Measure.Prod
 import Mathlib.MeasureTheory.Measure.WithDensity
 
 /-!
-# Gaussian & Spherical Concentration, Gaussian Width, Johnson–Lindenstrauss, and Dvoretzky
+# Gaussian and Spherical Concentration, Johnson–Lindenstrauss, and Dvoretzky
 
 This module develops the probabilistic and concentration-of-measure pillars of asymptotic convex
-geometry (Ball, *An Elementary Introduction to Modern Convex Geometry*, Lectures 7–9):
+geometry using Mathlib's `ProbabilityTheory.stdGaussian`: density representation, polar
+factorization, Gaussian width, Maurey–Prékopa–Leindler concentration, spherical concentration,
+the Johnson–Lindenstrauss lemma, and Dvoretzky's theorem.
 
-1. **Standard Gaussian Measure `stdGaussian E`:**
-   - `stdGaussian E := volume.withDensity (fun x => ENNReal.ofReal (stdGaussianDensity x))` is a
-     probability measure on any finite-dimensional real inner product space `E`.
-   - Orthogonal / linear-isometry invariance (`measurePreserving_linearIsometryEquiv_stdGaussian`),
-     orthonormal-basis coordinate pushforward to `Measure.pi (fun _ => gaussianReal 0 1)`,
-     1D unit projections (`measurePreserving_inner_stdGaussian`), and linear combinations of i.i.d.
-     standard Gaussians (`measurePreserving_linearComb_stdGaussian`).
-2. **Polar Radial–Angular Factorization, Norm Moments & Gaussian Width:**
-   - Polar factorization `measurePreserving_homeomorphUnitSphereProd_stdGaussian` separating
-     `sphereProb volume` and the radial law `stdGaussianRadial E`.
-   - Exact 2nd and 4th moments (`integral_norm_sq_stdGaussian`, `integral_norm_pow_four_stdGaussian`),
-     tight 1st-moment bounds `d / √(d + 2) ≤ ∫ ‖x‖ ∂stdGaussian E ≤ √d`, and the Paley–Zygmund
-     radial lower bound `stdGaussian E {x | √(d / 2) ≤ ‖x‖} ≥ 1 / 12`.
-   - **Gaussian width** `gaussianWidth K := ∫ x, supportFn K x ∂stdGaussian E` and exact
-     proportionality `gaussianWidth_eq_integral_norm_mul_meanWidth`.
-3. **Gaussian Enlargement & Lipschitz Concentration via Prékopa–Leindler:**
-   - Maurey's enlargement inequalities (`gaussian_enlargement_two_sets`,
-     `gaussian_enlargement_thickening`),
-   - Gaussian sub-Gaussian MGF bound (`gaussian_lipschitz_mgf_le`),
-   - Concentration around the mean (`gaussian_lipschitz_concentration_mean`) and around a median
-     (`gaussian_lipschitz_concentration_median`).
-4. **Spherical Concentration of Measure (Ball, Lecture 8):**
-   - `spherical_enlargement_two_sets`, `spherical_enlargement_thickening`, and
-     `spherical_lipschitz_concentration_median` obtained by lifting spherical subsets to radial
-     cones of radius `≥ √(d / 2)` and applying Gaussian enlargement.
-5. **Johnson–Lindenstrauss Lemma (`johnson_lindenstrauss`, Ball, Lecture 8):**
-   - Explicit 1D $\chi^2$ MGF, sub-exponential Chernoff tails for `∑ j, ⟪g j, u⟫^2`, and
-     probabilistic union bound yielding an explicit linear embedding into `ℝ^k` for
-     `k ≥ 16 * log N / ε²`.
-6. **Dvoretzky's Theorem (Ball, Lecture 9):**
-   - `john_position_gaussian_gauge_lower_bound`: for origin-symmetric `K` in John's position in
-     dimension `d ≥ 2`, `∫ gauge K ∂stdGaussian E ≥ (1 / 4) * √(log d)` via
-     `john_position_gaussian_measure_le`.
-   - `milman_gaussian_dvoretzky`: Milman's probabilistic Dvoretzky theorem via Gaussian
-     concentration on an `(ε / 8)`-net of `S^{k-1}` and successive approximation.
-   - `dvoretzky_theorem`: every origin-symmetric convex body `K` with `0 ∈ interior K` in
-     dimension `d ≥ 2` admits a `k`-dimensional section `(1 + ε)`-close to a `k`-dimensional
-     ellipsoid whenever `8192 * k * log (48 / ε) ≤ ε² * log d`.
+## Main definitions
+
+* `ConvexGeom.stdGaussianRadial`: radial distribution of `ProbabilityTheory.stdGaussian E` on
+  `Set.Ioi (0 : ℝ)`.
+* `ConvexGeom.gaussianWidth`: Gaussian width `∫ x, supportFn K x ∂ProbabilityTheory.stdGaussian E`.
+
+## Main statements
+
+* `ConvexGeom.stdGaussian_eq_withDensity`: bridges Mathlib's `ProbabilityTheory.stdGaussian E` to
+  the explicit Lebesgue density `(2 * π) ^ (-d / 2) * exp (-‖x‖² / 2)`.
+* `ConvexGeom.measurePreserving_homeomorphUnitSphereProd_stdGaussian`: polar factorization of
+  `ProbabilityTheory.stdGaussian E` into `sphereProb volume` and `stdGaussianRadial E`.
+* `ConvexGeom.gaussianWidth_eq_integral_norm_mul_meanWidth`: exact proportionality between Gaussian
+  width and mean width.
+* `ConvexGeom.gaussian_lipschitz_concentration_mean`,
+  `ConvexGeom.gaussian_lipschitz_concentration_median`: Gaussian concentration for Lipschitz
+  functions.
+* `ConvexGeom.spherical_lipschitz_concentration_median`: spherical concentration around a median.
+* `ConvexGeom.johnson_lindenstrauss`: Johnson–Lindenstrauss dimensionality reduction lemma.
+* `ConvexGeom.milman_gaussian_dvoretzky`, `ConvexGeom.dvoretzky_theorem`: Milman's probabilistic
+  Dvoretzky theorem and Dvoretzky's theorem on almost-Euclidean sections.
+
+## References
+
+* K. Ball, *An Elementary Introduction to Modern Convex Geometry*, Lectures 7–9 [ball1997].
+* M. Ledoux, *The Concentration of Measure Phenomenon* [ledoux2001].
+* S. Artstein-Avidan, A. Giannopoulos, and V. D. Milman, *Asymptotic Geometric Analysis, Part I*
+  [agm2015].
 -/
 
 open MeasureTheory Set Filter Metric ProbabilityTheory
@@ -93,71 +86,31 @@ variable {E F : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   [NormedAddCommGroup F] [InnerProductSpace ℝ F]
   [FiniteDimensional ℝ F] [MeasurableSpace F] [BorelSpace F]
 
-/-- Standard Gaussian probability measure on a finite-dimensional real inner product space `E`:
-density `(2 * π) ^ (-d / 2) * exp (-‖x‖² / 2)` with respect to Lebesgue measure `volume`. -/
-@[expose]
-noncomputable def stdGaussian (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] : Measure E :=
-  volume.withDensity (fun x => ENNReal.ofReal (stdGaussianDensity x))
-
-instance instIsProbabilityMeasureStdGaussian : IsProbabilityMeasure (stdGaussian E) where
-  measure_univ := by
-    rw [stdGaussian, withDensity_apply _ MeasurableSet.univ, Measure.restrict_univ]
-    exact lintegral_stdGaussianDensity_eq_one
-
-/-- Computing Lebesgue integrals against `stdGaussian E`. -/
-lemma lintegral_stdGaussian {f : E → ℝ≥0∞} (hf : Measurable f) :
-    ∫⁻ x, f x ∂stdGaussian E = ∫⁻ x, ENNReal.ofReal (stdGaussianDensity x) * f x := by
-  have hm : Measurable (fun x : E => ENNReal.ofReal (stdGaussianDensity x)) :=
-    ENNReal.measurable_ofReal.comp measurable_stdGaussianDensity
-  rw [stdGaussian, lintegral_withDensity_eq_lintegral_mul _ hm hf]
-  rfl
-
-/-- Computing Bochner integrals against `stdGaussian E`. -/
-lemma integral_stdGaussian {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
-    (f : E → G) :
-    ∫ x, f x ∂stdGaussian E = ∫ x, stdGaussianDensity x • f x := by
-  have hm : Measurable (fun x : E => ENNReal.ofReal (stdGaussianDensity x)) :=
-    ENNReal.measurable_ofReal.comp measurable_stdGaussianDensity
-  rw [stdGaussian, integral_withDensity_eq_integral_toReal_smul hm
-    (ae_of_all _ fun _ => ENNReal.ofReal_lt_top)]
-  refine integral_congr_ae (ae_of_all _ fun x => ?_)
-  dsimp only
-  rw [ENNReal.toReal_ofReal (stdGaussianDensity_nonneg x)]
-
-/-- Integrability criterion with respect to `stdGaussian E`. -/
-lemma integrable_stdGaussian_iff {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
-    {f : E → G} :
-    Integrable f (stdGaussian E) ↔ Integrable (fun x => stdGaussianDensity x • f x) volume := by
-  have hm : Measurable (fun x : E => ENNReal.ofReal (stdGaussianDensity x)) :=
-    ENNReal.measurable_ofReal.comp measurable_stdGaussianDensity
-  have h1 := integrable_withDensity_iff_integrable_smul₀'
-    (μ := (volume : Measure E))
-    (f := fun x => ENNReal.ofReal (stdGaussianDensity x))
-    hm.aemeasurable
-    (ae_of_all _ fun _ => ENNReal.ofReal_lt_top) (g := f)
-  simpa [stdGaussian, ENNReal.toReal_ofReal (stdGaussianDensity_nonneg _)] using h1
-
 /-- Any linear isometry equivalence `U : E ≃ₗᵢ[ℝ] F` preserves the standard Gaussian measure. -/
 theorem measurePreserving_linearIsometryEquiv_stdGaussian (U : E ≃ₗᵢ[ℝ] F) :
-    MeasurePreserving U (stdGaussian E) (stdGaussian F) := by
-  refine ⟨U.continuous.measurable, ?_⟩
-  ext s hs
-  rw [Measure.map_apply U.continuous.measurable hs, stdGaussian, stdGaussian,
-    withDensity_apply _ (hs.preimage U.continuous.measurable), withDensity_apply _ hs]
-  have hdim : Module.finrank ℝ E = Module.finrank ℝ F := U.toLinearEquiv.finrank_eq
-  have hdens : ∀ x : E, stdGaussianDensity (U x) = stdGaussianDensity x := fun x => by
-    unfold stdGaussianDensity
-    rw [hdim, U.norm_map]
-  have hmp : MeasurePreserving U volume volume := U.measurePreserving
-  have hcomp := hmp.lintegral_comp_emb U.toHomeomorph.toMeasurableEquiv.measurableEmbedding
-    (s.indicator fun y => ENNReal.ofReal (stdGaussianDensity y))
-  rw [← lintegral_indicator hs, ← lintegral_indicator (hs.preimage U.continuous.measurable)]
-  rw [← hcomp]
-  refine lintegral_congr fun x => ?_
-  by_cases hx : U x ∈ s
-  · simp [indicator_of_mem hx, indicator_of_mem (show x ∈ U ⁻¹' s from hx), hdens x]
-  · simp [indicator_of_notMem hx, indicator_of_notMem (show x ∉ U ⁻¹' s from hx)]
+    MeasurePreserving U (stdGaussian E) (stdGaussian F) :=
+  ⟨U.continuous.measurable, stdGaussian_map U⟩
+
+/-- Product Gaussian measure on `Fin d → ℝ` matches `stdGaussian (EuclideanSpace ℝ (Fin d))` via
+`WithLp.ofLp`. -/
+theorem measurePreserving_ofLp_stdGaussian (d : ℕ) :
+    MeasurePreserving (WithLp.ofLp : EuclideanSpace ℝ (Fin d) → Fin d → ℝ)
+      (stdGaussian (EuclideanSpace ℝ (Fin d)))
+      (Measure.pi (fun _ : Fin d => gaussianReal 0 1)) := by
+  refine ⟨(MeasurableEquiv.toLp 2 (Fin d → ℝ)).symm.measurable, ?_⟩
+  rw [← map_pi_eq_stdGaussian,
+    Measure.map_map (f := WithLp.toLp 2) (g := WithLp.ofLp)
+      (MeasurableEquiv.toLp 2 (Fin d → ℝ)).symm.measurable
+      (MeasurableEquiv.toLp 2 (Fin d → ℝ)).measurable]
+  exact Measure.map_id
+
+/-- Pushing `stdGaussian E` forward along an orthonormal basis `b : OrthonormalBasis (Fin d) ℝ E`
+yields `d` i.i.d. standard 1D Gaussians `Measure.pi (fun _ : Fin d => gaussianReal 0 1)`. -/
+theorem measurePreserving_orthonormalBasis_stdGaussian {d : ℕ} (b : OrthonormalBasis (Fin d) ℝ E) :
+    MeasurePreserving (fun x : E => WithLp.ofLp (b.repr x))
+      (stdGaussian E) (Measure.pi (fun _ : Fin d => gaussianReal 0 1)) :=
+  (measurePreserving_ofLp_stdGaussian d).comp
+    (measurePreserving_linearIsometryEquiv_stdGaussian b.repr)
 
 /-- On `Fin d → ℝ`, the product of `d` standard 1D Gaussians equals `volume.withDensity` of the
 product Gaussian density. -/
@@ -192,53 +145,99 @@ private lemma pi_gaussianReal_eq_withDensity (d : ℕ) :
   rw [lintegral_indicator (hs i), gaussianReal_apply 0 one_ne_zero (s i)]
   rfl
 
-/-- Product Gaussian measure on `Fin d → ℝ` matches `stdGaussian (EuclideanSpace ℝ (Fin d))` via
-`WithLp.ofLp`. -/
-theorem measurePreserving_ofLp_stdGaussian (d : ℕ) :
-    MeasurePreserving (WithLp.ofLp : EuclideanSpace ℝ (Fin d) → Fin d → ℝ)
-      (stdGaussian (EuclideanSpace ℝ (Fin d)))
-      (Measure.pi (fun _ : Fin d => gaussianReal 0 1)) := by
-  have hmeas : Measurable (WithLp.ofLp : EuclideanSpace ℝ (Fin d) → Fin d → ℝ) :=
-    (MeasurableEquiv.toLp 2 (Fin d → ℝ)).symm.measurable
-  refine ⟨hmeas, ?_⟩
-  rw [pi_gaussianReal_eq_withDensity d]
-  ext s hs
-  rw [Measure.map_apply hmeas hs, stdGaussian, withDensity_apply _ (hs.preimage hmeas),
-    withDensity_apply _ hs, ← lintegral_indicator hs, ← lintegral_indicator (hs.preimage hmeas)]
-  have hmp : MeasurePreserving (WithLp.ofLp : EuclideanSpace ℝ (Fin d) → Fin d → ℝ) volume volume :=
-    PiLp.volume_preserving_ofLp (Fin d)
-  rw [← hmp.lintegral_comp_emb (MeasurableEquiv.toLp 2 (Fin d → ℝ)).symm.measurableEmbedding]
-  refine lintegral_congr fun x => ?_
-  have hdens : (∏ i : Fin d, gaussianPDFReal 0 1 (WithLp.ofLp x i)) = stdGaussianDensity x := by
-    have h2pi_pos : (0 : ℝ) < 2 * Real.pi := by positivity
-    have h1 : ∀ t : ℝ, gaussianPDFReal 0 1 t =
-        (2 * Real.pi) ^ (-(1 : ℝ) / 2) * Real.exp (-(t ^ 2) / 2) := fun t => by
-      rw [gaussianPDFReal_def]
-      simp only [NNReal.coe_one, mul_one, sub_zero]
-      congr 1
-      rw [Real.sqrt_eq_rpow, ← Real.rpow_neg h2pi_pos.le]
-      ring_nf
-    simp_rw [h1, Finset.prod_mul_distrib, Finset.prod_const, Finset.card_univ, Fintype.card_fin,
-      ← Real.exp_sum]
-    rw [← Real.rpow_natCast, ← Real.rpow_mul h2pi_pos.le]
-    unfold stdGaussianDensity
-    rw [finrank_euclideanSpace_fin, EuclideanSpace.norm_sq_eq]
-    simp only [Real.norm_eq_abs, sq_abs]
+private lemma prod_gaussianPDFReal_eq_stdGaussianDensity (d : ℕ) (x : Fin d → ℝ) :
+    (∏ i : Fin d, gaussianPDFReal 0 1 (x i)) =
+      stdGaussianDensity (WithLp.toLp 2 x : EuclideanSpace ℝ (Fin d)) := by
+  have h2pi_pos : (0 : ℝ) < 2 * Real.pi := by positivity
+  have h1 : ∀ t : ℝ, gaussianPDFReal 0 1 t =
+      (2 * Real.pi) ^ (-(1 : ℝ) / 2) * Real.exp (-(t ^ 2) / 2) := fun t => by
+    rw [gaussianPDFReal_def]
+    simp only [NNReal.coe_one, mul_one, sub_zero]
     congr 1
-    · congr 1; ring
-    · congr 1
-      rw [← Finset.sum_div, Finset.sum_neg_distrib]
-  by_cases hx : WithLp.ofLp x ∈ s
-  · simp [indicator_of_mem hx, indicator_of_mem (show x ∈ WithLp.ofLp ⁻¹' s from hx), hdens]
-  · simp [indicator_of_notMem hx, indicator_of_notMem (show x ∉ WithLp.ofLp ⁻¹' s from hx)]
+    rw [Real.sqrt_eq_rpow, ← Real.rpow_neg h2pi_pos.le]
+    ring_nf
+  simp_rw [h1, Finset.prod_mul_distrib, Finset.prod_const, Finset.card_univ, Fintype.card_fin,
+    ← Real.exp_sum]
+  rw [← Real.rpow_natCast, ← Real.rpow_mul h2pi_pos.le]
+  unfold stdGaussianDensity
+  rw [finrank_euclideanSpace_fin, EuclideanSpace.norm_sq_eq]
+  simp only [Real.norm_eq_abs, sq_abs]
+  congr 1
+  · congr 1; ring
+  · congr 1
+    rw [← Finset.sum_div, Finset.sum_neg_distrib]
 
-/-- Pushing `stdGaussian E` forward along an orthonormal basis `b : OrthonormalBasis (Fin d) ℝ E`
-yields `d` i.i.d. standard 1D Gaussians `Measure.pi (fun _ : Fin d => gaussianReal 0 1)`. -/
-theorem measurePreserving_orthonormalBasis_stdGaussian {d : ℕ} (b : OrthonormalBasis (Fin d) ℝ E) :
-    MeasurePreserving (fun x : E => WithLp.ofLp (b.repr x))
-      (stdGaussian E) (Measure.pi (fun _ : Fin d => gaussianReal 0 1)) :=
-  (measurePreserving_ofLp_stdGaussian d).comp
-    (measurePreserving_linearIsometryEquiv_stdGaussian b.repr)
+private lemma stdGaussian_euclideanSpace_eq_withDensity (d : ℕ) :
+    stdGaussian (EuclideanSpace ℝ (Fin d)) =
+      volume.withDensity (fun x => ENNReal.ofReal (stdGaussianDensity x)) := by
+  have hmeas : Measurable (WithLp.toLp 2 : (Fin d → ℝ) → EuclideanSpace ℝ (Fin d)) :=
+    (MeasurableEquiv.toLp 2 (Fin d → ℝ)).measurable
+  rw [← map_pi_eq_stdGaussian, pi_gaussianReal_eq_withDensity d]
+  ext s hs
+  rw [Measure.map_apply hmeas hs, withDensity_apply _ (hs.preimage hmeas),
+    withDensity_apply _ hs, ← lintegral_indicator hs, ← lintegral_indicator (hs.preimage hmeas),
+    ← (PiLp.volume_preserving_toLp (Fin d)).lintegral_comp_emb
+      (MeasurableEquiv.toLp 2 (Fin d → ℝ)).measurableEmbedding]
+  refine lintegral_congr fun x => ?_
+  by_cases hx : WithLp.toLp 2 x ∈ s
+  · simp [indicator_of_mem hx, indicator_of_mem (show x ∈ WithLp.toLp 2 ⁻¹' s from hx),
+      prod_gaussianPDFReal_eq_stdGaussianDensity d x]
+  · simp [indicator_of_notMem hx, indicator_of_notMem (show x ∉ WithLp.toLp 2 ⁻¹' s from hx)]
+
+/-- Mathlib's `ProbabilityTheory.stdGaussian E` equals `volume.withDensity` of the standard
+Gaussian density `(2 * π) ^ (-d / 2) * exp (-‖x‖² / 2)`. -/
+theorem stdGaussian_eq_withDensity :
+    stdGaussian E = volume.withDensity (fun x => ENNReal.ofReal (stdGaussianDensity x)) := by
+  let U : EuclideanSpace ℝ (Fin (Module.finrank ℝ E)) ≃ₗᵢ[ℝ] E :=
+    (stdOrthonormalBasis ℝ E).repr.symm
+  rw [← stdGaussian_map U, stdGaussian_euclideanSpace_eq_withDensity]
+  ext s hs
+  rw [Measure.map_apply U.continuous.measurable hs,
+    withDensity_apply _ (hs.preimage U.continuous.measurable), withDensity_apply _ hs,
+    ← lintegral_indicator hs, ← lintegral_indicator (hs.preimage U.continuous.measurable),
+    ← U.measurePreserving.lintegral_comp_emb U.toHomeomorph.toMeasurableEquiv.measurableEmbedding]
+  have hdim : Module.finrank ℝ (EuclideanSpace ℝ (Fin (Module.finrank ℝ E))) =
+      Module.finrank ℝ E := U.toLinearEquiv.finrank_eq
+  have hdens : ∀ x, stdGaussianDensity (U x) = stdGaussianDensity x := fun x => by
+    unfold stdGaussianDensity
+    rw [hdim, U.norm_map]
+  refine lintegral_congr fun x => ?_
+  by_cases hx : U x ∈ s
+  · simp [indicator_of_mem hx, indicator_of_mem (show x ∈ U ⁻¹' s from hx), hdens x]
+  · simp [indicator_of_notMem hx, indicator_of_notMem (show x ∉ U ⁻¹' s from hx)]
+
+/-- Computing Lebesgue integrals against `stdGaussian E`. -/
+lemma lintegral_stdGaussian {f : E → ℝ≥0∞} (hf : Measurable f) :
+    ∫⁻ x, f x ∂stdGaussian E = ∫⁻ x, ENNReal.ofReal (stdGaussianDensity x) * f x := by
+  have hm : Measurable (fun x : E => ENNReal.ofReal (stdGaussianDensity x)) :=
+    ENNReal.measurable_ofReal.comp measurable_stdGaussianDensity
+  rw [stdGaussian_eq_withDensity, lintegral_withDensity_eq_lintegral_mul _ hm hf]
+  rfl
+
+/-- Computing Bochner integrals against `stdGaussian E`. -/
+lemma integral_stdGaussian {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
+    (f : E → G) :
+    ∫ x, f x ∂stdGaussian E = ∫ x, stdGaussianDensity x • f x := by
+  have hm : Measurable (fun x : E => ENNReal.ofReal (stdGaussianDensity x)) :=
+    ENNReal.measurable_ofReal.comp measurable_stdGaussianDensity
+  rw [stdGaussian_eq_withDensity, integral_withDensity_eq_integral_toReal_smul hm
+    (ae_of_all _ fun _ => ENNReal.ofReal_lt_top)]
+  refine integral_congr_ae (ae_of_all _ fun x => ?_)
+  dsimp only
+  rw [ENNReal.toReal_ofReal (stdGaussianDensity_nonneg x)]
+
+/-- Integrability criterion with respect to `stdGaussian E`. -/
+lemma integrable_stdGaussian_iff {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
+    {f : E → G} :
+    Integrable f (stdGaussian E) ↔ Integrable (fun x => stdGaussianDensity x • f x) volume := by
+  have hm : Measurable (fun x : E => ENNReal.ofReal (stdGaussianDensity x)) :=
+    ENNReal.measurable_ofReal.comp measurable_stdGaussianDensity
+  have h1 := integrable_withDensity_iff_integrable_smul₀'
+    (μ := (volume : Measure E))
+    (f := fun x => ENNReal.ofReal (stdGaussianDensity x))
+    hm.aemeasurable
+    (ae_of_all _ fun _ => ENNReal.ofReal_lt_top) (g := f)
+  simpa [stdGaussian_eq_withDensity, ENNReal.toReal_ofReal (stdGaussianDensity_nonneg _)] using h1
 
 omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
 /-- Given any two unit vectors `u, v : E`, there exists a self-adjoint linear isometry equivalence
@@ -568,7 +567,7 @@ theorem measurePreserving_homeomorphUnitSphereProd_stdGaussian [Nontrivial E] :
       ∫⁻ x in (homeomorphUnitSphereProd E) ⁻¹' s,
         ENNReal.ofReal (stdGaussianDensity x.1) ∂(volume.comap (Subtype.val : ({0}ᶜ : Set E) → E)) := by
     rw [Measure.comap_apply _ Subtype.val_injective (fun t ht => hemb.measurableSet_image.mpr ht) _ hpre_m,
-      stdGaussian, withDensity_apply _ (hemb.measurableSet_image.mpr hpre_m),
+      stdGaussian_eq_withDensity, withDensity_apply _ (hemb.measurableSet_image.mpr hpre_m),
       ← lintegral_indicator (hemb.measurableSet_image.mpr hpre_m),
       ← lintegral_indicator hpre_m]
     have hmp_val : MeasurePreserving (Subtype.val : ({0}ᶜ : Set E) → E)
@@ -684,7 +683,7 @@ instance instIsProbabilityMeasureStdGaussianRadial [Nontrivial E] :
       infer_instance
     rw [← Set.univ_prod_univ, Measure.prod_prod, measure_univ, one_mul] at h1
     have hzero : stdGaussian E ({0} : Set E) = 0 := by
-      rw [stdGaussian, withDensity_apply _ (measurableSet_singleton 0),
+      rw [stdGaussian_eq_withDensity, withDensity_apply _ (measurableSet_singleton 0),
         Measure.restrict_eq_zero.mpr (measure_singleton 0), lintegral_zero_measure]
     have hcomap_univ : ((stdGaussian E).comap (Subtype.val : ({0}ᶜ : Set E) → E)) Set.univ = 1 := by
       have hemb : MeasurableEmbedding (Subtype.val : ({0}ᶜ : Set E) → E) :=
@@ -1207,7 +1206,7 @@ theorem gaussianWidth_eq_integral_norm_mul_meanWidth [Nontrivial E] (K : ConvexB
     gaussianWidth K = (∫ x : E, ‖x‖ ∂stdGaussian E) * meanWidth K := by
   have hmp := measurePreserving_homeomorphUnitSphereProd_stdGaussian (E := E)
   have hzero : stdGaussian E ({0} : Set E) = 0 := by
-    rw [stdGaussian, withDensity_apply _ (measurableSet_singleton 0),
+    rw [stdGaussian_eq_withDensity, withDensity_apply _ (measurableSet_singleton 0),
       Measure.restrict_eq_zero.mpr (measure_singleton 0), lintegral_zero_measure]
   have hemb : MeasurableEmbedding (Subtype.val : ({0}ᶜ : Set E) → E) :=
     MeasurableEmbedding.subtype_coe (measurableSet_singleton (0 : E)).compl
@@ -1342,9 +1341,9 @@ theorem gaussian_enlargement_two_sets {A B : Set E} (hAm : MeasurableSet A) (hBm
   have hhalf : (1 : ℝ) - 1 / 2 = 1 / 2 := by norm_num
   rw [hhalf] at hpl
   have hIf : ∫⁻ x, f x = stdGaussian E A := by
-    rw [stdGaussian, withDensity_apply _ hAm, ← lintegral_indicator hAm]
+    rw [stdGaussian_eq_withDensity, withDensity_apply _ hAm, ← lintegral_indicator hAm]
   have hIg : ∫⁻ y, g y = stdGaussian E B := by
-    rw [stdGaussian, withDensity_apply _ hBm, ← lintegral_indicator hBm]
+    rw [stdGaussian_eq_withDensity, withDensity_apply _ hBm, ← lintegral_indicator hBm]
   have hIh : ∫⁻ z, h z = ENNReal.ofReal (Real.exp (-(t ^ 2) / 8)) := by
     have hfun : h = fun z => ENNReal.ofReal (Real.exp (-(t ^ 2) / 8)) *
         ENNReal.ofReal (stdGaussianDensity z) := by
@@ -2704,7 +2703,7 @@ theorem john_position_gaussian_gauge_lower_bound
     -- Apply `john_position_gaussian_measure_le` from `BrascampLieb`.
     have hbl := john_position_gaussian_measure_le K hsym hJ hr_pos
     have hmeas_rK : stdGaussian E (r • (K : Set E)) ≤ ENNReal.ofReal (1 / 2 : ℝ) := by
-      rw [stdGaussian, withDensity_apply _ (K.isCompact.smul r).isClosed.measurableSet]
+      rw [stdGaussian_eq_withDensity, withDensity_apply _ (K.isCompact.smul r).isClosed.measurableSet]
       refine hbl.trans ?_
       have hI_le := integral_Icc_gaussianPDFReal_le hr_pos.le
       have hI_nn : 0 ≤ ∫ t in Icc (-r) r, gaussianPDFReal 0 1 t :=
