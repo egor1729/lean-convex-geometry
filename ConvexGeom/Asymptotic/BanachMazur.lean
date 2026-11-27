@@ -28,7 +28,7 @@ asymptotic geometric analysis, including Mathlib bridges between `IsOriginSymmet
 ## Main definitions
 
 * `ConvexGeom.IsOriginSymmetric`: `∀ x ∈ S, -x ∈ S`, bridged to Mathlib's `Balanced ℝ S` and
-  `gaugeSeminorm` via `isOriginSymmetric_iff_balanced` and `gaugeSeminorm_of_isOriginSymmetric`.
+  `gaugeSeminorm` via `isOriginSymmetric_iff_balanced` and `originSymmetricGaugeSeminorm`.
 * `ConvexGeom.adjointLinearEquiv`: the adjoint equivalence `T† : E ≃ₗ[ℝ] E`.
 * `ConvexGeom.ellipsoid`: centered ellipsoid `T '' closedBall 0 1`.
 * `ConvexGeom.mahlerVolume`, `ConvexGeom.mahlerVolumeAt`, `ConvexGeom.santaloMahlerVolume`:
@@ -127,14 +127,14 @@ lemma IsOriginSymmetric.balanced {S : Set E} (hS : IsOriginSymmetric S) (hconv :
 /-- Package the Minkowski gauge of an origin-symmetric, convex, absorbent set as Mathlib's
 `gaugeSeminorm`. -/
 @[expose]
-noncomputable def gaugeSeminorm_of_isOriginSymmetric {S : Set E}
+noncomputable def originSymmetricGaugeSeminorm {S : Set E}
     (hS : IsOriginSymmetric S) (hconv : Convex ℝ S) (habs : Absorbent ℝ S) : Seminorm ℝ E :=
   gaugeSeminorm (hS.balanced hconv) hconv habs
 
 @[simp]
-lemma gaugeSeminorm_of_isOriginSymmetric_apply {S : Set E}
+lemma originSymmetricGaugeSeminorm_apply {S : Set E}
     (hS : IsOriginSymmetric S) (hconv : Convex ℝ S) (habs : Absorbent ℝ S) (x : E) :
-    gaugeSeminorm_of_isOriginSymmetric hS hconv habs x = gauge S x :=
+    originSymmetricGaugeSeminorm hS hconv habs x = gauge S x :=
   rfl
 
 lemma isOriginSymmetric_polarBody {S : Set E} (hS : IsOriginSymmetric S) :

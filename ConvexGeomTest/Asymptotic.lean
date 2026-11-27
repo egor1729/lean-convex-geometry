@@ -232,13 +232,13 @@ example :
 /-- `IsOriginSymmetric` bridges cleanly to Mathlib's `Balanced` and `gaugeSeminorm`. -/
 example (hsym : IsOriginSymmetric (bodyClosedBall (0 : ℝ) zero_le_one : Set ℝ)) :
     Balanced ℝ (bodyClosedBall (0 : ℝ) zero_le_one : Set ℝ) ∧
-      gaugeSeminorm_of_isOriginSymmetric hsym
+      originSymmetricGaugeSeminorm hsym
         (bodyClosedBall (0 : ℝ) zero_le_one).convex
         (absorbent_nhds_zero (by
           rw [coe_bodyClosedBall]; exact closedBall_mem_nhds 0 zero_lt_one))
         (3 : ℝ) = 3 := by
   refine ⟨hsym.balanced (bodyClosedBall (0 : ℝ) zero_le_one).convex, ?_⟩
-  rw [gaugeSeminorm_of_isOriginSymmetric_apply, coe_bodyClosedBall]
+  rw [originSymmetricGaugeSeminorm_apply, coe_bodyClosedBall]
   simp
 
 /-- Fritz John converse and Löwner minimality on the unit interval `[-1, 1]`. -/

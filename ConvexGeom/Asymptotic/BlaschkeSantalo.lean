@@ -1855,7 +1855,7 @@ private lemma polarBody_half_le_closedBall_of_ball_subset {K : Set E} {v : E} {c
 /-- **Half-Space Cylinder Blow-Up:** near a boundary endpoint `b • v ∈ frontier K` of an interior
 segment `(a, b) • v ⊆ interior K`, the positive half-volume of `(K - t • v)°` exceeds any
 prescribed threshold `B + 1`. -/
-private lemma exists_polar_halfVol_ge_of_dir [Nontrivial E]
+private lemma exists_polar_halfVol_ge_of_dir
     {v : E} (hv : ‖v‖ = 1) (K : ConvexBody E) {a b c r₁ : ℝ}
     (hc : c ∈ Ioo a b) (hr₁_pos : 0 < r₁) (hcb : closedBall (c • v) r₁ ⊆ (K : Set E))
     (hint_t : ∀ t ∈ Ioo a b, t • v ∈ interior (K : Set E))
