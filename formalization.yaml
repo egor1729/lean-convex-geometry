@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/99c678e569c7c4c0772db297c5ddd5e4c9b6322e/schema/v0.4.schema.json
 # formalization.yaml (v0.4): repo-root metadata for lean-convex-geometry.
 
 version: "v0.4"
@@ -9,12 +9,13 @@ project:
     A Lean 4 and Mathlib library for metric, polyhedral, volumetric, spherical,
     and asymptotic convex geometry in finite-dimensional real inner product
     spaces. Across four layers (Metric, Polytope, Volume, Asymptotic), it
-    formalizes 30 landmark theorems verified against a Mathlib-only
-    Challenge.lean via lake comparator: Blaschke Selection, Bipolar, Supporting
-    Hyperplane, d-simplex volume, Helly, Minkowski-Caratheodory, Jung,
-    Weyl-Minkowski V->H duality, Prekopa-Leindler, Brunn-Minkowski,
-    Isodiametric, Rogers-Shephard, Euclidean Isoperimetric, Fritz John (general
-    and symmetric) and the Banach-Mazur compactum, Loomis-Whitney, rank-1
+    formalizes classical theorems with 30 headline statements independently
+    checked against a Mathlib-only Challenge.lean via lake comparator: Blaschke
+    Selection, Bipolar, Supporting Hyperplane, d-simplex volume, Helly (wrapping
+    Mathlib), Minkowski-Caratheodory, Jung, Weyl-Minkowski V->H duality,
+    Prekopa-Leindler, Brunn-Minkowski, Isodiametric, Rogers-Shephard, Euclidean
+    Isoperimetric, Fritz John (general and symmetric, existence and necessary
+    decomposition) and the Banach-Mazur compactum, Loomis-Whitney, rank-1
     geometric Brascamp-Lieb and Barthe's reverse Brascamp-Lieb, Ball's volume
     ratio and reverse isoperimetric inequalities, Gaussian and spherical
     Lipschitz concentration, Johnson-Lindenstrauss, Dvoretzky's theorem,
@@ -126,15 +127,16 @@ related_formalizations:
 
 status:
   scope: >-
-    Complete formalization of four foundational layers (Metric, Polytope,
-    Volume, Asymptotic; 28 library modules) with zero sorry and zero custom
-    axioms. All 30 headline classical theorems are independently stated in
-    Mathlib-only terms in Challenge.lean (whose 30 sorry placeholders are
-    deliberate Comparator holes) and verified in Solution.lean via lake
-    comparator. Open directions not yet formalized (e.g. Bourgain-Milman
-    reverse Santalo, Milman's M-ellipsoid / QS theorem, mixed volumes /
-    Aleksandrov-Fenchel, Sudakov minoration, Grunbaum's inequality) are
-    tracked in docs/ROADMAP.md.
+    Formalization of four convex geometry layers (Metric, Polytope, Volume,
+    Asymptotic; 28 library modules) with zero sorry and zero custom axioms.
+    30 classical headline statements are independently stated in Mathlib-only
+    terms in Challenge.lean (whose 30 sorry placeholders are deliberate
+    Comparator holes) and verified in Solution.lean via lake comparator.
+    Known scope limits (reverse Brascamp-Lieb regularity hypotheses, Fritz John
+    uniqueness and converse, equality cases) and open directions (e.g.
+    Bourgain-Milman reverse Santalo, Milman's M-ellipsoid / QS theorem, mixed
+    volumes / Aleksandrov-Fenchel, Sudakov minoration, Grunbaum's inequality)
+    are documented in docs/CONVENTIONS.md and docs/ROADMAP.md.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms:
@@ -206,8 +208,9 @@ automation:
       framework: "Antigravity"
       tool_setup: >-
         Interactive coding agent running across several sessions in Antigravity
-        with direct Lean 4 compiler (--wfail), convexgeom-audit, and lake
-        comparator feedback under human maintainer direction.
+        with direct Lean 4 compiler (--wfail), lake test, lake lint,
+        leanchecker, axiom-audit, and lake comparator feedback under human
+        maintainer direction.
       cost:
         wall_time: "~1 week across several runs"
         spend_usd: "Pro subscription"
@@ -225,47 +228,60 @@ automation:
     Antigravity under the responsible maintainer's direction across several
     sessions (~1 week of work so far), with Claude Opus 5.5 in Claude Code used
     exclusively for independent review. All claims are machine-checked by Lean
-    4.36.0, convexgeom-audit, and sandboxed lake comparator with bundled
-    independent external kernels.
+    4.36.0, leanchecker, leanprover-community/axiom-audit, and sandboxed lake
+    comparator with bundled independent external kernels.
 
 fidelity:
   divergences: >-
-    Deliberate conventions, scope decisions, and proof-route adaptations are
-    recorded in detail in docs/CONVENTIONS.md. Key points:
+    Conventions, scope limits, and proof-route adaptations are recorded in
+    detail in docs/CONVENTIONS.md. Key points:
     (1) ConvexBody E follows Mathlib and includes empty-interior compact convex
     sets, so theorems requiring nonempty interior or 0 in interior K state that
     hypothesis explicitly.
     (2) minkowskiSurfaceArea is defined as the lower outer Minkowski content
     liminf_{t -> 0+} (vol(K + t B_1) - vol(K)) / t rather than geometric
-    measure theory perimeter.
+    measure theory perimeter or hausdorffMeasure; its equality with (d-1)-dim
+    Hausdorff measure on full-dimensional convex bodies is not formalized, and
+    it differs by a factor of 2 on (d-1)-dimensional degenerate convex bodies.
     (3) meanWidth K = integral_{S^{d-1}} h_K(u) d sigma(u) is half the
-    classical mean breadth (so meanWidth(B(c, r)) = r).
+    classical mean breadth (so meanWidth(B(c, r)) = r). Uniqueness of
+    sphereProb under O(E) and equality with normalized Hausdorff surface
+    measure are not formalized.
     (4) Brascamp-Lieb and reverse Brascamp-Lieb are formalized in the rank-1
     geometric (John decomposition) form via Barthe's 1D monotone Gaussian
-    transport, which suffices for all Ball volume-ratio and reverse
-    isoperimetric applications.
-    (5) Gaussian and spherical Lipschitz concentration are derived from
+    transport. Forward brascamp_lieb_rankOne holds for arbitrary measurable
+    ENNReal functions, while reverse_brascamp_lieb_rankOne requires each f i to
+    be continuous, strictly positive, and integrable on a nonempty open
+    interval I i.
+    (5) Fritz John's theorem formalizes existence of the maximal-volume
+    inscribed ellipsoid, John position, and the necessary ("only if")
+    contact-point decomposition; uniqueness of the maximal ellipsoid, the
+    converse (decomposition implies maximality), and explicit enclosing
+    minimality in loewner_theorem_symmetric are not yet formalized.
+    (6) Gaussian and spherical Lipschitz concentration are derived from
     Prekopa-Leindler and radial Gaussian-to-sphere projection rather than
     Gaussian/Levy isoperimetry, yielding explicit non-optimal constants
     (e.g. 576 in spherical concentration, 16 in Johnson-Lindenstrauss, and
     8192 * k * log(48/eps) <= eps^2 * log d in Dvoretzky's theorem).
-    (6) Blaschke-Santalo is proved via Meyer-Pajor (1990) slice symmetrization
+    (7) Blaschke-Santalo is proved via Meyer-Pajor (1990) slice symmetrization
     and strict decrease of the second moment under directional Steiner
     symmetrization, with Urysohn's inequality derived as a corollary.
+    (8) Equality characterizations (Brunn-Minkowski homothety, isoperimetric
+    balls, Blaschke-Santalo ellipsoids) are not yet formalized.
 
 review:
   status: "agent-reviewed"
   reviewers:
     - "Claude Opus 5.5 (Claude Code, review only)"
   notes: >-
-    Automated verification enforces zero sorry, zero warnings (--wfail),
-    module completeness via convexgeom-audit, exact AxiomAudit.lean matching
-    (300 headline declarations), concrete regression checks in
-    ConvexGeom/Verification/Checks/, and sandboxed lake comparator statement
-    matching against Mathlib-only Challenge.lean with bundled independent
-    kernels (nanoda_bin, con-ron, and optional --paranoid all-5-kernel replay).
-    Independent statement and code review is performed using Claude Opus 5.5 in
-    Claude Code under maintainer Yegor Gorodzha.
+    Automated CI runs leanprover/lean-action (lake build --wfail, lake test on
+    ConvexGeomTest, lake lint via Batteries runLinter, mk_all --check,
+    leanprover-community/axiom-audit, and leanchecker), schema validation of
+    formalization.yaml and CITATION.cff, and sandboxed lake comparator
+    statement matching against Mathlib-only Challenge.lean with bundled
+    independent kernels (nanoda_bin, con-ron, and optional --paranoid
+    all-5-kernel replay). Independent statement and code review is performed
+    using Claude Opus 5.5 in Claude Code under maintainer Yegor Gorodzha.
 
 alignment:
   namespace: "ConvexGeom"
@@ -290,6 +306,7 @@ alignment:
       lean: "ConvexGeom.helly_convexBody_finset"
       module: "ConvexGeom.Polytope.Combinatorial"
       status: "proved"
+      note: "Thin ConvexBody wrapper around Mathlib's Convex.helly_theorem_finset."
     - source: "Minkowski-Caratheodory Theorem (Gruber Ch. 5)"
       lean: "ConvexGeom.convexHull_extremePoints_eq"
       module: "ConvexGeom.Polytope.Combinatorial"
@@ -310,6 +327,7 @@ alignment:
       lean: "ConvexGeom.brunn_minkowski_compact"
       module: "ConvexGeom.Volume.BrunnMinkowski"
       status: "proved"
+      note: "Inequality only; homothety equality case not yet formalized."
     - source: "Isodiametric Inequality (Ball Lec. 1)"
       lean: "ConvexGeom.isodiametric_inequality"
       module: "ConvexGeom.Volume.BrunnMinkowski"
@@ -322,10 +340,12 @@ alignment:
       lean: "ConvexGeom.isoperimetric_inequality"
       module: "ConvexGeom.Volume.Isoperimetric"
       status: "proved"
+      note: "Stated for lower outer Minkowski content; equality characterization not yet formalized."
     - source: "Fritz John's Theorem, general & symmetric (Ball Lec. 3)"
       lean: "ConvexGeom.john_theorem"
       module: "ConvexGeom.Asymptotic.JohnEllipsoid"
-      status: "proved"
+      status: "partial"
+      note: "Existence of maximal inscribed ellipsoid, John position, sandwich bounds, and necessary contact-point decomposition proved; uniqueness and converse not yet formalized."
     - source: "Dvoretzky-Rogers Lemma & Banach-Mazur Compactum (Ball Lec. 4)"
       lean: "ConvexGeom.dvoretzky_rogers_lemma"
       module: "ConvexGeom.Asymptotic.JohnEllipsoid"
@@ -341,7 +361,8 @@ alignment:
     - source: "Reverse Brascamp-Lieb Inequality (Barthe 1998)"
       lean: "ConvexGeom.reverse_brascamp_lieb_rankOne"
       module: "ConvexGeom.Asymptotic.BrascampLieb"
-      status: "proved"
+      status: "partial"
+      note: "Rank-1 geometric form for continuous, strictly positive, integrable functions on nonempty open intervals."
     - source: "Ball's Volume Ratio & Reverse Isoperimetric Inequalities (Ball Lec. 6)"
       lean: "ConvexGeom.ball_reverse_isoperimetric"
       module: "ConvexGeom.Asymptotic.BrascampLieb"
@@ -366,6 +387,7 @@ alignment:
       lean: "ConvexGeom.blaschke_santalo"
       module: "ConvexGeom.Asymptotic.BlaschkeSantalo"
       status: "proved"
+      note: "Inequality only; ellipsoid equality case not yet formalized."
     - source: "Dual Urysohn & Urysohn Inequalities (AGM Ch. 1)"
       lean: "ConvexGeom.urysohn_inequality"
       module: "ConvexGeom.Asymptotic.BlaschkeSantalo"

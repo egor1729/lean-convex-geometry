@@ -1,14 +1,22 @@
-# Roadmap & Contribution Guide
+# Roadmap
 
-Planned directions and contribution guidelines for `lean-convex-geometry`.
+Planned mathematical directions for `lean-convex-geometry`. For contribution guidelines and local verification commands, see [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
-## Contribution Standards
+## Strengthening Existing Results & Interoperability
 
-- **General building blocks first:** State definitions and theorems at natural Mathlib generality rather than building single-use machinery.
-- **Structural proofs:** Reuse existing layers; if a theorem needs heavy specialized scaffolding, extract the missing general layer first or defer it here.
-- **Focused commits:** Keep commits small and cohesive (one module, lemma group, or doc change per commit).
-- **Verification:** Run `bash scripts/verify.sh` before pushing, and add new headline theorems to [`ConvexGeom/Verification/AxiomAudit.lean`](../ConvexGeom/Verification/AxiomAudit.lean).
-- **Docs in sync:** Update [`MODULES.md`](MODULES.md) when adding or restructuring modules.
+- **Equality cases & completeness of classical theorems:**
+  - Characterization of equality in Brunn–Minkowski (homothety), Euclidean isoperimetry (balls), and Blaschke–Santaló (ellipsoids).
+  - Uniqueness of the maximal-volume inscribed ellipsoid and the converse direction in Fritz John's theorem (contact-point decomposition implies maximality), plus explicit enclosing-ellipsoid minimality in Löwner's theorem.
+- **Measure bridges:**
+  - Identification of `minkowskiSurfaceArea` with `(d - 1)`-dimensional Hausdorff measure `hausdorffMeasure` on `frontier K` for full-dimensional convex bodies.
+  - Identification of `sphereProb` with normalized `(d - 1)`-dimensional Hausdorff measure on `Metric.sphere 0 1`, and uniqueness of the `O(E)`-invariant probability measure.
+- **Generality of Brascamp–Lieb:**
+  - Extend `reverse_brascamp_lieb_rankOne` from continuous strictly positive integrable functions on open intervals to arbitrary measurable functions, and formalize the general (higher-rank, non-geometric) Brascamp–Lieb inequality.
+- **Sharp concentration:**
+  - Lévy's spherical isoperimetric inequality and Gaussian isoperimetry (Borell–Sudakov–Tsirelson) for sharp concentration constants.
+- **Lower-dimensional & general-Haar-measure statements:**
+  - Reduce results assuming nonempty interior to the affine hull (`intrinsicInterior`) to cover degenerate `ConvexBody`s.
+  - Generalize Prékopa–Leindler, Brunn–Minkowski, isoperimetry, Rogers–Shephard, and Blaschke–Santaló from `volume` to an arbitrary additive Haar measure `μ`.
 
 ---
 
@@ -51,6 +59,8 @@ Planned directions and contribution guidelines for `lean-convex-geometry`.
 ---
 
 ## References
+
+Bibliographic data is also maintained in [`docs/references.bib`](references.bib) for `doc-gen4`.
 
 - Keith Ball, *An Elementary Introduction to Modern Convex Geometry* (MSRI Publications 31)
 - Bo'az Klartag & Joseph Lehec, *Isoperimetric Inequalities in High-Dimensional Convex Sets*
