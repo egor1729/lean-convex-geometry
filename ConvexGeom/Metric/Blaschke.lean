@@ -13,20 +13,28 @@ import Mathlib.Topology.MetricSpace.UniformConvergence
 /-!
 # Blaschke Selection Theorem and Completeness of `ConvexBody`
 
-Using **Hörmander's isometric embedding** (`isometry_supportFnOnBall`),
-**Minkowski's representation theorem** (`exists_convexBody_supportFn_eq`),
-and Mathlib's **Arzelà–Ascoli theorem** (`BoundedContinuousFunction.arzela_ascoli₂`),
-we prove:
+Using Hörmander's isometric embedding (`isometry_supportFnOnBall`), Minkowski's representation
+theorem (`exists_convexBody_supportFn_eq`), and Mathlib's Arzelà–Ascoli theorem
+(`BoundedContinuousFunction.arzela_ascoli₂`), this file proves completeness of the Hausdorff
+metric on `ConvexBody E` and the Blaschke Selection Theorem.
 
-- `isClosed_range_supportFnOnBall`: the image of `ConvexBody E` inside
+## Main statements
+
+* `ConvexGeom.isClosed_range_supportFnOnBall`: the image of `ConvexBody E` inside
   `Metric.closedBall (0 : E) 1 →ᵇ ℝ` is closed.
-- `instCompleteSpaceConvexBody`: `ConvexBody E` is a **complete metric space** in any
+* `ConvexGeom.instCompleteSpaceConvexBody`: `ConvexBody E` is a complete metric space in any
   finite-dimensional real inner product space `E`.
-- `isCompact_subset_closedBall`: `{K : ConvexBody E | (K : Set E) ⊆ Metric.closedBall 0 R}`
+* `ConvexGeom.isCompact_subset_closedBall`: `{K : ConvexBody E | (K : Set E) ⊆ closedBall 0 R}`
   is compact in the Hausdorff metric.
-- `blaschke_selection` (`isCompact_subset_of_isCompact`): **Blaschke Selection Theorem** —
-  for any compact set `C ⊆ E`, `{K : ConvexBody E | (K : Set E) ⊆ C}` is compact, so every
-  uniformly bounded sequence of convex bodies has a Hausdorff-convergent subsequence.
+* `ConvexGeom.isCompact_subset_of_isCompact`, `ConvexGeom.blaschke_selection`: **Blaschke
+  Selection Theorem** — for any compact set `C ⊆ E`, `{K : ConvexBody E | (K : Set E) ⊆ C}` is
+  compact, so every uniformly bounded sequence of convex bodies has a Hausdorff-convergent
+  subsequence.
+
+## References
+
+* [R. Schneider, *Convex Bodies: The Brunn–Minkowski Theory*][schneider2014], §1.8 (Thm. 1.8.2,
+  Thm. 1.8.7).
 -/
 
 open scoped RealInnerProductSpace BoundedContinuousFunction
@@ -39,7 +47,7 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDim
 
 /-- Extend a function `f` on the closed unit ball `B(0, 1)` positively homogeneously to all of `E`:
 `extendHomog f u = ‖u‖ * f(u / ‖u‖)` for `u ≠ 0` and `0` at `u = 0`. -/
-noncomputable def extendHomog (f : Metric.closedBall (0 : E) 1 →ᵇ ℝ) (u : E) : ℝ := by
+private noncomputable def extendHomog (f : Metric.closedBall (0 : E) 1 →ᵇ ℝ) (u : E) : ℝ := by
   classical
   exact if hu : u = 0 then 0
   else ‖u‖ * f ⟨‖u‖⁻¹ • u, by
@@ -47,20 +55,21 @@ noncomputable def extendHomog (f : Metric.closedBall (0 : E) 1 →ᵇ ℝ) (u : 
       abs_of_nonneg (inv_nonneg.mpr (norm_nonneg u)), inv_mul_cancel₀ (norm_ne_zero_iff.mpr hu)]⟩
 
 omit [FiniteDimensional ℝ E] in
-lemma extendHomog_zero (f : Metric.closedBall (0 : E) 1 →ᵇ ℝ) :
+private lemma extendHomog_zero (f : Metric.closedBall (0 : E) 1 →ᵇ ℝ) :
     extendHomog f 0 = 0 := by
   classical
   simp [extendHomog]
 
 omit [FiniteDimensional ℝ E] in
-lemma extendHomog_of_ne_zero (f : Metric.closedBall (0 : E) 1 →ᵇ ℝ) {u : E} (hu : u ≠ 0) :
+private lemma extendHomog_of_ne_zero (f : Metric.closedBall (0 : E) 1 →ᵇ ℝ) {u : E} (hu : u ≠ 0) :
     extendHomog f u = ‖u‖ * f ⟨‖u‖⁻¹ • u, by
       rw [Metric.mem_closedBall, dist_zero_right, norm_smul, Real.norm_eq_abs,
-        abs_of_nonneg (inv_nonneg.mpr (norm_nonneg u)), inv_mul_cancel₀ (norm_ne_zero_iff.mpr hu)]⟩ := by
+        abs_of_nonneg (inv_nonneg.mpr (norm_nonneg u)),
+        inv_mul_cancel₀ (norm_ne_zero_iff.mpr hu)]⟩ := by
   classical
   simp [extendHomog, hu]
 
-lemma extendHomog_supportFnOnBall (K : ConvexBody E) (u : E) :
+private lemma extendHomog_supportFnOnBall (K : ConvexBody E) (u : E) :
     extendHomog (supportFnOnBall K) u = supportFn K u := by
   by_cases hu : u = 0
   · subst hu; simp [extendHomog_zero]

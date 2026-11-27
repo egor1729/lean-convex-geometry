@@ -12,26 +12,30 @@ import Mathlib.Analysis.InnerProductSpace.Projection.Minimal
 /-!
 # Metric Projection, Outer Normal Cones, and Supporting Hyperplanes
 
-This file develops the Hilbert-space nearest-point projection onto a `ConvexBody E` and its
-geometric consequences (Schneider, *Convex Bodies*, §1.2–1.3):
+This file develops the Hilbert-space nearest-point projection onto a `ConvexBody E`, outer normal
+cones, and the supporting hyperplane theorem.
 
-1. **Metric projection (`metricProj`):**
-   Wrapping Mathlib's Hilbert projection theorem (`exists_norm_eq_iInf_of_complete_convex`),
-   we define `metricProj K : E → E` and prove:
-   - `metricProj_eq_iff`: variational characterization
-     `metricProj K x = y ↔ y ∈ K ∧ ∀ z ∈ K, ⟪x - y, z - y⟫ ≤ 0`.
-   - `metricProj_of_mem`, `metricProj_idem`: idempotence on `K`.
-   - `sq_norm_metricProj_sub_le`: **firm non-expansiveness**
-     `‖P x - P y‖² ≤ ⟪x - y, P x - P y⟫`.
-   - `lipschitzWith_metricProj`: `metricProj K` is **1-Lipschitz** (non-expansive).
-   - `metricProj_mem_frontier_of_not_mem`: points outside `K` project to `frontier K`.
-2. **Outer normal cone (`normalCone`):**
-   `normalCone S y = {u | ∀ z ∈ S, ⟪z - y, u⟫ ≤ 0}` is a closed convex cone satisfying
-   `u ∈ normalCone K y ↔ supportFn K u = ⟪y, u⟫` for `y ∈ K`, and
-   `x - metricProj K x ∈ normalCone K (metricProj K x)`.
-3. **Supporting Hyperplane Theorem (`exists_supporting_normal_of_mem_frontier`):**
-   In any finite-dimensional (in fact proper) real inner product space, every boundary point
-   `y ∈ frontier K` admits a unit outer normal `u` (`‖u‖ = 1`) with `supportFn K u = ⟪y, u⟫`.
+## Main definitions
+
+* `ConvexGeom.metricProj`: unique nearest point in a `ConvexBody E`, wrapping Mathlib's
+  `exists_norm_eq_iInf_of_complete_convex`.
+* `ConvexGeom.normalCone`: outer normal cone `normalCone S y = {u | ∀ z ∈ S, ⟪z - y, u⟫ ≤ 0}`
+  (does not guard on `y ∈ S`, so `0 ∈ normalCone S y` even when `y ∉ S`).
+* `ConvexGeom.strictNormalCone`: guarded outer normal cone (`∅` when `y ∉ S`).
+
+## Main statements
+
+* `ConvexGeom.metricProj_eq_iff`: variational characterization
+  `metricProj K x = y ↔ y ∈ K ∧ ∀ z ∈ K, ⟪x - y, z - y⟫ ≤ 0`.
+* `ConvexGeom.sq_norm_metricProj_sub_le`, `ConvexGeom.lipschitzWith_metricProj`: firm
+  non-expansiveness and 1-Lipschitz continuity of `metricProj K`.
+* `ConvexGeom.exists_supporting_normal_of_mem_frontier`: **Supporting Hyperplane Theorem** — in a
+  proper real inner product space, every boundary point `y ∈ frontier K` admits a unit outer normal
+  `u` (`‖u‖ = 1`) with `supportFn K u = ⟪y, u⟫`.
+
+## References
+
+* [R. Schneider, *Convex Bodies: The Brunn–Minkowski Theory*][schneider2014], §1.2–1.3.
 -/
 
 open Set Filter

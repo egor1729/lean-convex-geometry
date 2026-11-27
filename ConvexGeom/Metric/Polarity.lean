@@ -20,25 +20,31 @@ $$
   S^\circ := \{ y \in E \mid \forall x \in S,\; \langle x, y \rangle \le 1 \}.
 $$
 
-Unlike Mathlib's `LinearMap.BilinForm.polar` (which uses `|⟪x, y⟫| ≤ 1` for balanced sets),
-`polarBody` is the standard one-sided convex-geometric polar used in Ball, Klartag, and Schneider
-(and agrees with the absolute polar for origin-symmetric sets).
+## Main definitions
 
-## Main Results
-- Basic structure: `zero_mem_polarBody`, `convex_polarBody`, `isClosed_polarBody`,
-  `polarBody_antitone`, `polarBody_union`, `polarBody_closure`, `polarBody_convexHull`,
-  `polarBody_smul`, `polarBody_closedBall`, `polarBody_image_continuousLinearMap`.
-- Inclusion / compactness / interior duality:
-  - `polarBody_subset_closedBall_of_closedBall_subset`
-  - `closedBall_subset_polarBody_of_subset_closedBall`
-  - `isCompact_polarBody_of_zero_mem_interior`
-  - `zero_mem_interior_polarBody_of_isBounded`
-- **Bipolar Theorem** (`polarBody_polarBody`): for any closed convex set `K` containing `0` in a
-  Hilbert space, `(K°)° = K`.
-- **Gauge–Support Duality:**
-  - `gauge_polarBody_eq_supportFn`: for a `ConvexBody E` with `0 ∈ K`, `gauge (polarBody K) = supportFn K`.
-  - `supportFn_bodyPolar_eq_gauge`: for a `ConvexBody E` with `0 ∈ interior K`,
-    `supportFn (bodyPolar K h₀) = gauge K`.
+* `ConvexGeom.polarBody`: one-sided geometric polar `{y | ∀ x ∈ S, ⟪x, y⟫ ≤ 1}`.
+* `ConvexGeom.bodyPolar`: packages `polarBody S` as a `ConvexBody E` when `0 ∈ interior S`.
+
+## Main statements
+
+* `ConvexGeom.polarBody_polarBody`: **Bipolar Theorem** — for any closed convex set `K` containing
+  `0` in a Hilbert space, `(K°)° = K`.
+* `ConvexGeom.isCompact_polarBody_of_zero_mem_interior`,
+  `ConvexGeom.zero_mem_interior_polarBody_of_isBounded`: compactness and interior duality.
+* `ConvexGeom.gauge_polarBody_eq_supportFn`, `ConvexGeom.supportFn_bodyPolar_eq_gauge`:
+  **Gauge–Support Duality** (`gauge (polarBody K) = supportFn K` and
+  `supportFn (bodyPolar K h₀) = gauge K`).
+
+## Implementation notes
+
+Unlike Mathlib's `LinearMap.polar` (which uses `|⟪x, y⟫| ≤ 1` for balanced sets), `polarBody` is
+the standard one-sided convex-geometric polar and agrees with the absolute polar on
+origin-symmetric sets (`mem_polarBody_iff_abs_inner_le_one`).
+
+## References
+
+* [K. Ball, *An Elementary Introduction to Modern Convex Geometry*][ball1997], Lecture 1.
+* [R. Schneider, *Convex Bodies: The Brunn–Minkowski Theory*][schneider2014], §1.6.
 -/
 
 open scoped RealInnerProductSpace Pointwise

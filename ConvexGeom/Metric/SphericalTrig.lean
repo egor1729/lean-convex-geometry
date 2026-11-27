@@ -5,27 +5,33 @@ Authors: Yegor Gorodzha
 -/
 module
 
+public import Mathlib.Analysis.InnerProductSpace.GramMatrix
 public import Mathlib.Geometry.Euclidean.Angle.Unoriented.Basic
 
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Inverse
+import Mathlib.Geometry.Euclidean.Angle.Unoriented.TriangleInequality
+import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
 
 /-!
 # General Spherical Trigonometry, Dihedral Angles, and Spherical Caps
 
-Dimension-independent spherical and dihedral geometry in any real inner product space `E`:
+Dimension-independent spherical and dihedral geometry in any real inner product space `E`.
 
-1. **Tangent projections & spherical angles (`sphericalTangent`, `sphericalAngle`):**
-   Orthogonal projection `u - ⟪u, w⟫ • w` onto `w⊥` and the interior spherical angle at `w`
-   between great-circle arcs `w → u` and `w → v`.
-2. **Spherical laws of cosines & sines (`spherical_law_of_cosines`, `spherical_triangle_inequality`,
-   `gramDet3`, `spherical_law_of_sines`):**
-   Unconditional cosine law, geodesic triangle inequality on `sphere 0 1`, Gram-determinant
-   identity, and sine law for arbitrary unit triples.
-3. **Dihedral angles (`dihedralAngle`):**
-   Interior dihedral angle `π - angle n₁ n₂` between two half-spaces with outer normals `n₁, n₂`.
-4. **Spherical caps (`sphericalCap`):**
-   `{v ∈ sphere 0 1 | t ≤ ⟪v, u⟫}`, ball and geodesic-angle characterizations, compactness,
-   orthogonal equivariance, and hemisphere decomposition.
+## Main definitions
+
+* `ConvexGeom.sphericalTangent`: orthogonal projection `u - ⟪u, w⟫ • w` onto `w⊥`.
+* `ConvexGeom.sphericalAngle`: interior spherical angle at `w` between great-circle arcs.
+* `ConvexGeom.gramDet3`: symmetric `3 × 3` Gram determinant formula for unit triples (linked to
+  Mathlib's `Matrix.gram` via `gramDet3_eq_det_gram`).
+* `ConvexGeom.dihedralAngle`: interior dihedral angle `π - angle n₁ n₂`.
+* `ConvexGeom.sphericalCap`: closed spherical cap `{v ∈ sphere 0 1 | t ≤ ⟪v, u⟫}`.
+
+## Main statements
+
+* `ConvexGeom.spherical_law_of_cosines`, `ConvexGeom.spherical_triangle_inequality` (delegating
+  to Mathlib's `InnerProductGeometry.angle_le_angle_add_angle`), `ConvexGeom.gramDet3_eq_det_gram`,
+  `ConvexGeom.spherical_law_of_sines_mul`, and `ConvexGeom.spherical_law_of_sines`.
+* `ConvexGeom.sphericalCap_eq_closedBall_inter_sphere`, `ConvexGeom.isCompact_sphericalCap`.
 -/
 
 open Real Set
@@ -117,35 +123,32 @@ theorem spherical_law_of_cosines {u v w : E} (hu : ‖u‖ = 1) (hv : ‖v‖ = 
   linarith
 
 /-- **Spherical Triangle Inequality:**
-Geodesic distance `InnerProductGeometry.angle` satisfies the triangle inequality on `sphere 0 1`. -/
-theorem spherical_triangle_inequality {u v w : E} (hu : ‖u‖ = 1) (hv : ‖v‖ = 1) (hw : ‖w‖ = 1) :
+Geodesic distance `InnerProductGeometry.angle` satisfies the triangle inequality. Delegates to
+Mathlib's `InnerProductGeometry.angle_le_angle_add_angle`. -/
+theorem spherical_triangle_inequality (u v w : E) :
     InnerProductGeometry.angle u v ≤
-      InnerProductGeometry.angle u w + InnerProductGeometry.angle w v := by
-  set a := InnerProductGeometry.angle w u
-  set b := InnerProductGeometry.angle w v
-  set c := InnerProductGeometry.angle u v
-  have ha0 : 0 ≤ a := InnerProductGeometry.angle_nonneg w u
-  have hb0 : 0 ≤ b := InnerProductGeometry.angle_nonneg w v
-  have hc0 : 0 ≤ c := InnerProductGeometry.angle_nonneg u v
-  have hc_pi : c ≤ π := InnerProductGeometry.angle_le_pi u v
-  have hcomm : InnerProductGeometry.angle u w = a := InnerProductGeometry.angle_comm u w
-  rw [hcomm]
-  by_cases hab : a + b ≤ π
-  · have hcos_ge : Real.cos (a + b) ≤ Real.cos c := by
-      rw [Real.cos_add, spherical_law_of_cosines hu hv hw]
-      have hsin_nonneg : 0 ≤ Real.sin a * Real.sin b :=
-        mul_nonneg (InnerProductGeometry.sin_angle_nonneg w u)
-          (InnerProductGeometry.sin_angle_nonneg w v)
-      have hcos_lb : -1 ≤ Real.cos (sphericalAngle u w v) := Real.neg_one_le_cos _
-      nlinarith
-    exact (Real.strictAntiOn_cos.le_iff_ge ⟨by linarith, hab⟩ ⟨hc0, hc_pi⟩).mp hcos_ge
-  · linarith
+      InnerProductGeometry.angle u w + InnerProductGeometry.angle w v :=
+  InnerProductGeometry.angle_le_angle_add_angle u w v
 
 /-- The symmetric `3 × 3` Gram determinant of three unit vectors `u, v, w`:
-`1 + 2 ⟪u, v⟫ ⟪v, w⟫ ⟪w, u⟫ - ⟪u, v⟫² - ⟪v, w⟫² - ⟪w, u⟫²`. -/
+`1 + 2 ⟪u, v⟫ ⟪v, w⟫ ⟪w, u⟫ - ⟪u, v⟫² - ⟪v, w⟫² - ⟪w, u⟫²`.
+See `gramDet3_eq_det_gram` for the identification with `(Matrix.gram ℝ ![u, v, w]).det`. -/
 @[expose]
 def gramDet3 (u v w : E) : ℝ :=
   1 + 2 * ⟪u, v⟫ * ⟪v, w⟫ * ⟪w, u⟫ - ⟪u, v⟫ ^ 2 - ⟪v, w⟫ ^ 2 - ⟪w, u⟫ ^ 2
+
+/-- For unit vectors `u, v, w`, `gramDet3 u v w` equals the determinant of Mathlib's Gram matrix
+`Matrix.gram ℝ ![u, v, w]`. -/
+theorem gramDet3_eq_det_gram {u v w : E} (hu : ‖u‖ = 1) (hv : ‖v‖ = 1) (hw : ‖w‖ = 1) :
+    gramDet3 u v w = (Matrix.gram ℝ ![u, v, w]).det := by
+  have huu : ⟪u, u⟫ = 1 := by rw [real_inner_self_eq_norm_sq, hu, one_pow]
+  have hvv : ⟪v, v⟫ = 1 := by rw [real_inner_self_eq_norm_sq, hv, one_pow]
+  have hww : ⟪w, w⟫ = 1 := by rw [real_inner_self_eq_norm_sq, hw, one_pow]
+  rw [Matrix.det_fin_three]
+  simp only [Matrix.gram_apply, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_two,
+    Matrix.head_cons, Matrix.tail_cons, huu, hvv, hww, real_inner_comm v u,
+    real_inner_comm w v, real_inner_comm u w, gramDet3]
+  ring
 
 lemma gramDet3_cyc (u v w : E) : gramDet3 u v w = gramDet3 v w u := by
   unfold gramDet3; ring
@@ -155,7 +158,8 @@ lemma gramDet3_swap (u v w : E) : gramDet3 u v w = gramDet3 v u w := by
   rw [real_inner_comm v u, real_inner_comm u w, real_inner_comm w v]
   ring
 
-/-- Identity expressing `gramDet3 u v w` as `(sin(angle w u) * sin(angle w v) * sin(sphericalAngle u w v))²`. -/
+/-- Identity expressing `gramDet3 u v w` as
+`(sin(angle w u) * sin(angle w v) * sin(sphericalAngle u w v))²`. -/
 theorem gramDet3_eq_sq_sin_mul {u v w : E} (hu : ‖u‖ = 1) (hv : ‖v‖ = 1) (hw : ‖w‖ = 1) :
     gramDet3 u v w =
       (Real.sin (InnerProductGeometry.angle w u) * Real.sin (InnerProductGeometry.angle w v) *
@@ -206,10 +210,11 @@ theorem sin_mul_sin_mul_sin_sphericalAngle {u v w : E}
       (InnerProductGeometry.sin_angle_nonneg w v))
     (sin_sphericalAngle_nonneg u w v)
 
-/-- **Spherical Law of Sines:**
+/-- **Spherical Law of Sines (multiplicative form):**
 For any three unit vectors `u, v, w` in a real inner product space,
-`sin(sphericalAngle u w v) * sin(angle v w) = sin(sphericalAngle v u w) * sin(angle u v)`
-(equivalently `sin(γ) / sin(c) = sin(α) / sin(a)` whenever the side sines are nonzero). -/
+`sin(sphericalAngle u w v) * sin(angle v w) * sin(angle w u) =
+  sin(sphericalAngle v u w) * sin(angle u v) * sin(angle w u)`.
+Dividing by `sin(angle w u)` (when nonzero) yields `spherical_law_of_sines`. -/
 theorem spherical_law_of_sines_mul {u v w : E}
     (hu : ‖u‖ = 1) (hv : ‖v‖ = 1) (hw : ‖w‖ = 1) :
     Real.sin (sphericalAngle u w v) * Real.sin (InnerProductGeometry.angle v w) *

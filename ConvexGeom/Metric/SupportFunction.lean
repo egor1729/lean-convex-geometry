@@ -20,31 +20,39 @@ import Mathlib.Analysis.Normed.Module.FiniteDimension
 # Support Functions, Hörmander's Embedding, and Minkowski's Representation
 
 This file develops the theory of the support function `supportFn K u = sSup {⟪x, u⟫ | x ∈ K}`
-of a `ConvexBody E` in a real inner product space `E` (following Schneider, *Convex Bodies*,
-§1.7–1.8).
+of a `ConvexBody E` in a real inner product space `E`.
+
+## Main definitions
+
+* `ConvexGeom.bodySingleton`, `ConvexGeom.bodyClosedBall`: singleton and closed-ball convex bodies.
+* `ConvexGeom.mapLinear`: image of a `ConvexBody` under a continuous linear map.
+* `ConvexGeom.supportFn`: support function `u ↦ sSup ((⟪·, u⟫) '' K)`.
+* `ConvexGeom.width`: directional width `width K u = supportFn K u + supportFn K (-u)`.
+* `ConvexGeom.supportFnOnBall`: restriction of `supportFn K` to `Metric.closedBall 0 1 →ᵇ ℝ`.
+* `ConvexGeom.bodyOfSupportFn`: noncomputable convex body reconstructed from a sublinear function
+  via halfspace intersection (using Hahn–Banach separation).
+
+## Main statements
+
+* `ConvexGeom.supportFn_le_iff_subset`, `ConvexGeom.supportFn_injective`,
+  `ConvexGeom.mem_iff_forall_inner_le_supportFn`: separation and halfspace characterizations.
+* `ConvexGeom.diam_eq_sSup_width`, `ConvexGeom.diam_eq_sSup_width_sphere`: diameter as supremum
+  of directional widths.
+* `ConvexGeom.isometry_supportFnOnBall`: **Hörmander's isometric embedding** of `ConvexBody E`
+  into `Metric.closedBall (0 : E) 1 →ᵇ ℝ`.
+* `ConvexGeom.exists_convexBody_supportFn_eq`: **Minkowski's representation theorem** — every
+  positively homogeneous subadditive function on a finite-dimensional inner product space is the
+  support function of a unique convex body.
+
+## Implementation notes
 
 `ConvexBody E` is Mathlib's type of nonempty compact convex sets, which includes degenerate sets
 with empty interior (singletons, segments, radius-zero balls). Results needing nonempty interior
 or `0 ∈ interior K` take that hypothesis explicitly.
 
-1. **Constructors & Transport:** `bodySingleton`, `bodyClosedBall`, and continuous linear image
-   transport `mapLinear` (`coe_mapLinear`, `mapLinear_id`, `mapLinear_comp`, `dist_mapLinear_le`,
-   `supportFn_mapLinearIsometry`).
-2. **Core calculus:** attainment (`exists_mem_supportFn_eq`), sublinearity (`supportFn_smul`,
-   `supportFn_add_le`, `supportFn_convexOn`), Minkowski additivity (`supportFn_minkowski_add`),
-   body scaling (`supportFn_body_smul`), negation (`supportFn_neg_one_smul`), and formulas for
-   singletons and closed balls (`supportFn_bodySingleton`, `supportFn_bodyClosedBall`).
-3. **Separation, Halfspace Characterization & Width:**
-   - `supportFn_le_iff_subset`, `supportFn_injective`, `mem_iff_forall_inner_le_supportFn`.
-   - `width K u := supportFn K u + supportFn K (-u)`, `diam_eq_sSup_width`, and
-     `diam_eq_sSup_width_sphere` (in nontrivial spaces).
-4. **Hörmander's Isometric Embedding:**
-   - `supportFnOnBall : ConvexBody E → (Metric.closedBall (0 : E) 1 →ᵇ ℝ)` is an **isometry**:
-     `dist_eq_dist_supportFnOnBall`, `dist_le_iff_supportFn_sub_le`,
-     `dist_le_iff_supportFn_sub_le_sphere`, `dist_add_right`, `dist_add_le`, `dist_smul`.
-5. **Minkowski's Representation Theorem (Schneider, Thm. 1.7.1):**
-   - `bodyOfSupportFn`: constructive halfspace-intersection `ConvexBody E` from a sublinear `h`,
-     with `coe_bodyOfSupportFn`, `supportFn_bodyOfSupportFn`, and `exists_convexBody_supportFn_eq`.
+## References
+
+* [R. Schneider, *Convex Bodies: The Brunn–Minkowski Theory*][schneider2014], §1.7–1.8.
 -/
 
 open scoped RealInnerProductSpace Pointwise BoundedContinuousFunction
@@ -427,6 +435,22 @@ theorem mem_iff_forall_inner_le_supportFn [CompleteSpace E] (K : ConvexBody E) (
       supportFn_le_iff_subset.mp fun u => by simpa [supportFn_bodySingleton] using h u
     exact hsub (by simp)
 
+private lemma norm_inv_norm_smul {u : E} (hu : u ≠ 0) : ‖‖u‖⁻¹ • u‖ = 1 :=
+  norm_smul_inv_norm hu
+
+private lemma abs_supportFn_sub_le_mul_norm {K L : ConvexBody E} {r : ℝ}
+    (h : ∀ u : E, ‖u‖ = 1 → |supportFn K u - supportFn L u| ≤ r) (u : E) :
+    |supportFn K u - supportFn L u| ≤ r * ‖u‖ := by
+  by_cases hu : u = 0
+  · subst hu; simp
+  · have hpos : 0 < ‖u‖ := norm_pos_iff.mpr hu
+    have h0 := h (‖u‖⁻¹ • u) (norm_inv_norm_smul hu)
+    rw [supportFn_smul K (inv_nonneg.mpr hpos.le),
+      supportFn_smul L (inv_nonneg.mpr hpos.le), ← mul_sub, abs_mul,
+      abs_of_nonneg (inv_nonneg.mpr hpos.le)] at h0
+    have := mul_le_mul_of_nonneg_left h0 hpos.le
+    rwa [← mul_assoc, mul_inv_cancel₀ hpos.ne', one_mul, mul_comm] at this
+
 /-- Unit-ball halfspace characterization: `x ∈ K ↔ ∀ u, ‖u‖ ≤ 1 → ⟪x, u⟫ ≤ supportFn K u`. -/
 theorem mem_iff_forall_norm_le_one_inner_le_supportFn [CompleteSpace E]
     (K : ConvexBody E) (x : E) :
@@ -438,10 +462,7 @@ theorem mem_iff_forall_norm_le_one_inner_le_supportFn [CompleteSpace E]
     by_cases hu : u = 0
     · subst hu; simp
     · have hpos : 0 < ‖u‖ := norm_pos_iff.mpr hu
-      have hunit : ‖‖u‖⁻¹ • u‖ ≤ 1 := by
-        rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (inv_nonneg.mpr hpos.le),
-          inv_mul_cancel₀ hpos.ne']
-      have h1 := h (‖u‖⁻¹ • u) hunit
+      have h1 := h (‖u‖⁻¹ • u) (norm_inv_norm_smul hu).le
       rw [inner_smul_right, supportFn_smul K (inv_nonneg.mpr hpos.le)] at h1
       have h2 := mul_le_mul_of_nonneg_left h1 hpos.le
       rwa [← mul_assoc, ← mul_assoc, mul_inv_cancel₀ hpos.ne', one_mul, one_mul] at h2
@@ -500,7 +521,7 @@ theorem width_eq_supportFn_diff (K : ConvexBody E) (u : E) :
     width K u = supportFn (K + (-1 : ℝ) • K) u := by
   rw [supportFn_minkowski_add, supportFn_neg_one_smul, width]
 
-/-- For every `x, y ∈ K` and unit vector `u`, `⟪x - y, u⟫ ≤ width K u`. -/
+/-- For every `x, y ∈ K` and vector `u`, `⟪x - y, u⟫ ≤ width K u`. -/
 theorem inner_sub_le_width {K : ConvexBody E} {x y : E} (hx : x ∈ K) (hy : y ∈ K) (u : E) :
     ⟪x - y, u⟫ ≤ width K u := by
   rw [inner_sub_left, width]
@@ -508,6 +529,25 @@ theorem inner_sub_le_width {K : ConvexBody E} {x y : E} (hx : x ∈ K) (hy : y �
   have h2 := inner_le_supportFn hy (-u)
   rw [inner_neg_right] at h2
   linarith
+
+private lemma width_le_diam_of_norm_le_one (K : ConvexBody E) {u : E} (hu : ‖u‖ ≤ 1) :
+    width K u ≤ Metric.diam (K : Set E) := by
+  obtain ⟨x, hx, hxu⟩ := exists_mem_supportFn_eq K u
+  obtain ⟨y, hy, hyu⟩ := exists_mem_supportFn_eq K (-u)
+  have hxy : ‖x - y‖ ≤ Metric.diam (K : Set E) := by
+    simpa [dist_eq_norm] using Metric.dist_le_diam_of_mem K.isBounded hx hy
+  calc
+    width K u = ⟪x - y, u⟫ := by rw [width, ← hxu, ← hyu, inner_sub_left, inner_neg_right]; ring
+    _ ≤ ‖x - y‖ * ‖u‖ := real_inner_le_norm _ _
+    _ ≤ ‖x - y‖ * 1 := mul_le_mul_of_nonneg_left hu (norm_nonneg _)
+    _ = ‖x - y‖ := mul_one _
+    _ ≤ Metric.diam (K : Set E) := hxy
+
+private lemma dist_eq_inner_unit {x y : E} (hxy : x ≠ y) :
+    dist x y = ⟪x - y, ‖x - y‖⁻¹ • (x - y)⟫ := by
+  have hpos : 0 < ‖x - y‖ := norm_pos_iff.mpr (sub_ne_zero.mpr hxy)
+  rw [dist_eq_norm, inner_smul_right, real_inner_self_eq_norm_sq]
+  field_simp [hpos.ne']
 
 /-- The diameter of a convex body `K` equals the supremum of its directional widths on the
 closed unit ball (see `diam_eq_sSup_width_sphere` for the unit sphere in nontrivial spaces). -/
@@ -517,53 +557,25 @@ theorem diam_eq_sSup_width (K : ConvexBody E) :
   let u0 : Metric.closedBall (0 : E) 1 := ⟨0, Metric.mem_closedBall_self zero_le_one⟩
   have hne_u : ((fun u : Metric.closedBall (0 : E) 1 => width K u) '' Set.univ).Nonempty :=
     ⟨width K u0, ⟨u0, Set.mem_univ _, rfl⟩⟩
-  have hbdd : BddAbove ((fun u : Metric.closedBall (0 : E) 1 => width K u) '' Set.univ) := by
-    refine ⟨Metric.diam (K : Set E), ?_⟩
+  have hle_diam : ∀ r ∈ (fun u : Metric.closedBall (0 : E) 1 => width K u) '' Set.univ,
+      r ≤ Metric.diam (K : Set E) := by
     rintro _ ⟨⟨u, hu⟩, _, rfl⟩
-    obtain ⟨x, hx, hxu⟩ := exists_mem_supportFn_eq K u
-    obtain ⟨y, hy, hyu⟩ := exists_mem_supportFn_eq K (-u)
-    have hu1 : ‖u‖ ≤ 1 := by simpa [Metric.mem_closedBall, dist_eq_norm] using hu
-    have hxy : ‖x - y‖ ≤ Metric.diam (K : Set E) := by
-      simpa [dist_eq_norm] using Metric.dist_le_diam_of_mem K.isBounded hx hy
-    calc
-      width K u = ⟪x, u⟫ + ⟪y, -u⟫ := by rw [width, hxu, hyu]
-      _ = ⟪x - y, u⟫ := by rw [inner_sub_left, inner_neg_right]; ring
-      _ ≤ ‖x - y‖ * ‖u‖ := real_inner_le_norm _ _
-      _ ≤ ‖x - y‖ * 1 := mul_le_mul_of_nonneg_left hu1 (norm_nonneg _)
-      _ = ‖x - y‖ := mul_one _
-      _ ≤ Metric.diam (K : Set E) := hxy
+    exact width_le_diam_of_norm_le_one K (by simpa [Metric.mem_closedBall, dist_eq_norm] using hu)
+  have hbdd : BddAbove ((fun u : Metric.closedBall (0 : E) 1 => width K u) '' Set.univ) :=
+    ⟨Metric.diam (K : Set E), hle_diam⟩
+  have hsSup_nn : 0 ≤ sSup ((fun u : Metric.closedBall (0 : E) 1 => width K u) '' Set.univ) :=
+    le_csSup_of_le hbdd ⟨u0, Set.mem_univ _, rfl⟩ (width_nonneg K 0)
   apply le_antisymm
-  · refine Metric.diam_le_of_forall_dist_le (le_csSup_of_le hbdd ⟨⟨0, Metric.mem_closedBall_self zero_le_one⟩, Set.mem_univ _, rfl⟩ (width_nonneg K 0)) ?_
-    intro x hx y hy
+  · refine Metric.diam_le_of_forall_dist_le hsSup_nn fun x hx y hy => ?_
     by_cases hxy : x = y
-    · subst hxy
-      simpa using le_csSup_of_le hbdd
-        ⟨⟨0, Metric.mem_closedBall_self zero_le_one⟩, Set.mem_univ _, rfl⟩ (width_nonneg K 0)
-    · have hpos : 0 < ‖x - y‖ := norm_pos_iff.mpr (sub_ne_zero.mpr hxy)
-      let u : E := (‖x - y‖⁻¹) • (x - y)
-      have hu : u ∈ Metric.closedBall (0 : E) 1 := by
-        rw [Metric.mem_closedBall, dist_zero_right, norm_smul, Real.norm_eq_abs,
-          abs_of_nonneg (inv_nonneg.mpr hpos.le), inv_mul_cancel₀ hpos.ne']
-      have hnorm : dist x y = ⟪x - y, u⟫ := by
-        rw [dist_eq_norm, inner_smul_right, real_inner_self_eq_norm_sq]
-        field_simp [hpos.ne']
-      rw [hnorm]
-      exact (inner_sub_le_width hx hy u).trans
-        (le_csSup hbdd ⟨⟨u, hu⟩, Set.mem_univ _, rfl⟩)
-  · refine csSup_le hne_u ?_
-    rintro _ ⟨⟨u, hu⟩, _, rfl⟩
-    obtain ⟨x, hx, hxu⟩ := exists_mem_supportFn_eq K u
-    obtain ⟨y, hy, hyu⟩ := exists_mem_supportFn_eq K (-u)
-    have hu1 : ‖u‖ ≤ 1 := by simpa [Metric.mem_closedBall, dist_eq_norm] using hu
-    have hxy : ‖x - y‖ ≤ Metric.diam (K : Set E) := by
-      simpa [dist_eq_norm] using Metric.dist_le_diam_of_mem K.isBounded hx hy
-    calc
-      width K u = ⟪x, u⟫ + ⟪y, -u⟫ := by rw [width, hxu, hyu]
-      _ = ⟪x - y, u⟫ := by rw [inner_sub_left, inner_neg_right]; ring
-      _ ≤ ‖x - y‖ * ‖u‖ := real_inner_le_norm _ _
-      _ ≤ ‖x - y‖ * 1 := mul_le_mul_of_nonneg_left hu1 (norm_nonneg _)
-      _ = ‖x - y‖ := mul_one _
-      _ ≤ Metric.diam (K : Set E) := hxy
+    · subst hxy; simpa using hsSup_nn
+    · let u : Metric.closedBall (0 : E) 1 :=
+        ⟨‖x - y‖⁻¹ • (x - y), by
+          rw [Metric.mem_closedBall, dist_zero_right]
+          exact (norm_inv_norm_smul (sub_ne_zero.mpr hxy)).le⟩
+      rw [dist_eq_inner_unit hxy]
+      exact (inner_sub_le_width hx hy u.1).trans (le_csSup hbdd ⟨u, Set.mem_univ _, rfl⟩)
+  · exact csSup_le hne_u hle_diam
 
 /-- In a nontrivial inner product space, the diameter of `K` equals the supremum of its
 directional widths over the unit sphere `Metric.sphere 0 1`. -/
@@ -571,53 +583,28 @@ theorem diam_eq_sSup_width_sphere [Nontrivial E] (K : ConvexBody E) :
     Metric.diam (K : Set E) =
       sSup ((fun u : Metric.sphere (0 : E) 1 => width K u.1) '' Set.univ) := by
   obtain ⟨v, hv⟩ := exists_ne (0 : E)
-  have hv_pos : 0 < ‖v‖ := norm_pos_iff.mpr hv
-  let u₀ : Metric.sphere (0 : E) 1 := ⟨‖v‖⁻¹ • v, by
-    rw [mem_sphere_zero_iff_norm, norm_smul, Real.norm_eq_abs,
-      abs_of_nonneg (inv_nonneg.mpr hv_pos.le), inv_mul_cancel₀ hv_pos.ne']⟩
+  let u₀ : Metric.sphere (0 : E) 1 :=
+    ⟨‖v‖⁻¹ • v, mem_sphere_zero_iff_norm.mpr (norm_inv_norm_smul hv)⟩
   have hne : ((fun u : Metric.sphere (0 : E) 1 => width K u.1) '' Set.univ).Nonempty :=
     ⟨width K u₀.1, ⟨u₀, Set.mem_univ _, rfl⟩⟩
-  have hbdd : BddAbove ((fun u : Metric.sphere (0 : E) 1 => width K u.1) '' Set.univ) := by
-    refine ⟨Metric.diam (K : Set E), ?_⟩
+  have hle_diam : ∀ r ∈ (fun u : Metric.sphere (0 : E) 1 => width K u.1) '' Set.univ,
+      r ≤ Metric.diam (K : Set E) := by
     rintro _ ⟨⟨u, hu⟩, _, rfl⟩
-    obtain ⟨x, hx, hxu⟩ := exists_mem_supportFn_eq K u
-    obtain ⟨y, hy, hyu⟩ := exists_mem_supportFn_eq K (-u)
-    have hu1 : ‖u‖ = 1 := mem_sphere_zero_iff_norm.mp hu
-    have hxy : ‖x - y‖ ≤ Metric.diam (K : Set E) := by
-      simpa [dist_eq_norm] using Metric.dist_le_diam_of_mem K.isBounded hx hy
-    calc
-      width K u = ⟪x - y, u⟫ := by rw [width, ← hxu, ← hyu, inner_sub_left, inner_neg_right]; ring
-      _ ≤ ‖x - y‖ * ‖u‖ := real_inner_le_norm _ _
-      _ = ‖x - y‖ := by rw [hu1, mul_one]
-      _ ≤ Metric.diam (K : Set E) := hxy
+    exact width_le_diam_of_norm_le_one K (mem_sphere_zero_iff_norm.mp hu).le
+  have hbdd : BddAbove ((fun u : Metric.sphere (0 : E) 1 => width K u.1) '' Set.univ) :=
+    ⟨Metric.diam (K : Set E), hle_diam⟩
+  have hsSup_nn : 0 ≤ sSup ((fun u : Metric.sphere (0 : E) 1 => width K u.1) '' Set.univ) :=
+    le_csSup_of_le hbdd ⟨u₀, Set.mem_univ _, rfl⟩ (width_nonneg K u₀.1)
   apply le_antisymm
-  · refine Metric.diam_le_of_forall_dist_le
-      (le_csSup_of_le hbdd ⟨u₀, Set.mem_univ _, rfl⟩ (width_nonneg K u₀.1)) ?_
-    intro x hx y hy
+  · refine Metric.diam_le_of_forall_dist_le hsSup_nn fun x hx y hy => ?_
     by_cases hxy : x = y
-    · subst hxy
-      simpa using le_csSup_of_le hbdd ⟨u₀, Set.mem_univ _, rfl⟩ (width_nonneg K u₀.1)
-    · have hpos : 0 < ‖x - y‖ := norm_pos_iff.mpr (sub_ne_zero.mpr hxy)
-      let u : Metric.sphere (0 : E) 1 := ⟨‖x - y‖⁻¹ • (x - y), by
-        rw [mem_sphere_zero_iff_norm, norm_smul, Real.norm_eq_abs,
-          abs_of_nonneg (inv_nonneg.mpr hpos.le), inv_mul_cancel₀ hpos.ne']⟩
-      have hnorm : dist x y = ⟪x - y, u.1⟫ := by
-        rw [dist_eq_norm, inner_smul_right, real_inner_self_eq_norm_sq]
-        field_simp [hpos.ne']
-      rw [hnorm]
+    · subst hxy; simpa using hsSup_nn
+    · let u : Metric.sphere (0 : E) 1 :=
+        ⟨‖x - y‖⁻¹ • (x - y),
+          mem_sphere_zero_iff_norm.mpr (norm_inv_norm_smul (sub_ne_zero.mpr hxy))⟩
+      rw [dist_eq_inner_unit hxy]
       exact (inner_sub_le_width hx hy u.1).trans (le_csSup hbdd ⟨u, Set.mem_univ _, rfl⟩)
-  · refine csSup_le hne ?_
-    rintro _ ⟨⟨u, hu⟩, _, rfl⟩
-    obtain ⟨x, hx, hxu⟩ := exists_mem_supportFn_eq K u
-    obtain ⟨y, hy, hyu⟩ := exists_mem_supportFn_eq K (-u)
-    have hu1 : ‖u‖ = 1 := mem_sphere_zero_iff_norm.mp hu
-    have hxy : ‖x - y‖ ≤ Metric.diam (K : Set E) := by
-      simpa [dist_eq_norm] using Metric.dist_le_diam_of_mem K.isBounded hx hy
-    calc
-      width K u = ⟪x - y, u⟫ := by rw [width, ← hxu, ← hyu, inner_sub_left, inner_neg_right]; ring
-      _ ≤ ‖x - y‖ * ‖u‖ := real_inner_le_norm _ _
-      _ = ‖x - y‖ := by rw [hu1, mul_one]
-      _ ≤ Metric.diam (K : Set E) := hxy
+  · exact csSup_le hne hle_diam
 
 /-! ### 4. Hörmander's Isometric Embedding & Hausdorff Metric Algebra -/
 
@@ -677,20 +664,8 @@ theorem dist_le_iff_supportFn_sub_le [FiniteDimensional ℝ E] {K L : ConvexBody
     exact abs_sub_le_iff.mpr ⟨h1, h2⟩
   · intro hsup
     -- Show `K ⊆ L + closedBall 0 r` and `L ⊆ K + closedBall 0 r` via support function separation!
-    have hscale : ∀ u : E, |supportFn K u - supportFn L u| ≤ r * ‖u‖ := by
-      intro u
-      by_cases hu : u = 0
-      · subst hu; simp
-      · have hpos : 0 < ‖u‖ := norm_pos_iff.mpr hu
-        have hunit : ‖‖u‖⁻¹ • u‖ ≤ 1 := by
-          rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (inv_nonneg.mpr hpos.le),
-            inv_mul_cancel₀ hpos.ne']
-        have h0 := hsup (‖u‖⁻¹ • u) hunit
-        rw [supportFn_smul K (inv_nonneg.mpr hpos.le),
-          supportFn_smul L (inv_nonneg.mpr hpos.le), ← mul_sub, abs_mul,
-          abs_of_nonneg (inv_nonneg.mpr hpos.le)] at h0
-        have := mul_le_mul_of_nonneg_left h0 hpos.le
-        rwa [← mul_assoc, mul_inv_cancel₀ hpos.ne', one_mul, mul_comm] at this
+    have hscale : ∀ u : E, |supportFn K u - supportFn L u| ≤ r * ‖u‖ :=
+      abs_supportFn_sub_le_mul_norm fun u hu => hsup u hu.le
     have hKL : (K : Set E) ⊆ (L + bodyClosedBall (0 : E) hr : ConvexBody E) := by
       refine supportFn_le_iff_subset.mp fun u => ?_
       rw [supportFn_minkowski_add, supportFn_bodyClosedBall, inner_zero_left, zero_add]
@@ -725,22 +700,8 @@ theorem dist_le_iff_supportFn_sub_le_sphere [FiniteDimensional ℝ E] {K L : Con
   constructor
   · exact fun h u hu => h u hu.le
   · intro h u hu1
-    by_cases hu0 : u = 0
-    · subst hu0; simpa using hr
-    · have hpos : 0 < ‖u‖ := norm_pos_iff.mpr hu0
-      have hunit : ‖‖u‖⁻¹ • u‖ = 1 := by
-        rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (inv_nonneg.mpr hpos.le),
-          inv_mul_cancel₀ hpos.ne']
-      have h1 := h (‖u‖⁻¹ • u) hunit
-      rw [supportFn_smul K (inv_nonneg.mpr hpos.le),
-        supportFn_smul L (inv_nonneg.mpr hpos.le), ← mul_sub, abs_mul,
-        abs_of_nonneg (inv_nonneg.mpr hpos.le)] at h1
-      calc
-        |supportFn K u - supportFn L u|
-          = ‖u‖ * (‖u‖⁻¹ * |supportFn K u - supportFn L u|) := by
-              rw [← mul_assoc, mul_inv_cancel₀ hpos.ne', one_mul]
-        _ ≤ 1 * r := mul_le_mul hu1 h1 (by positivity) zero_le_one
-        _ = r := one_mul r
+    exact (abs_supportFn_sub_le_mul_norm h u).trans
+      ((mul_le_mul_of_nonneg_left hu1 hr).trans_eq (mul_one r))
 
 /-- **Hörmander's Isometric Embedding Theorem:**
 The map `K ↦ supportFnOnBall K` is an isometry from `ConvexBody E` (with the Hausdorff metric)
@@ -812,19 +773,9 @@ theorem dist_smul [FiniteDimensional ℝ E] (c : ℝ) (K L : ConvexBody E) :
     · rw [dist_le_iff_supportFn_sub_le (mul_nonneg hpos.le dist_nonneg)]
       intro u hu1
       rw [supportFn_body_smul_eq, supportFn_body_smul_eq]
-      have hscale : ∀ v : E, |supportFn K v - supportFn L v| ≤ dist K L * ‖v‖ := fun v => by
-        by_cases hv : v = 0
-        · subst hv; simp
-        · have hvpos : 0 < ‖v‖ := norm_pos_iff.mpr hv
-          have hunit : ‖‖v‖⁻¹ • v‖ ≤ 1 := by
-            rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (inv_nonneg.mpr hvpos.le),
-              inv_mul_cancel₀ hvpos.ne']
-          have h0 := (dist_le_iff_supportFn_sub_le dist_nonneg (K := K) (L := L)).mp le_rfl _ hunit
-          rw [supportFn_smul K (inv_nonneg.mpr hvpos.le),
-            supportFn_smul L (inv_nonneg.mpr hvpos.le), ← mul_sub, abs_mul,
-            abs_of_nonneg (inv_nonneg.mpr hvpos.le)] at h0
-          have := mul_le_mul_of_nonneg_left h0 hvpos.le
-          rwa [← mul_assoc, mul_inv_cancel₀ hvpos.ne', one_mul, mul_comm] at this
+      have hscale : ∀ v : E, |supportFn K v - supportFn L v| ≤ dist K L * ‖v‖ :=
+        abs_supportFn_sub_le_mul_norm fun v hv =>
+          (dist_le_iff_supportFn_sub_le dist_nonneg (K := K) (L := L)).mp le_rfl v hv.le
       calc
         |supportFn K (c • u) - supportFn L (c • u)|
           ≤ dist K L * ‖c • u‖ := hscale (c • u)
