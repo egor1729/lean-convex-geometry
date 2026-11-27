@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Tier 3: Trustless sandboxed statement-vs-proof verification via the
-# `lake comparator` bundled in this project's pinned Lean toolchain.
+# Sandboxed statement-vs-proof comparison via `lake comparator` bundled in the
+# pinned Lean toolchain.
 #
-# By default, runs Palomar's exact independent-kernel set (Lean's default
-# kernel + bundled `nanoda_bin` and `con-ron`) inside a `bwrap` sandbox.
+# By default, runs Lean's kernel plus the bundled `nanoda_bin` and `con-ron`
+# independent type checkers inside a `bwrap` sandbox.
 #
 # Usage:
 #   bash scripts/verify-comparator.sh [--paranoid] [--skip-cache] [--check-lib]
@@ -30,7 +30,7 @@ for arg in "$@"; do
     --skip-cache) SKIP_CACHE=1 ;;
     --check-lib) CHECK_LIB=1 ;;
     -h|--help)
-      sed -n '3,19p' "$0"
+      sed -n '4,19p' "$0"
       exit 0
       ;;
     *)
@@ -61,10 +61,6 @@ for tool in "${required_tools[@]}"; do
   fi
 done
 
-# Pre-flight: ensure comparator.json is Palomar-compliant (no committed external_kernels).
-python3 scripts/check-lean-sources.py
-python3 scripts/validate-formalization.py
-
 if [[ "$SKIP_CACHE" -eq 0 ]]; then
   lake exe cache get
 fi
@@ -73,8 +69,8 @@ if [[ "$PARANOID" -eq 1 ]]; then
   echo "==> Running lake comparator --paranoid (Lean + all 5 bundled independent kernels)"
   lake comparator --paranoid --config comparator.json
 else
-  # Mirror Palomar: inject the toolchain's bundled nanoda_bin and con-ron kernels
-  # into a temporary config without mutating the committed comparator.json.
+  # Inject the toolchain's bundled nanoda_bin and con-ron kernels into a
+  # temporary config without mutating the committed comparator.json.
   config="$(mktemp "${TMPDIR:-/tmp}/convexgeom-comparator.XXXXXX.json")"
   trap 'rm -f "$config"' EXIT
   python3 - comparator.json "$config" "$prefix" <<'PY'

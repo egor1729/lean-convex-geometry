@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,61 +15,75 @@ concurrency:
 
 jobs:
   metadata:
-    name: Source Hygiene & formalization.yaml
+    name: Metadata & Schema Validation
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Check Lean source requirements
-        run: python3 scripts/check-lean-sources.py
-
-      - name: Validate formalization.yaml against official v0.4 schema
+      - name: Validate formalization.yaml, comparator.json, and CITATION.cff
         run: |
           set -euo pipefail
-          python3 -m pip install --quiet pyyaml jsonschema
+          python3 -m pip install --quiet pyyaml==6.0.2 jsonschema==4.23.0
+
+          FORM_SCHEMA_SHA="99c678e569c7c4c0772db297c5ddd5e4c9b6322e"
+          FORM_SCHEMA_SHA256="25ff6b25ca4511635aff4443cf20480c15e59dddf19591c730950b442ea54fce"
           curl -sSfL \
-            "https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/v0.4.schema.json" \
+            "https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/${FORM_SCHEMA_SHA}/schema/v0.4.schema.json" \
             -o /tmp/v0.4.schema.json
+          echo "${FORM_SCHEMA_SHA256}  /tmp/v0.4.schema.json" | sha256sum -c -
           python3 scripts/validate-formalization.py --schema /tmp/v0.4.schema.json
 
-  lean-verify:
-    name: Lean 4 Build & Audit
+          CFF_SCHEMA_SHA="396f738fb025b1d8acdb02a56ffc923f95dc8999"
+          CFF_SCHEMA_SHA256="0b8d22140da702d766df318dcff3a91af2f39521298dcf36d76315fd99cc169b"
+          curl -sSfL \
+            "https://raw.githubusercontent.com/citation-file-format/citation-file-format/${CFF_SCHEMA_SHA}/schema.json" \
+            -o /tmp/cff-1.2.0.schema.json
+          echo "${CFF_SCHEMA_SHA256}  /tmp/cff-1.2.0.schema.json" | sha256sum -c -
+          python3 -c '
+          import json, pathlib, yaml, jsonschema
+          doc = yaml.safe_load(pathlib.Path("CITATION.cff").read_text(encoding="utf-8"))
+          schema = json.loads(pathlib.Path("/tmp/cff-1.2.0.schema.json").read_text(encoding="utf-8"))
+          jsonschema.validate(instance=doc, schema=schema)
+          print("CITATION.cff validation PASSED.")
+          '
+
+  build:
+    name: Lean Build, Test, Lint & Audit
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - name: Checkout repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Install pinned elan (SHA-256 verified)
+      - name: Build, test, lint, mk_all, and axiom-audit
+        uses: leanprover/lean-action@ba3fdfe5c4476c925da13bf11a005ddb47e47aee # v1.7.1
+        with:
+          build-args: "--wfail"
+          test: true
+          lint: true
+          mk_all-check: true
+          mk_all-args: "--lib ConvexGeom"
+          axiom-audit: true
+          axiom-audit-root: "ConvexGeom"
+
+      - name: Build Solution with --wfail
+        run: lake build Solution --wfail
+
+      - name: Replay every library module and Solution through leanchecker
+        # Run leanchecker per leaf module to avoid a Lean v4.36.0 SIGSEGV when
+        # replaying multiple modules in one leanchecker process.
         run: |
           set -euo pipefail
-          ELAN_VERSION="v4.4.0"
-          ELAN_SHA256="0e8250aa2be86c7af929ade68db617af9edc8b9ccf6eaf5ece228250d0d032e2"
-          curl -sSfL "https://github.com/leanprover/elan/releases/download/${ELAN_VERSION}/elan-x86_64-unknown-linux-gnu.tar.gz" \
-            -o /tmp/elan.tar.gz
-          echo "${ELAN_SHA256}  /tmp/elan.tar.gz" | sha256sum -c -
-          mkdir -p /tmp/elan-unpack
-          tar -xzf /tmp/elan.tar.gz -C /tmp/elan-unpack
-          /tmp/elan-unpack/elan-init -y --default-toolchain none
-          rm -rf /tmp/elan.tar.gz /tmp/elan-unpack
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-
-      - name: Fetch Mathlib cache
-        run: lake exe cache get
-
-      - name: Run verification
-        run: bash scripts/verify.sh audit-report.json
-
-      - name: Upload audit report artifact
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: convexgeom-audit-report
-          path: audit-report.json
-          if-no-files-found: warn
-          retention-days: 30
+          for f in $(find ConvexGeom/* -name '*.lean' | sort); do
+            mod="${f%.lean}"
+            mod="${mod//\//.}"
+            echo "leanchecker: $mod"
+            lake env leanchecker "$mod"
+          done
+          echo "leanchecker: Solution"
+          lake env leanchecker Solution
 
   comparator:
     name: Sandboxed Comparator & Independent Kernels
@@ -97,7 +112,7 @@ jobs:
         # the CI runner is disposable.
         run: |
           sudo apt-get update -qq >/dev/null
-          sudo apt-get install -y -qq bubblewrap python3-yaml >/dev/null
+          sudo apt-get install -y -qq bubblewrap >/dev/null
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
       - name: Run sandboxed lake comparator (Lean + nanoda + con-ron)

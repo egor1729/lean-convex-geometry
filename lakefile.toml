@@ -1,12 +1,19 @@
 name = "lean-convex-geometry"
 version = "0.1.0"
+description = "A Lean 4 + Mathlib library for metric, polyhedral, volumetric, spherical, and asymptotic convex geometry."
+license = "Apache-2.0"
+licenseFiles = ["LICENSE"]
 keywords = ["math", "convex-geometry", "euclidean-geometry", "spherical-geometry", "lean4"]
 defaultTargets = ["ConvexGeom"]
+testDriver = "ConvexGeomTest"
+lintDriver = "batteries/runLinter"
+lintDriverArgs = ["ConvexGeom"]
 
 [leanOptions]
-pp.unicode.fun = true
+pp.unicode.fun = true # pretty-prints `fun a ↦ b`
 autoImplicit = false
 relaxedAutoImplicit = false
+maxSynthPendingDepth = 3
 
 [[require]]
 name = "mathlib"
@@ -17,13 +24,12 @@ rev = "v4.36.0"
 name = "ConvexGeom"
 
 [[lean_lib]]
+name = "ConvexGeomTest"
+
+[[lean_lib]]
 name = "Challenge"
 roots = ["Challenge"]
 
 [[lean_lib]]
 name = "Solution"
 roots = ["Solution"]
-
-[[lean_exe]]
-name = "convexgeom-audit"
-root = "ConvexGeom.Verification.AuditTool"

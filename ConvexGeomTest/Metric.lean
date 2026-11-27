@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Yegor Gorodzha. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yegor Gorodzha
+-/
 module
 
 import ConvexGeom.Metric
@@ -24,7 +29,7 @@ example (x : ℝ) :
   rw [SetLike.mem_coe, mem_iff_forall_inner_le_supportFn]
   simp [supportFn_bodyClosedBall, Real.norm_eq_abs]
 
-/-- Constructive `bodyOfSupportFn` round-trip for `h(u) = |u|` recovers the unit ball's support function. -/
+/-- `bodyOfSupportFn` round-trip for `h(u) = |u|` recovers the unit ball's support function. -/
 example (u : ℝ) :
     supportFn (bodyOfSupportFn (fun v : ℝ => ‖v‖)
       (fun c hc x => by rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg hc])

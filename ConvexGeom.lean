@@ -1,6 +1,29 @@
-module
+module  -- shake: keep-all --deprecated_module: ignore
 
-public import ConvexGeom.Metric
-public import ConvexGeom.Polytope
-public import ConvexGeom.Volume
 public import ConvexGeom.Asymptotic
+public import ConvexGeom.Asymptotic.BanachMazur
+public import ConvexGeom.Asymptotic.BlaschkeSantalo
+public import ConvexGeom.Asymptotic.BrascampLieb
+public import ConvexGeom.Asymptotic.GaussianConcentration
+public import ConvexGeom.Asymptotic.JohnEllipsoid
+public import ConvexGeom.Asymptotic.SphericalIntegration
+public import ConvexGeom.Asymptotic.SteinerPoint
+public import ConvexGeom.Metric
+public import ConvexGeom.Metric.Blaschke
+public import ConvexGeom.Metric.Polarity
+public import ConvexGeom.Metric.Projection
+public import ConvexGeom.Metric.SphericalTrig
+public import ConvexGeom.Metric.SupportFunction
+public import ConvexGeom.Polytope
+public import ConvexGeom.Polytope.Basic
+public import ConvexGeom.Polytope.Combinatorial
+public import ConvexGeom.Polytope.Faces
+public import ConvexGeom.Polytope.GeneralPosition
+public import ConvexGeom.Polytope.SimplexVolume
+public import ConvexGeom.Volume
+public import ConvexGeom.Volume.BrunnConcavity
+public import ConvexGeom.Volume.BrunnMinkowski
+public import ConvexGeom.Volume.Continuity
+public import ConvexGeom.Volume.CoveringNumbers
+public import ConvexGeom.Volume.Isoperimetric
+public import ConvexGeom.Volume.Symmetrization
