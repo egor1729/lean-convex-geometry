@@ -1,16 +1,37 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Unified local and CI verification entry point for lean-convex-geometry.
-# Usage: bash scripts/verify.sh [audit-report-path]
+# Unified local and CI verification entry point for lean-convex-geometry (Tier 2).
+# Usage: bash scripts/verify.sh [audit-report-path] [--with-comparator | --paranoid]
+#
+# For fast inner-loop agent/dev checks, use `bash scripts/verify-fast.sh`.
+# For standalone sandboxed multi-kernel certification, use `bash scripts/verify-comparator.sh`.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-REPORT_PATH="${1:-audit-report.json}"
+REPORT_PATH="audit-report.json"
+RUN_COMPARATOR=0
+PARANOID=0
 
-echo "==> 1. Building ConvexGeom"
-lake build ConvexGeom --wfail
+for arg in "$@"; do
+  case "$arg" in
+    --with-comparator) RUN_COMPARATOR=1 ;;
+    --paranoid) RUN_COMPARATOR=1; PARANOID=1 ;;
+    -h|--help)
+      sed -n '4,8p' "$0"
+      exit 0
+      ;;
+    *) REPORT_PATH="$arg" ;;
+  esac
+done
+
+echo "==> 0. Checking Lean source hygiene & formalization.yaml metadata"
+python3 scripts/check-lean-sources.py
+python3 scripts/validate-formalization.py
+
+echo "==> 1. Building ConvexGeom and Solution"
+lake build ConvexGeom Solution --wfail
 
 echo "==> 2. Building verification checks"
 lake build ConvexGeom.Verification.Checks --wfail
@@ -98,5 +119,14 @@ if bad:
 
 print(f"AxiomAudit snapshot passed ({len(reported)}/{len(requested)} headline theorems verified).")
 PY
+
+if [[ "$RUN_COMPARATOR" -eq 1 ]]; then
+  echo "==> 7. Running sandboxed lake comparator verification"
+  if [[ "$PARANOID" -eq 1 ]]; then
+    bash scripts/verify-comparator.sh --skip-cache --paranoid
+  else
+    bash scripts/verify-comparator.sh --skip-cache
+  fi
+fi
 
 echo "ALL VERIFICATION CHECKS PASSED."

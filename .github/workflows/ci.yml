@@ -13,10 +13,30 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  lean-verify:
-    name: Lean 4 Build & Verify
+  metadata:
+    name: Source Hygiene & formalization.yaml
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Check Lean source requirements
+        run: python3 scripts/check-lean-sources.py
+
+      - name: Validate formalization.yaml against official v0.4 schema
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pyyaml jsonschema
+          curl -sSfL \
+            "https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/v0.4.schema.json" \
+            -o /tmp/v0.4.schema.json
+          python3 scripts/validate-formalization.py --schema /tmp/v0.4.schema.json
+
+  lean-verify:
+    name: Lean 4 Build & Audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
     steps:
       - name: Checkout repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -49,3 +69,36 @@ jobs:
           path: audit-report.json
           if-no-files-found: warn
           retention-days: 30
+
+  comparator:
+    name: Sandboxed Comparator & Independent Kernels
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install pinned elan (SHA-256 verified)
+        run: |
+          set -euo pipefail
+          ELAN_VERSION="v4.4.0"
+          ELAN_SHA256="0e8250aa2be86c7af929ade68db617af9edc8b9ccf6eaf5ece228250d0d032e2"
+          curl -sSfL "https://github.com/leanprover/elan/releases/download/${ELAN_VERSION}/elan-x86_64-unknown-linux-gnu.tar.gz" \
+            -o /tmp/elan.tar.gz
+          echo "${ELAN_SHA256}  /tmp/elan.tar.gz" | sha256sum -c -
+          mkdir -p /tmp/elan-unpack
+          tar -xzf /tmp/elan.tar.gz -C /tmp/elan-unpack
+          /tmp/elan-unpack/elan-init -y --default-toolchain none
+          rm -rf /tmp/elan.tar.gz /tmp/elan-unpack
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Install bubblewrap for lake comparator sandbox
+        # Ubuntu 24.04 restricts unprivileged user namespaces via AppArmor;
+        # the CI runner is disposable.
+        run: |
+          sudo apt-get update -qq >/dev/null
+          sudo apt-get install -y -qq bubblewrap python3-yaml >/dev/null
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      - name: Run sandboxed lake comparator (Lean + nanoda + con-ron)
+        run: bash scripts/verify-comparator.sh
