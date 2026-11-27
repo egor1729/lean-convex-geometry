@@ -6,7 +6,6 @@ Planned mathematical directions for `lean-convex-geometry`. For contribution gui
 
 - **Equality cases & completeness of classical theorems:**
   - Characterization of equality in Brunn–Minkowski (homothety), Euclidean isoperimetry (balls), and Blaschke–Santaló (ellipsoids).
-  - Uniqueness of the maximal-volume inscribed ellipsoid and the converse direction in Fritz John's theorem (contact-point decomposition implies maximality), plus explicit enclosing-ellipsoid minimality in Löwner's theorem.
 - **Measure bridges:**
   - Identification of `minkowskiSurfaceArea` with `(d - 1)`-dimensional Hausdorff measure `hausdorffMeasure` on `frontier K` for full-dimensional convex bodies.
   - Identification of `sphereProb` with normalized `(d - 1)`-dimensional Hausdorff measure on `Metric.sphere 0 1`, and uniqueness of the `O(E)`-invariant probability measure.

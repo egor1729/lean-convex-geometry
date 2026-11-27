@@ -14,8 +14,9 @@ project:
     Selection, Bipolar, Supporting Hyperplane, d-simplex volume, Helly (wrapping
     Mathlib), Minkowski-Caratheodory, Jung, Weyl-Minkowski V->H duality,
     Prekopa-Leindler, Brunn-Minkowski, Isodiametric, Rogers-Shephard, Euclidean
-    Isoperimetric, Fritz John (general and symmetric, existence and necessary
-    decomposition) and the Banach-Mazur compactum, Loomis-Whitney, rank-1
+    Isoperimetric, Fritz John (general and symmetric, existence, uniqueness,
+    and full contact-point characterization), Loewner minimal enclosing
+    ellipsoids, and the Banach-Mazur compactum, Loomis-Whitney, rank-1
     geometric Brascamp-Lieb and Barthe's reverse Brascamp-Lieb, Ball's volume
     ratio and reverse isoperimetric inequalities, Gaussian and spherical
     Lipschitz concentration, Johnson-Lindenstrauss, Dvoretzky's theorem,
@@ -122,8 +123,8 @@ related_formalizations:
     relationship: "builds-on"
     note: >-
       Built directly on Mathlib4 v4.36.0 (ConvexBody, gauge, Hahn-Banach,
-      Haar measure, HaarToSphere, InnerProductSpace, Helly/Caratheodory
-      primitives).
+      Haar measure, HaarToSphere, ProbabilityTheory.stdGaussian,
+      InnerProductSpace, Helly/Caratheodory primitives).
 
 status:
   scope: >-
@@ -132,11 +133,12 @@ status:
     30 classical headline statements are independently stated in Mathlib-only
     terms in Challenge.lean (whose 30 sorry placeholders are deliberate
     Comparator holes) and verified in Solution.lean via lake comparator.
-    Known scope limits (reverse Brascamp-Lieb regularity hypotheses, Fritz John
-    uniqueness and converse, equality cases) and open directions (e.g.
-    Bourgain-Milman reverse Santalo, Milman's M-ellipsoid / QS theorem, mixed
-    volumes / Aleksandrov-Fenchel, Sudakov minoration, Grunbaum's inequality)
-    are documented in docs/CONVENTIONS.md and docs/ROADMAP.md.
+    Known scope limits (reverse Brascamp-Lieb regularity hypotheses, equality
+    cases for Brunn-Minkowski / isoperimetry / Blaschke-Santalo, and Hausdorff
+    measure bridges) and open directions (e.g. Bourgain-Milman reverse Santalo,
+    Milman's M-ellipsoid / QS theorem, mixed volumes / Aleksandrov-Fenchel,
+    Sudakov minoration, Grunbaum's inequality) are documented in
+    docs/CONVENTIONS.md and docs/ROADMAP.md.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms:
@@ -253,12 +255,15 @@ fidelity:
     ENNReal functions, while reverse_brascamp_lieb_rankOne requires each f i to
     be continuous, strictly positive, and integrable on a nonempty open
     interval I i.
-    (5) Fritz John's theorem formalizes existence of the maximal-volume
-    inscribed ellipsoid, John position, and the necessary ("only if")
-    contact-point decomposition; uniqueness of the maximal ellipsoid, the
-    converse (decomposition implies maximality), and explicit enclosing
-    minimality in loewner_theorem_symmetric are not yet formalized.
-    (6) Gaussian and spherical Lipschitz concentration are derived from
+    (5) Fritz John's theorem formalizes existence, uniqueness, and full iff
+    contact-point characterization (isJohnPosition_iff_john_decomposition,
+    unique_max_det_inscribed_ellipsoid), and Loewner's theorem formalizes
+    explicit enclosing-ellipsoid minimality and uniqueness
+    (isLoewnerPosition_of_polar_isJohnPosition,
+    eq_closedBall_of_isLoewnerPosition_of_det_eq_one,
+    loewner_theorem_symmetric).
+    (6) Gaussian concentration uses Mathlib's ProbabilityTheory.stdGaussian
+    directly; Gaussian and spherical Lipschitz concentration are derived from
     Prekopa-Leindler and radial Gaussian-to-sphere projection rather than
     Gaussian/Levy isoperimetry, yielding explicit non-optimal constants
     (e.g. 576 in spherical concentration, 16 in Johnson-Lindenstrauss, and
@@ -274,8 +279,9 @@ review:
   reviewers:
     - "Claude Opus 5.5 (Claude Code, review only)"
   notes: >-
-    Automated CI runs leanprover/lean-action (lake build --wfail, lake test on
-    ConvexGeomTest, lake lint via Batteries runLinter, mk_all --check,
+    Automated CI runs leanprover/lean-action (lake build --wfail with
+    weak.linter.mathlibStandardSet = true, lake test on ConvexGeomTest, lake
+    lint via Batteries runLinter, mk_all --check,
     leanprover-community/axiom-audit, and leanchecker), schema validation of
     formalization.yaml and CITATION.cff, and sandboxed lake comparator
     statement matching against Mathlib-only Challenge.lean with bundled
@@ -341,11 +347,11 @@ alignment:
       module: "ConvexGeom.Volume.Isoperimetric"
       status: "proved"
       note: "Stated for lower outer Minkowski content; equality characterization not yet formalized."
-    - source: "Fritz John's Theorem, general & symmetric (Ball Lec. 3)"
+    - source: "Fritz John's Theorem & Loewner Ellipsoid (Ball Lec. 3)"
       lean: "ConvexGeom.john_theorem"
       module: "ConvexGeom.Asymptotic.JohnEllipsoid"
-      status: "partial"
-      note: "Existence of maximal inscribed ellipsoid, John position, sandwich bounds, and necessary contact-point decomposition proved; uniqueness and converse not yet formalized."
+      status: "proved"
+      note: "Existence, uniqueness (unique_max_det_inscribed_ellipsoid), full iff contact-point characterization (isJohnPosition_iff_john_decomposition), and Loewner minimal enclosing ellipsoid minimality & uniqueness all proved."
     - source: "Dvoretzky-Rogers Lemma & Banach-Mazur Compactum (Ball Lec. 4)"
       lean: "ConvexGeom.dvoretzky_rogers_lemma"
       module: "ConvexGeom.Asymptotic.JohnEllipsoid"
