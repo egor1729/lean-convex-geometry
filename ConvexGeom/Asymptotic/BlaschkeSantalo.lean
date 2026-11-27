@@ -27,41 +27,42 @@ import Mathlib.Topology.Semicontinuity.Basic
 # Blaschke–Santaló Inequality and Urysohn's Inequality
 
 This module establishes arbitrary-direction Steiner symmetrization, the existence of the Santaló
-point, the Meyer–Pajor (1990) slice proof of the **Blaschke–Santaló inequality**, and
-**Urysohn's inequality** in any nontrivial finite-dimensional real inner product space `E`
-(Ball, Lectures 2 & 5; Klartag, Lecture 5; Meyer–Pajor, *On the Blaschke–Santaló inequality*,
-Arch. Math. 55 (1990), 82–93; Artstein-Avidan–Giannopoulos–Milman, Ch. 1 & 8):
+point, the Meyer–Pajor slice proof of the Blaschke–Santaló inequality, and Urysohn's inequality
+in any nontrivial finite-dimensional real inner product space `E`.
 
-1. **Arbitrary-Direction Steiner Symmetrization:**
-   - `orthoSplit hu : E ≃ₗᵢ[ℝ] WithLp 2 (ℝ × (ℝ ∙ u)ᗮ)` and `orthoSplitProd hu : E ≃ₗ[ℝ] ℝ × (ℝ ∙ u)ᗮ`.
-   - `steinerSymmDir hu` and `bodySteinerSymmDir hu`: reflection invariance, volume preservation,
-     monotonicity, preservation of centered balls, and commutation with orthogonal translations.
-2. **Second Moment Functional:**
-   - `secondMoment K := ∫ x in (K : Set E), ‖x‖ ^ 2`.
-   - Hausdorff continuity (`continuous_secondMoment`) via `tendsto_symmDiffVolReal_self`, and strict
-     decrease `secondMoment_bodySteinerSymmDir_lt` whenever `(interior K).Nonempty` and
-     `reflectBody hu K ≠ K`.
-3. **Polar Volume Convexity, Santaló Point, and Upper Semicontinuity:**
-   - `polarVolAt K z := volume.real (polarBody ((· - z) '' K))`: convexity and continuity on
-     `interior K`, boundary cylinder blow-up, and existence of a **Santaló point**
-     (`exists_santaloPoint`).
-   - `mahlerVolume_eq_santaloMahlerVolume_of_isOriginSymmetric`: `0` is a Santaló point for any
-     origin-symmetric convex body.
-   - `upperSemicontinuousOn_santaloMahlerVolume`: upper semicontinuity of `santaloMahlerVolume` on
-     convex bodies with nonempty interior.
-4. **Meyer–Pajor Steiner Symmetrization Inequality (`santaloMahlerVolume_le_bodySteinerSymmDir`):**
-   - Choosing the hyperplane shift `t₀` by IVT so that the positive and negative half-volumes of
-     `(K - t₀ • u)°` match, then coupling the positive and negative slices by quantile matching,
-     Brunn–Minkowski in `u⊥`, weighted AM–GM, and 1D change of variables.
-5. **The Blaschke–Santaló Inequality (`blaschke_santalo`, `blaschke_santalo_symmetric`):**
-   - For every convex body `K : ConvexBody E` with nonempty interior:
-     $$\mathcal{P}^*(K) = \inf_{z \in \mathrm{int}(K)} \mathrm{vol}(K)\,\mathrm{vol}((K - z)^\circ)
-       \le \mathrm{vol}(\overline{B}(0, 1))^2.$$
-   - For every origin-symmetric `K` with `0 ∈ interior K`:
-     $$\mathrm{vol}(K)\,\mathrm{vol}(K^\circ) \le \mathrm{vol}(\overline{B}(0, 1))^2.$$
-6. **Urysohn's Inequality (`urysohn_inequality`):**
-   - For every `K : ConvexBody E` (with or without interior points):
-     $$\left(\frac{\mathrm{vol}(K)}{\mathrm{vol}(\overline{B}(0, 1))}\right)^{1/d} \le w(K).$$
+## Main definitions
+
+* `ConvexGeom.orthoHyperplane`: the orthogonal hyperplane `(ℝ ∙ u)ᗮ`.
+* `ConvexGeom.steinerSymmDir`, `ConvexGeom.bodySteinerSymmDir`: arbitrary-direction Steiner
+  symmetrization across `u⊥`.
+* `ConvexGeom.secondMoment`: second moment `∫ x in (K : Set E), ‖x‖ ^ 2`.
+* `ConvexGeom.polarVolAt`: polar volume functional `z ↦ volume.real (polarBody ((· - z) '' K))`.
+
+## Main statements
+
+* `ConvexGeom.reflectBody_bodySteinerSymmDir`, `ConvexGeom.volume_bodySteinerSymmDir`,
+  `ConvexGeom.bodySteinerSymmDir_mono`: core properties of arbitrary-direction Steiner
+  symmetrization.
+* `ConvexGeom.continuous_secondMoment`, `ConvexGeom.secondMoment_bodySteinerSymmDir_lt`:
+  Hausdorff continuity and strict decrease of the second moment under Steiner symmetrization.
+* `ConvexGeom.exists_santaloPoint`,
+  `ConvexGeom.mahlerVolume_eq_santaloMahlerVolume_of_isOriginSymmetric`,
+  `ConvexGeom.upperSemicontinuousOn_santaloMahlerVolume`: Santaló point existence and upper
+  semicontinuity of the Santaló Mahler volume.
+* `ConvexGeom.santaloMahlerVolume_le_bodySteinerSymmDir`: Meyer–Pajor inequality
+  `𝒫*(K) ≤ 𝒫*(S_u K)`.
+* `ConvexGeom.blaschke_santalo`, `ConvexGeom.blaschke_santalo_symmetric`: general and
+  origin-symmetric Blaschke–Santaló inequalities.
+* `ConvexGeom.urysohn_inequality`: Urysohn's volume–mean-width inequality.
+
+## References
+
+* M. Meyer and A. Pajor, *On the Blaschke–Santaló inequality*, Arch. Math. 55 (1990), 82–93
+  [meyerpajor1990].
+* K. Ball, *An Elementary Introduction to Modern Convex Geometry*, Lectures 2 & 5 [ball1997].
+* R. Schneider, *Convex Bodies: The Brunn–Minkowski Theory* [schneider2014].
+* S. Artstein-Avidan, A. Giannopoulos, and V. D. Milman, *Asymptotic Geometric Analysis, Part I*
+  [agm2015].
 -/
 
 open MeasureTheory Set Metric Filter Topology
@@ -94,7 +95,7 @@ lemma mem_orthoHyperplane_iff {u x : E} :
 
 /-- Explicit linear isometry splitting `E ≃ₗᵢ[ℝ] WithLp 2 (ℝ × (ℝ ∙ u)ᗮ)` along a unit vector
 `u : E` (`‖u‖ = 1`). -/
-noncomputable def orthoSplit {u : E} (hu : ‖u‖ = 1) :
+private noncomputable def orthoSplit {u : E} (hu : ‖u‖ = 1) :
     E ≃ₗᵢ[ℝ] WithLp 2 (ℝ × orthoHyperplane u) where
   toFun x := WithLp.toLp 2 (⟪x, u⟫, ⟨x - ⟪x, u⟫ • u, by
     rw [mem_orthoHyperplane_iff, inner_sub_left, inner_smul_left, RCLike.conj_to_real,
@@ -140,34 +141,34 @@ noncomputable def orthoSplit {u : E} (hu : ‖u‖ = 1) :
 
 /-- Coordinate-splitting linear equivalence `E ≃ₗ[ℝ] ℝ × (ℝ ∙ u)ᗮ` (for interfacing with
 `steinerSymm` on `ℝ × H`). -/
-noncomputable def orthoSplitProd {u : E} (hu : ‖u‖ = 1) :
+private noncomputable def orthoSplitProd {u : E} (hu : ‖u‖ = 1) :
     E ≃ₗ[ℝ] ℝ × orthoHyperplane u :=
   (orthoSplit hu).toLinearEquiv.trans (WithLp.linearEquiv 2 ℝ (ℝ × orthoHyperplane u))
 
-lemma orthoSplitProd_apply {u : E} (hu : ‖u‖ = 1) (x : E) :
+private lemma orthoSplitProd_apply {u : E} (hu : ‖u‖ = 1) (x : E) :
     orthoSplitProd hu x = (⟪x, u⟫, ⟨x - ⟪x, u⟫ • u, by
       rw [mem_orthoHyperplane_iff, inner_sub_left, inner_smul_left, RCLike.conj_to_real,
         real_inner_self_eq_norm_sq, hu, one_pow, mul_one, sub_self]⟩) := by
   simp [orthoSplitProd, orthoSplit]
 
-lemma orthoSplitProd_symm_apply {u : E} (hu : ‖u‖ = 1) (p : ℝ × orthoHyperplane u) :
+private lemma orthoSplitProd_symm_apply {u : E} (hu : ‖u‖ = 1) (p : ℝ × orthoHyperplane u) :
     (orthoSplitProd hu).symm p = p.1 • u + (p.2 : E) := by
   simp [orthoSplitProd, orthoSplit]
 
-lemma orthoSplitProd_norm_sq {u : E} (hu : ‖u‖ = 1) (x : E) :
+private lemma orthoSplitProd_norm_sq {u : E} (hu : ‖u‖ = 1) (x : E) :
     ‖x‖ ^ 2 = (orthoSplitProd hu x).1 ^ 2 + ‖(orthoSplitProd hu x).2‖ ^ 2 := by
   have h := congrArg (fun r : ℝ => r ^ 2) ((orthoSplit hu).norm_map x)
   rw [WithLp.prod_norm_sq_eq_of_L2] at h
   simpa [orthoSplitProd_apply, orthoSplit, Real.norm_eq_abs, sq_abs] using h.symm
 
-lemma orthoSplitProd_inner {u : E} (hu : ‖u‖ = 1) (x y : E) :
+private lemma orthoSplitProd_inner {u : E} (hu : ‖u‖ = 1) (x y : E) :
     ⟪x, y⟫ = (orthoSplitProd hu x).1 * (orthoSplitProd hu y).1 +
       ⟪(orthoSplitProd hu x).2, (orthoSplitProd hu y).2⟫ := by
   have h := (orthoSplit hu).inner_map_map x y
   rw [WithLp.prod_inner_apply] at h
   simpa [orthoSplitProd_apply, orthoSplit, RCLike.inner_apply, mul_comm] using h.symm
 
-lemma orthoSplitProd_reflectHyperplane {u : E} (hu : ‖u‖ = 1) (x : E) :
+private lemma orthoSplitProd_reflectHyperplane {u : E} (hu : ‖u‖ = 1) (x : E) :
     orthoSplitProd hu (reflectHyperplane hu x) =
       (-(orthoSplitProd hu x).1, (orthoSplitProd hu x).2) := by
   have huu : ⟪u, u⟫ = 1 := by rw [real_inner_self_eq_norm_sq, hu, one_pow]
@@ -183,7 +184,7 @@ lemma orthoSplitProd_reflectHyperplane {u : E} (hu : ‖u‖ = 1) (x : E) :
     rw [h2]; abel
 
 /-- `orthoSplitProd hu` as a homeomorphism `E ≃ₜ ℝ × orthoHyperplane u`. -/
-noncomputable def orthoSplitHomeomorph {u : E} (hu : ‖u‖ = 1) :
+private noncomputable def orthoSplitHomeomorph {u : E} (hu : ‖u‖ = 1) :
     E ≃ₜ ℝ × orthoHyperplane u where
   toEquiv := (orthoSplitProd hu).toEquiv
   continuous_toFun := by
@@ -205,22 +206,22 @@ noncomputable def orthoSplitHomeomorph {u : E} (hu : ‖u‖ = 1) :
     rw [heq]
     exact (continuous_fst.smul continuous_const).add (continuous_subtype_val.comp continuous_snd)
 
-lemma orthoSplitHomeomorph_coe {u : E} (hu : ‖u‖ = 1) (x : E) :
+private lemma orthoSplitHomeomorph_coe {u : E} (hu : ‖u‖ = 1) (x : E) :
     orthoSplitHomeomorph hu x = orthoSplitProd hu x := by
   simp [orthoSplitHomeomorph]
 
-lemma orthoSplitHomeomorph_symm_coe {u : E} (hu : ‖u‖ = 1) (p : ℝ × orthoHyperplane u) :
+private lemma orthoSplitHomeomorph_symm_coe {u : E} (hu : ‖u‖ = 1) (p : ℝ × orthoHyperplane u) :
     (orthoSplitHomeomorph hu).symm p = (orthoSplitProd hu).symm p := by
   simp [orthoSplitHomeomorph]
 
-lemma continuous_orthoSplitProd {u : E} (hu : ‖u‖ = 1) :
+private lemma continuous_orthoSplitProd {u : E} (hu : ‖u‖ = 1) :
     Continuous (orthoSplitProd hu) := by
   have heq : (orthoSplitProd hu : E → ℝ × orthoHyperplane u) = orthoSplitHomeomorph hu :=
     funext fun x => (orthoSplitHomeomorph_coe hu x).symm
   rw [heq]
   exact (orthoSplitHomeomorph hu).continuous
 
-lemma measurableEmbedding_orthoSplitProd [MeasurableSpace E] [BorelSpace E]
+private lemma measurableEmbedding_orthoSplitProd [MeasurableSpace E] [BorelSpace E]
     {u : E} (hu : ‖u‖ = 1) :
     MeasurableEmbedding (orthoSplitProd hu) := by
   have heq : (orthoSplitProd hu : E → ℝ × orthoHyperplane u) = orthoSplitHomeomorph hu :=
@@ -228,8 +229,8 @@ lemma measurableEmbedding_orthoSplitProd [MeasurableSpace E] [BorelSpace E]
   rw [heq]
   exact (orthoSplitHomeomorph hu).measurableEmbedding
 
-lemma measurePreserving_orthoSplitProd [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
-    {u : E} (hu : ‖u‖ = 1) :
+private lemma measurePreserving_orthoSplitProd [FiniteDimensional ℝ E] [MeasurableSpace E]
+    [BorelSpace E] {u : E} (hu : ‖u‖ = 1) :
     MeasurePreserving (orthoSplitProd hu) (volume : Measure E)
       (volume : Measure (ℝ × orthoHyperplane u)) :=
   (WithLp.volume_preserving_ofLp (U := ℝ) (V := orthoHyperplane u)).comp
@@ -237,17 +238,45 @@ lemma measurePreserving_orthoSplitProd [FiniteDimensional ℝ E] [MeasurableSpac
 
 /-- **Arbitrary-direction Steiner symmetrization** of `S ⊆ E` across the hyperplane `u⊥`:
 conjugates `steinerSymm` on `ℝ × u⊥` by `orthoSplitProd hu`. -/
-@[expose]
 noncomputable def steinerSymmDir {u : E} (hu : ‖u‖ = 1) (S : Set E) : Set E :=
   (orthoSplitProd hu) ⁻¹' steinerSymm (orthoSplitProd hu '' S)
 
-lemma mem_steinerSymmDir_iff {u : E} (hu : ‖u‖ = 1) {S : Set E} {x : E} :
+private lemma mem_steinerSymmDir_iff {u : E} (hu : ‖u‖ = 1) {S : Set E} {x : E} :
     x ∈ steinerSymmDir hu S ↔ orthoSplitProd hu x ∈ steinerSymm (orthoSplitProd hu '' S) :=
   Iff.rfl
 
-lemma image_steinerSymmDir {u : E} (hu : ‖u‖ = 1) (S : Set E) :
+private lemma image_steinerSymmDir {u : E} (hu : ‖u‖ = 1) (S : Set E) :
     orthoSplitProd hu '' steinerSymmDir hu S = steinerSymm (orthoSplitProd hu '' S) :=
   Set.image_preimage_eq _ (orthoSplitProd hu).surjective
+
+/-- Coordinate-free membership characterization of `steinerSymmDir hu S`: `x` belongs to the
+Steiner symmetrization across `u⊥` iff the line fiber through `x` in direction `u` intersects `S`
+and `|⟪x, u⟫|` is at most half the fiber span. -/
+lemma mem_steinerSymmDir {u : E} (hu : ‖u‖ = 1) {S : Set E} {x : E} :
+    x ∈ steinerSymmDir hu S ↔
+      let F : Set ℝ := {t : ℝ | t • u + (x - ⟪x, u⟫ • u) ∈ S}
+      F.Nonempty ∧ |⟪x, u⟫| ≤ (sSup F - sInf F) / 2 := by
+  have hfib : steinerFiber (orthoSplitProd hu '' S) (orthoSplitProd hu x).2 =
+      {t : ℝ | t • u + (x - ⟪x, u⟫ • u) ∈ S} := by
+    ext t
+    simp only [steinerFiber, mem_ofPred_eq, mem_image]
+    constructor
+    · rintro ⟨z, hz, hzp⟩
+      have hzs : z = (orthoSplitProd hu).symm (t, (orthoSplitProd hu x).2) := by
+        rw [← hzp, (orthoSplitProd hu).symm_apply_apply]
+      rw [orthoSplitProd_symm_apply, orthoSplitProd_apply] at hzs
+      rwa [← hzs]
+    · intro ht
+      refine ⟨t • u + (x - ⟪x, u⟫ • u), ht, ?_⟩
+      have heq : t • u + (x - ⟪x, u⟫ • u) =
+          (orthoSplitProd hu).symm (t, (orthoSplitProd hu x).2) := by
+        rw [orthoSplitProd_symm_apply, orthoSplitProd_apply]
+      rw [heq, (orthoSplitProd hu).apply_symm_apply]
+  change (steinerFiber (orthoSplitProd hu '' S) (orthoSplitProd hu x).2).Nonempty ∧
+      |(orthoSplitProd hu x).1| ≤
+        (sSup (steinerFiber (orthoSplitProd hu '' S) (orthoSplitProd hu x).2) -
+          sInf (steinerFiber (orthoSplitProd hu '' S) (orthoSplitProd hu x).2)) / 2 ↔ _
+  rw [hfib, orthoSplitProd_apply]
 
 /-- Bundled arbitrary-direction Steiner symmetrization on `ConvexBody E`. -/
 noncomputable def bodySteinerSymmDir {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) : ConvexBody E where
@@ -1520,6 +1549,421 @@ private lemma volumeIoiPow_apply_Iic (n : ℕ) (x : Ioi (0 : ℝ)) :
   rw [← Set.Iio_union_right, measure_union (Set.disjoint_singleton_right.mpr self_notMem_Iio)
     (measurableSet_singleton x), hsingle, add_zero, Measure.volumeIoiPow_apply_Iio]
 
+/-- Spherical polar volume formula for the intersection of `(K - z)°` with the positive cone over a
+measurable subset `s ⊆ S^{d-1}` when `z ∈ interior K`. -/
+private lemma polarBody_cone_volumeReal [Nontrivial E] (K : ConvexBody E) {z : E}
+    (hz : z ∈ interior (K : Set E)) {s : Set (sphere (0 : E) 1)} (hs : MeasurableSet s) :
+    volume.real (polarBody ((fun x : E => x - z) '' (K : Set E)) ∩
+        {y : E | ∃ (r : ℝ) (w : sphere (0 : E) 1), 0 < r ∧ w ∈ s ∧ y = r • w.1}) =
+      volume.real (closedBall (0 : E) 1) *
+        ∫ w in s, (supportFn K w.1 - ⟪z, w.1⟫)⁻¹ ^ Module.finrank ℝ E
+          ∂(sphereProb (volume : Measure E)) := by
+  let Kt : ConvexBody E := K + bodySingleton (-z)
+  have hKt_coe : (Kt : Set E) = (fun x : E => x - z) '' (K : Set E) := coe_translate_neg K z
+  have h0t : (0 : E) ∈ interior (Kt : Set E) := hKt_coe ▸ zero_mem_interior_translate_neg hz
+  let Q : ConvexBody E := bodyPolar (Kt : Set E) h0t
+  have hQ_coe : (Q : Set E) = polarBody ((fun x : E => x - z) '' (K : Set E)) := by
+    rw [coe_bodyPolar, hKt_coe]
+  have h0Q : (0 : E) ∈ interior (Q : Set E) := by
+    rw [coe_bodyPolar]; exact zero_mem_interior_polarBody_of_isBounded Kt.isBounded
+  let cone_s : Set E := {y : E | ∃ (r : ℝ) (w : sphere (0 : E) 1), 0 < r ∧ w ∈ s ∧ y = r • w.1}
+  have hcone_eq : (Q : Set E) ∩ cone_s =
+      Subtype.val '' ((homeomorphUnitSphereProd E) ⁻¹'
+        {p : sphere (0 : E) 1 × Ioi (0 : ℝ) | p.1 ∈ s ∧ (p.2 : ℝ) ≤ (gauge (Q : Set E) p.1.1)⁻¹}) := by
+    ext y
+    simp only [mem_inter_iff, cone_s, mem_ofPred_eq, mem_image, mem_preimage]
+    constructor
+    · rintro ⟨hyQ, r, w, hr, hws, rfl⟩
+      have hy0 : r • w.1 ∈ ({0}ᶜ : Set E) :=
+        Set.mem_compl_singleton_iff.mpr (smul_ne_zero hr.ne' (ne_of_mem_sphere w.2 one_ne_zero))
+      refine ⟨⟨r • w.1, hy0⟩, ?_, rfl⟩
+      have hpol_eq : homeomorphUnitSphereProd E ⟨r • w.1, hy0⟩ = (w, ⟨r, hr⟩) := by
+        have h : (homeomorphUnitSphereProd E).symm (w, ⟨r, hr⟩) = ⟨r • w.1, hy0⟩ := Subtype.ext rfl
+        rw [← h, (homeomorphUnitSphereProd E).apply_symm_apply]
+      rw [hpol_eq]
+      refine ⟨hws, ?_⟩
+      have hg_pos : 0 < gauge (Q : Set E) w.1 := gauge_pos_of_mem_sphere Q h0Q w.2
+      have hle1 : gauge (Q : Set E) (r • w.1) ≤ 1 := gauge_le_one_of_mem hyQ
+      rw [gauge_smul_of_nonneg hr.le, smul_eq_mul] at hle1
+      rw [inv_eq_one_div, le_div_iff₀ hg_pos]
+      exact hle1
+    · rintro ⟨⟨x, hx0⟩, ⟨hws, hr_le⟩, rfl⟩
+      set w : sphere (0 : E) 1 := (homeomorphUnitSphereProd E ⟨x, hx0⟩).1
+      set r : ℝ := ((homeomorphUnitSphereProd E ⟨x, hx0⟩).2 : ℝ)
+      have hr_pos : 0 < r := (homeomorphUnitSphereProd E ⟨x, hx0⟩).2.2
+      have hx_eq : x = r • w.1 := by
+        have h := (homeomorphUnitSphereProd E).symm_apply_apply ⟨x, hx0⟩
+        exact (congrArg Subtype.val h).symm
+      refine ⟨?_, r, w, hr_pos, hws, hx_eq⟩
+      have hg_pos : 0 < gauge (Q : Set E) w.1 := gauge_pos_of_mem_sphere Q h0Q w.2
+      have hgle1 : gauge (Q : Set E) x ≤ 1 := by
+        rw [hx_eq, gauge_smul_of_nonneg hr_pos.le, smul_eq_mul]
+        rw [inv_eq_one_div, le_div_iff₀ hg_pos] at hr_le
+        exact hr_le
+      have hnhds : (Q : Set E) ∈ 𝓝 (0 : E) := mem_interior_iff_mem_nhds.mp h0Q
+      have htend : Tendsto (fun n : ℕ => ((n : ℝ) / ((n : ℝ) + 1)) • x) atTop (𝓝 x) := by
+        have h1 : Tendsto (fun n : ℕ => (n : ℝ) / ((n : ℝ) + 1)) atTop (𝓝 (1 : ℝ)) := by
+          have hinv : Tendsto (fun n : ℕ => ((n : ℝ) + 1)⁻¹) atTop (𝓝 (0 : ℝ)) :=
+            tendsto_inv_atTop_zero.comp (tendsto_natCast_atTop_atTop.atTop_add tendsto_const_nhds)
+          have heq : (fun n : ℕ => (n : ℝ) / ((n : ℝ) + 1)) = fun n : ℕ => 1 - ((n : ℝ) + 1)⁻¹ := by
+            ext n; field_simp [show (n : ℝ) + 1 ≠ 0 by positivity]; ring
+          rw [heq]; simpa using tendsto_const_nhds.sub hinv
+        simpa [one_smul] using h1.smul_const x
+      refine Q.isClosed.mem_of_tendsto htend (Eventually.of_forall fun n => ?_)
+      have hlt1 : gauge (Q : Set E) (((n : ℝ) / ((n : ℝ) + 1)) • x) < 1 := by
+        rw [gauge_smul_of_nonneg (by positivity), smul_eq_mul]
+        have hfrac : (n : ℝ) / ((n : ℝ) + 1) < 1 := (div_lt_one (by positivity)).mpr (by linarith)
+        calc
+          (n : ℝ) / ((n : ℝ) + 1) * gauge (Q : Set E) x
+            ≤ (n : ℝ) / ((n : ℝ) + 1) * 1 := mul_le_mul_of_nonneg_left hgle1 (by positivity)
+          _ < 1 := by linarith
+      exact interior_subset ((gauge_lt_one_iff_mem_interior Q.convex hnhds).mp hlt1)
+  set d : ℕ := Module.finrank ℝ E
+  have hd_pos : 0 < d := Module.finrank_pos
+  have hmp := (volume : Measure E).measurePreserving_homeomorphUnitSphereProd
+  have hemb : MeasurableEmbedding (Subtype.val : ({0}ᶜ : Set E) → E) :=
+    MeasurableEmbedding.subtype_coe (measurableSet_singleton (0 : E)).compl
+  let A : Set (sphere (0 : E) 1 × Ioi (0 : ℝ)) :=
+    {p | p.1 ∈ s ∧ (p.2 : ℝ) ≤ (gauge (Q : Set E) p.1.1)⁻¹}
+  have hgauge_eq : ∀ w : sphere (0 : E) 1, gauge (Q : Set E) w.1 = supportFn K w.1 - ⟪z, w.1⟫ :=
+    fun w => by
+      rw [hQ_coe, ← hKt_coe, gauge_polarBody_eq_supportFn Kt (interior_subset h0t)]
+      change supportFn (K + bodySingleton (-z)) w.1 = _
+      rw [supportFn_minkowski_add, supportFn_bodySingleton, inner_neg_left, sub_eq_add_neg]
+  have hcont_g : Continuous (fun w : sphere (0 : E) 1 => (gauge (Q : Set E) w.1)⁻¹) := by
+    simp_rw [hgauge_eq]
+    exact (((continuous_supportFn K).comp continuous_subtype_val).sub
+      (continuous_const.inner continuous_subtype_val)).inv₀ fun w =>
+        (supportFn_sub_inner_pos K hz (mem_sphere_zero_iff_norm.mp w.2)).ne'
+  have hAm : MeasurableSet A :=
+    (hs.preimage measurable_fst).inter
+      (isClosed_le (continuous_subtype_val.comp continuous_snd)
+        (hcont_g.comp continuous_fst)).measurableSet
+  have hvol_enn : volume (polarBody ((fun x : E => x - z) '' (K : Set E)) ∩ cone_s) =
+      volume (closedBall (0 : E) 1) *
+        ∫⁻ w in s, ENNReal.ofReal ((supportFn K w.1 - ⟪z, w.1⟫)⁻¹ ^ d)
+          ∂(sphereProb (volume : Measure E)) := by
+    rw [← hQ_coe, hcone_eq]
+    have hpre_m : MeasurableSet ((homeomorphUnitSphereProd E) ⁻¹' A) :=
+      hAm.preimage (homeomorphUnitSphereProd E).continuous.measurable
+    rw [← Measure.comap_apply _ Subtype.val_injective
+        (fun t ht => hemb.measurableSet_image.mpr ht) _ hpre_m,
+      hmp.measure_preimage hAm.nullMeasurableSet, Measure.prod_apply hAm]
+    have hfib : ∀ w : sphere (0 : E) 1,
+        Measure.volumeIoiPow (Module.finrank ℝ E - 1) (Prod.mk w ⁻¹' A) =
+          s.indicator (fun w => ENNReal.ofReal ((d : ℝ)⁻¹ * (gauge (Q : Set E) w.1)⁻¹ ^ d)) w :=
+      fun w => by
+        by_cases hws : w ∈ s
+        · rw [indicator_of_mem hws]
+          have hg_inv_pos : 0 < (gauge (Q : Set E) w.1)⁻¹ :=
+            inv_pos.mpr (gauge_pos_of_mem_sphere Q h0Q w.2)
+          have hpre_w : Prod.mk w ⁻¹' A =
+              Iic (⟨(gauge (Q : Set E) w.1)⁻¹, hg_inv_pos⟩ : Ioi (0 : ℝ)) := by
+            ext ⟨r, hr⟩; simp [A, hws, Subtype.mk_le_mk]
+          have hd_cast : ((d - 1 : ℕ) : ℝ) + 1 = (d : ℝ) := by
+            exact_mod_cast Nat.sub_add_cancel hd_pos
+          rw [hpre_w, volumeIoiPow_apply_Iic (d - 1), Nat.sub_add_cancel hd_pos, hd_cast]
+          congr 1; ring
+        · rw [indicator_of_notMem hws]
+          have hpre_w : Prod.mk w ⁻¹' A = ∅ := by ext ⟨r, hr⟩; simp [A, hws]
+          rw [hpre_w, measure_empty]
+    simp_rw [hfib]
+    have hsph_eq : (volume : Measure E).toSphere =
+        ((d : ℝ≥0∞) * volume (closedBall (0 : E) 1)) • sphereProb (volume : Measure E) := by
+      rw [sphereProb, Measure.toSphere_apply_univ,
+        Measure.addHaar_closedBall_eq_addHaar_ball volume (0 : E) 1, smul_smul]
+      have hpos : (d : ℝ≥0∞) * volume (ball (0 : E) 1) ≠ 0 :=
+        mul_ne_zero (Nat.cast_ne_zero.mpr hd_pos.ne')
+          (isOpen_ball.measure_pos volume ⟨0, mem_ball_self zero_lt_one⟩).ne'
+      have hfin : (d : ℝ≥0∞) * volume (ball (0 : E) 1) ≠ ⊤ :=
+        ENNReal.mul_ne_top (ENNReal.natCast_ne_top _)
+          ((measure_mono ball_subset_closedBall).trans_lt
+            (isCompact_closedBall (0 : E) 1).measure_lt_top).ne
+      rw [ENNReal.mul_inv_cancel hpos hfin, one_smul]
+    rw [hsph_eq, lintegral_smul_measure, smul_eq_mul, lintegral_indicator hs]
+    have hfactor : ∀ w : sphere (0 : E) 1,
+        ENNReal.ofReal ((d : ℝ)⁻¹ * (gauge (Q : Set E) w.1)⁻¹ ^ d) =
+          (d : ℝ≥0∞)⁻¹ * ENNReal.ofReal ((supportFn K w.1 - ⟪z, w.1⟫)⁻¹ ^ d) := fun w => by
+      rw [hgauge_eq w, ENNReal.ofReal_mul (by positivity),
+        ENNReal.ofReal_inv_of_pos (Nat.cast_pos.mpr hd_pos), ENNReal.ofReal_natCast]
+    simp_rw [hfactor]
+    rw [lintegral_const_mul' (d : ℝ≥0∞)⁻¹ _
+        (ENNReal.inv_ne_top.mpr (Nat.cast_ne_zero.mpr hd_pos.ne')),
+      mul_comm (d : ℝ≥0∞) (volume (closedBall (0 : E) 1)),
+      mul_assoc (volume (closedBall (0 : E) 1)), ← mul_assoc (d : ℝ≥0∞),
+      ENNReal.mul_inv_cancel (Nat.cast_ne_zero.mpr hd_pos.ne') (ENNReal.natCast_ne_top _), one_mul]
+  have hint_s : IntegrableOn (fun w : sphere (0 : E) 1 => (supportFn K w.1 - ⟪z, w.1⟫)⁻¹ ^ d)
+      s (sphereProb (volume : Measure E)) := by
+    have hcont : Continuous (fun w : sphere (0 : E) 1 => (supportFn K w.1 - ⟪z, w.1⟫)⁻¹ ^ d) := by
+      convert hcont_g.pow d using 1
+      ext w; simp [hgauge_eq]
+    exact (hcont.integrable_of_hasCompactSupport (HasCompactSupport.of_compactSpace _)).integrableOn
+  have hnn : 0 ≤ᵐ[(sphereProb (volume : Measure E)).restrict s]
+      fun w : sphere (0 : E) 1 => (supportFn K w.1 - ⟪z, w.1⟫)⁻¹ ^ d :=
+    ae_of_all _ fun w =>
+      pow_nonneg (inv_nonneg.mpr (supportFn_sub_inner_pos K hz (mem_sphere_zero_iff_norm.mp w.2)).le) d
+  rw [Measure.real, hvol_enn, ← ofReal_integral_eq_lintegral_ofReal hint_s hnn, ENNReal.toReal_mul,
+    ENNReal.toReal_ofReal (setIntegral_nonneg hs fun w _ =>
+      pow_nonneg (inv_nonneg.mpr
+        (supportFn_sub_inner_pos K hz (mem_sphere_zero_iff_norm.mp w.2)).le) d)]
+  rfl
+
+/-- Continuity of the spherical polar cone-volume integral along an interior line segment
+`t ↦ t • u` via Dominated Convergence. -/
+private lemma continuousOn_polarBody_cone_volumeReal [Nontrivial E]
+    {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) {a₀ b₀ : ℝ}
+    (hint_t : ∀ t ∈ Ioo a₀ b₀, t • u ∈ interior (K : Set E))
+    {s : Set (sphere (0 : E) 1)} :
+    ContinuousOn (fun t : ℝ =>
+      volume.real (closedBall (0 : E) 1) *
+        ∫ w in s, (supportFn K w.1 - t * ⟪u, w.1⟫)⁻¹ ^ Module.finrank ℝ E
+          ∂(sphereProb (volume : Measure E))) (Ioo a₀ b₀) := by
+  rw [continuousOn_iff_continuous_domRestrict, continuous_iff_continuousAt]
+  rintro ⟨t, ht⟩
+  obtain ⟨r₁, hr₁_pos, hball_t⟩ :=
+    Metric.mem_nhds_iff.mp (mem_interior_iff_mem_nhds.mp (hint_t t ht))
+  set δ : ℝ := min (r₁ / 4) (min ((t - a₀) / 2) ((b₀ - t) / 2))
+  have hδ_pos : 0 < δ := lt_min (by positivity) (lt_min (by linarith [ht.1]) (by linarith [ht.2]))
+  have hsup_lb : ∀ t' : ℝ, |t' - t| < δ → ∀ w : sphere (0 : E) 1,
+      r₁ / 4 ≤ supportFn K w.1 - t' * ⟪u, w.1⟫ := fun t' htt' w => by
+    have hw1 : ‖w.1‖ = 1 := mem_sphere_zero_iff_norm.mp w.2
+    have hmem : t • u + (r₁ / 2) • w.1 ∈ (K : Set E) := hball_t (by
+      rw [mem_ball, dist_eq_norm, add_sub_cancel_left, norm_smul, Real.norm_eq_abs,
+        abs_of_pos (half_pos hr₁_pos), hw1, mul_one]; exact half_lt_self hr₁_pos)
+    have h1 := inner_le_supportFn hmem w.1
+    rw [inner_add_left, inner_smul_left, inner_smul_left, RCLike.conj_to_real, RCLike.conj_to_real,
+      real_inner_self_eq_norm_sq, hw1, one_pow, mul_one] at h1
+    have hdiff : |(t' - t) * ⟪u, w.1⟫| ≤ r₁ / 4 := by
+      rw [abs_mul]
+      have huw : |⟪u, w.1⟫| ≤ 1 := by
+        calc
+          |⟪u, w.1⟫| ≤ ‖u‖ * ‖w.1‖ := abs_real_inner_le_norm u w.1
+          _ = 1 := by rw [hu, hw1, mul_one]
+      calc
+        |t' - t| * |⟪u, w.1⟫| ≤ δ * 1 := mul_le_mul htt'.le huw (abs_nonneg _) hδ_pos.le
+        _ = δ := mul_one δ
+        _ ≤ r₁ / 4 := min_le_left _ _
+    linarith [(abs_le.mp hdiff).2]
+  have htend_int : Tendsto
+      (fun x : Ioo a₀ b₀ =>
+        ∫ w in s, (supportFn K w.1 - x.1 * ⟪u, w.1⟫)⁻¹ ^ Module.finrank ℝ E
+          ∂(sphereProb (volume : Measure E)))
+      (𝓝 ⟨t, ht⟩)
+      (𝓝 (∫ w in s, (supportFn K w.1 - t * ⟪u, w.1⟫)⁻¹ ^ Module.finrank ℝ E
+          ∂(sphereProb (volume : Measure E)))) := by
+    refine tendsto_integral_filter_of_dominated_convergence
+      (fun _ : sphere (0 : E) 1 => (r₁ / 4)⁻¹ ^ Module.finrank ℝ E) ?_ ?_ (integrable_const _) ?_
+    · refine Eventually.of_forall fun ⟨x, hx⟩ => ?_
+      have hcont_w : Continuous (fun w : sphere (0 : E) 1 =>
+          (supportFn K w.1 - x * ⟪u, w.1⟫)⁻¹ ^ Module.finrank ℝ E) :=
+        ((((continuous_supportFn K).comp continuous_subtype_val).sub
+          (continuous_const.mul (continuous_const.inner continuous_subtype_val))).inv₀ fun w => by
+            have := supportFn_sub_inner_pos K (hint_t x hx) (mem_sphere_zero_iff_norm.mp w.2)
+            rw [inner_smul_left, RCLike.conj_to_real] at this
+            exact this.ne').pow _
+      exact hcont_w.aestronglyMeasurable
+    · have hev : ∀ᶠ x : Ioo a₀ b₀ in 𝓝 ⟨t, ht⟩, |x.1 - t| < δ := by
+        have h1 : Tendsto (fun x : Ioo a₀ b₀ => |x.1 - t|) (𝓝 ⟨t, ht⟩) (𝓝 0) := by
+          simpa using ((continuous_subtype_val.sub (continuous_const (y := t))).abs).continuousAt
+            (x := (⟨t, ht⟩ : Ioo a₀ b₀)).tendsto
+        exact h1.eventually (Iio_mem_nhds hδ_pos)
+      filter_upwards [hev] with x hx
+      exact ae_of_all _ fun w => by
+        have hlb := hsup_lb x.1 hx w
+        have hpos : 0 < supportFn K w.1 - x.1 * ⟪u, w.1⟫ := lt_of_lt_of_le (by positivity) hlb
+        rw [Real.norm_eq_abs, abs_of_nonneg (pow_nonneg (inv_nonneg.mpr hpos.le) _)]
+        exact pow_le_pow_left₀ (inv_nonneg.mpr hpos.le)
+          ((inv_le_inv₀ hpos (by positivity)).mpr hlb) _
+    · exact ae_of_all _ fun w => by
+        have hpos : 0 < supportFn K w.1 - t * ⟪u, w.1⟫ := by
+          have := supportFn_sub_inner_pos K (hint_t t ht) (mem_sphere_zero_iff_norm.mp w.2)
+          rw [inner_smul_left, RCLike.conj_to_real] at this
+          exact this
+        exact (((tendsto_const_nhds.sub
+          (continuous_subtype_val.continuousAt.tendsto.mul tendsto_const_nhds)).inv₀ hpos.ne').pow _)
+  exact htend_int.const_mul _
+
+/-- Uniform upper bound on the positive half-volume of `(K - t • v)°` when `t ≤ c` and
+`closedBall (c • v) r₁ ⊆ K`. -/
+private lemma polarBody_half_le_closedBall_of_ball_subset {K : Set E} {v : E} {c t r₁ : ℝ}
+    (hr₁_pos : 0 < r₁) (hcb : closedBall (c • v) r₁ ⊆ K) (htc : t ≤ c) :
+    volume.real (polarBody ((fun x : E => x - t • v) '' K) ∩ {y : E | 0 < ⟪y, v⟫}) ≤
+      volume.real (closedBall (0 : E) r₁⁻¹) := by
+  have hsub : polarBody ((fun x : E => x - t • v) '' K) ∩ {y : E | 0 < ⟪y, v⟫} ⊆
+      closedBall (0 : E) r₁⁻¹ := by
+    rintro y ⟨hyP, hy_pos_v⟩
+    rw [mem_closedBall_zero_iff]
+    by_cases hy0 : y = 0
+    · simp [hy0, inv_nonneg.mpr hr₁_pos.le]
+    · have hy_pos : 0 < ‖y‖ := norm_pos_iff.mpr hy0
+      let w : E := (r₁ / ‖y‖) • y
+      have hw_mem : c • v + w ∈ K := hcb (by
+        rw [mem_closedBall, dist_eq_norm, add_sub_cancel_left, norm_smul, Real.norm_eq_abs,
+          abs_of_pos (div_pos hr₁_pos hy_pos), div_mul_cancel₀ r₁ hy_pos.ne'])
+      have h1 : ⟪(c • v + w) - t • v, y⟫ ≤ 1 := hyP _ ⟨c • v + w, hw_mem, rfl⟩
+      have h2 : ⟪(c • v + w) - t • v, y⟫ = (c - t) * ⟪v, y⟫ + r₁ * ‖y‖ := by
+        rw [show (c • v + w) - t • v = (c - t) • v + w by rw [sub_smul]; abel,
+          inner_add_left, inner_smul_left, RCLike.conj_to_real]
+        congr 1
+        dsimp only [w]
+        rw [inner_smul_left, RCLike.conj_to_real, real_inner_self_eq_norm_sq]
+        field_simp [hy_pos.ne']
+      rw [h2, real_inner_comm y v] at h1
+      have hct_nonneg : 0 ≤ (c - t) * ⟪y, v⟫ := mul_nonneg (by linarith) hy_pos_v.le
+      have hr1y : r₁ * ‖y‖ ≤ 1 := by linarith
+      rw [inv_eq_one_div, le_div_iff₀ hr₁_pos]
+      linarith
+  exact measureReal_mono hsub (isCompact_closedBall _ _).measure_lt_top.ne
+
+/-- **Half-Space Cylinder Blow-Up:** near a boundary endpoint `b • v ∈ frontier K` of an interior
+segment `(a, b) • v ⊆ interior K`, the positive half-volume of `(K - t • v)°` exceeds any
+prescribed threshold `B + 1`. -/
+private lemma exists_polar_halfVol_ge_of_dir [Nontrivial E]
+    {v : E} (hv : ‖v‖ = 1) (K : ConvexBody E) {a b c r₁ : ℝ}
+    (hc : c ∈ Ioo a b) (hr₁_pos : 0 < r₁) (hcb : closedBall (c • v) r₁ ⊆ (K : Set E))
+    (hint_t : ∀ t ∈ Ioo a b, t • v ∈ interior (K : Set E))
+    (hb_fr : b • v ∈ frontier (K : Set E)) {B : ℝ} (hB : 0 ≤ B) :
+    ∃ t ∈ Ioo c b,
+      B + 1 ≤ volume.real (polarBody ((fun x : E => x - t • v) '' (K : Set E)) ∩
+        {y : E | 0 < ⟪y, v⟫}) := by
+  obtain ⟨R₀, hKR₀⟩ := K.isBounded.subset_closedBall (0 : E)
+  set M : ℝ := max R₀ 1 + max |a| |b| + 1
+  have hM_pos : 0 < M := by positivity
+  have hKt_bdd : ∀ t ∈ Icc a b, (fun x : E => x - t • v) '' (K : Set E) ⊆ closedBall (0 : E) M := by
+    rintro t ht _ ⟨x, hxK, rfl⟩
+    rw [mem_closedBall_zero_iff]
+    have hxR : ‖x‖ ≤ max R₀ 1 := (mem_closedBall_zero_iff.mp (hKR₀ hxK)).trans (le_max_left _ _)
+    have ht_bd : |t| ≤ max |a| |b| := by
+      rcases le_total 0 t with ht0 | ht0
+      · rw [abs_of_nonneg ht0]; exact (ht.2.trans (le_abs_self b)).trans (le_max_right _ _)
+      · rw [abs_of_nonpos ht0]
+        exact ((by linarith [ht.1] : -t ≤ -a).trans (neg_le_abs a)).trans (le_max_left _ _)
+    calc
+      ‖x - t • v‖ ≤ ‖x‖ + ‖t • v‖ := norm_sub_le x (t • v)
+      _ = ‖x‖ + |t| := by rw [norm_smul, Real.norm_eq_abs, hv, mul_one]
+      _ ≤ M := by dsimp only [M]; linarith
+  obtain ⟨n, hn, hsup_n⟩ := exists_unit_supportFn_eq_of_mem_frontier K hb_fr
+  have hn_v_pos : 0 < ⟪n, v⟫ := by
+    have hmem_c : c • v + (r₁ / 2) • n ∈ (K : Set E) := hcb (by
+      rw [mem_closedBall, dist_eq_norm, add_sub_cancel_left, norm_smul, Real.norm_eq_abs,
+        abs_of_pos (half_pos hr₁_pos), hn, mul_one]; exact half_le_self hr₁_pos.le)
+    have h1 := inner_le_supportFn hmem_c n
+    rw [hsup_n, inner_add_left, inner_smul_left, inner_smul_left, inner_smul_left,
+      RCLike.conj_to_real, RCLike.conj_to_real, RCLike.conj_to_real,
+      real_inner_self_eq_norm_sq, hn, one_pow, mul_one, real_inner_comm n v] at h1
+    have hbc : 0 < b - c := by linarith [hc.2]
+    nlinarith
+  set cN : ℝ := volume.real (closedBall (0 : orthoHyperplane n) (2 * M)⁻¹)
+  have hcN_pos : 0 < cN := by
+    dsimp only [cN]
+    rw [Measure.real, ENNReal.toReal_pos_iff]
+    exact ⟨(isOpen_ball.measure_pos volume ⟨0, mem_ball_self (by positivity)⟩).trans_le
+        (measure_mono ball_subset_closedBall),
+      (isCompact_closedBall _ _).measure_lt_top⟩
+  set δ₀ : ℝ := min ((b - c) / 2) (min (M / 4) (cN / (4 * (B + 1) * ⟪n, v⟫)))
+  have hδ₀_pos : 0 < δ₀ :=
+    lt_min (by linarith [hc.2]) (lt_min (by positivity) (by positivity))
+  set t : ℝ := b - δ₀
+  have ht_c : c < t := by
+    have : δ₀ ≤ (b - c) / 2 := min_le_left _ _
+    dsimp only [t]; linarith [hc.2]
+  have ht_b : t < b := by dsimp only [t]; linarith
+  have ht_ab : t ∈ Ioo a b := ⟨hc.1.trans ht_c, ht_b⟩
+  refine ⟨t, ⟨ht_c, ht_b⟩, ?_⟩
+  set ε : ℝ := δ₀ * ⟪n, v⟫
+  have hε_pos : 0 < ε := mul_pos hδ₀_pos hn_v_pos
+  let Φn := orthoSplitProd hn
+  let C : Set (ℝ × orthoHyperplane n) :=
+    Icc (1 / (4 * ε)) (1 / (2 * ε)) ×ˢ closedBall (0 : orthoHyperplane n) (2 * M)⁻¹
+  have hC_sub : Φn ⁻¹' C ⊆
+      polarBody ((fun x : E => x - t • v) '' (K : Set E)) ∩ {y : E | 0 < ⟪y, v⟫} := by
+    intro y hy
+    have hs_lo : 1 / (4 * ε) ≤ (Φn y).1 := hy.1.1
+    have hs_hi : (Φn y).1 ≤ 1 / (2 * ε) := hy.1.2
+    have hw : ‖(Φn y).2‖ ≤ (2 * M)⁻¹ := mem_closedBall_zero_iff.mp hy.2
+    constructor
+    · rintro _ ⟨x, hxK, rfl⟩
+      have hx_n : (Φn (x - t • v)).1 ≤ ε := by
+        simp only [Φn, orthoSplitProd_apply]
+        rw [inner_sub_left, inner_smul_left, RCLike.conj_to_real]
+        have h1 := inner_le_supportFn hxK n
+        rw [hsup_n, inner_smul_left, RCLike.conj_to_real] at h1
+        rw [real_inner_comm n v] at h1 ⊢
+        dsimp only [ε, t]; linarith
+      have hx_M : ‖(Φn (x - t • v)).2‖ ≤ M := by
+        have hsq : ‖x - t • v‖ ^ 2 = (Φn (x - t • v)).1 ^ 2 + ‖(Φn (x - t • v)).2‖ ^ 2 :=
+          orthoSplitProd_norm_sq hn (x - t • v)
+        have hnorm : ‖x - t • v‖ ≤ M :=
+          mem_closedBall_zero_iff.mp (hKt_bdd t ⟨ht_ab.1.le, ht_ab.2.le⟩ ⟨x, hxK, rfl⟩)
+        have hnorm_sq : ‖x - t • v‖ ^ 2 ≤ M ^ 2 := pow_le_pow_left₀ (norm_nonneg _) hnorm 2
+        have h1 : ‖(Φn (x - t • v)).2‖ ^ 2 ≤ M ^ 2 := by linarith [sq_nonneg (Φn (x - t • v)).1]
+        exact le_of_sq_le_sq h1 hM_pos.le
+      rw [orthoSplitProd_inner hn (x - t • v) y]
+      have h1 : (Φn (x - t • v)).1 * (Φn y).1 ≤ 1 / 2 := by
+        have hs_nn : 0 ≤ (Φn y).1 := (by positivity : (0 : ℝ) ≤ 1 / (4 * ε)).trans hs_lo
+        calc
+          (Φn (x - t • v)).1 * (Φn y).1 ≤ ε * (Φn y).1 := mul_le_mul_of_nonneg_right hx_n hs_nn
+          _ ≤ ε * (1 / (2 * ε)) := mul_le_mul_of_nonneg_left hs_hi hε_pos.le
+          _ = 1 / 2 := by field_simp [hε_pos.ne']
+      have h2 : ⟪(Φn (x - t • v)).2, (Φn y).2⟫ ≤ 1 / 2 := by
+        calc
+          ⟪(Φn (x - t • v)).2, (Φn y).2⟫ ≤ ‖(Φn (x - t • v)).2‖ * ‖(Φn y).2‖ :=
+            real_inner_le_norm _ _
+          _ ≤ M * (2 * M)⁻¹ := mul_le_mul hx_M hw (norm_nonneg _) hM_pos.le
+          _ = 1 / 2 := by field_simp [hM_pos.ne']
+      linarith
+    · have hy_eq : y = (Φn y).1 • n + ((Φn y).2 : E) := by
+        have := Φn.symm_apply_apply y
+        dsimp only [Φn] at this
+        rw [orthoSplitProd_symm_apply] at this
+        exact this.symm
+      change 0 < ⟪y, v⟫
+      rw [hy_eq, inner_add_left, inner_smul_left, RCLike.conj_to_real]
+      have hwu : |⟪((Φn y).2 : E), v⟫| ≤ (2 * M)⁻¹ := by
+        calc
+          |⟪((Φn y).2 : E), v⟫| ≤ ‖((Φn y).2 : E)‖ * ‖v‖ := abs_real_inner_le_norm _ _
+          _ ≤ (2 * M)⁻¹ * 1 := by rw [hv]; exact mul_le_mul_of_nonneg_right hw zero_le_one
+          _ = (2 * M)⁻¹ := mul_one _
+      have hmain : (2 * M)⁻¹ < (Φn y).1 * ⟪n, v⟫ := by
+        have h1 : (2 * M)⁻¹ < (1 / (4 * ε)) * ⟪n, v⟫ := by
+          have heq : (1 / (4 * ε)) * ⟪n, v⟫ = (4 * δ₀)⁻¹ := by
+            dsimp only [ε]; field_simp [hδ₀_pos.ne', hn_v_pos.ne']
+          rw [heq]
+          have h4δ : 4 * δ₀ < 2 * M := by
+            have : δ₀ ≤ M / 4 := (min_le_right _ _).trans (min_le_left _ _)
+            linarith
+          exact (inv_lt_inv₀ (by positivity) (by positivity)).mpr h4δ
+        exact h1.trans_le (mul_le_mul_of_nonneg_right hs_lo hn_v_pos.le)
+      linarith [(abs_le.mp hwu).1]
+  have hC_meas : MeasurableSet C := measurableSet_Icc.prod measurableSet_closedBall
+  have hmpn := measurePreserving_orthoSplitProd hn
+  have hvol_C : volume (Φn ⁻¹' C) = ENNReal.ofReal (cN / (4 * ε)) := by
+    rw [hmpn.measure_preimage hC_meas.nullMeasurableSet, Measure.volume_eq_prod, Measure.prod_prod,
+      Real.volume_Icc,
+      show 1 / (2 * ε) - 1 / (4 * ε) = 1 / (4 * ε) by field_simp [hε_pos.ne']; ring,
+      ← ENNReal.ofReal_toReal (isCompact_closedBall _ _).measure_lt_top.ne,
+      ← ENNReal.ofReal_mul (by positivity)]
+    congr 1
+    change 1 / (4 * ε) * cN = cN / (4 * ε)
+    ring
+  have hfin_pos :
+      volume (polarBody ((fun x : E => x - t • v) '' (K : Set E)) ∩ {y : E | 0 < ⟪y, v⟫}) ≠ ⊤ :=
+    ((measure_mono inter_subset_left).trans_lt
+      (isCompact_polarBody_of_zero_mem_interior
+        (zero_mem_interior_translate_neg (hint_t t ht_ab))).measure_lt_top).ne
+  have hpos_ge : cN / (4 * ε) ≤
+      volume.real (polarBody ((fun x : E => x - t • v) '' (K : Set E)) ∩ {y : E | 0 < ⟪y, v⟫}) := by
+    rw [Measure.real]
+    have h1 := ENNReal.toReal_mono hfin_pos (hvol_C ▸ measure_mono hC_sub)
+    rwa [ENNReal.toReal_ofReal (by positivity)] at h1
+  have hge_B : B + 1 ≤ cN / (4 * ε) := by
+    have hδ_le : δ₀ ≤ cN / (4 * (B + 1) * ⟪n, v⟫) :=
+      (min_le_right _ _).trans (min_le_right _ _)
+    rw [le_div_iff₀ (by positivity)]
+    have hmul := (le_div_iff₀ (by positivity : (0 : ℝ) < 4 * (B + 1) * ⟪n, v⟫)).mp hδ_le
+    dsimp only [ε]; linarith
+  exact hge_B.trans hpos_ge
+
 /-- **Balanced Half-Volume Shift (Meyer–Pajor IVT Step):**
 under the hypotheses of `mem_interior_along_fiber_of_zero_mem_interior_steinerSymmDir`, there
 exists `t₀ ∈ Ioo a₀ b₀` such that the positive and negative half-volumes of `(K - t₀ • u)°` across
@@ -1535,189 +1979,28 @@ private lemma exists_balanced_polar_slice_shift
   let H := orthoHyperplane u
   let Φ := orthoSplitProd hu
   let K' : Set (ℝ × H) := Φ '' (K : Set E)
+  have hK'c : IsCompact K' := K.isCompact.image (continuous_orthoSplitProd hu)
   have hfib := mem_interior_along_fiber_of_zero_mem_interior_steinerSymmDir hu K h0S
   set a₀ : ℝ := steinerLower K' 0
   set b₀ : ℝ := steinerUpper K' 0
   have hab : a₀ < b₀ := hfib.1
   have hint_t : ∀ t ∈ Ioo a₀ b₀, t • u ∈ interior (K : Set E) := fun t ht => hfib.2 t ht.1 ht.2
-  -- Define the signed half-volume difference `D t := vol_+(t) - vol_-(t)` on `Ioo a₀ b₀`.
   let P_of : ℝ → Set E := fun t => polarBody ((fun x : E => x - t • u) '' (K : Set E))
   let volPos : ℝ → ℝ := fun t => volume.real (P_of t ∩ {y : E | 0 < ⟪y, u⟫})
   let volNeg : ℝ → ℝ := fun t => volume.real (P_of t ∩ {y : E | ⟪y, u⟫ < 0})
   let D : ℝ → ℝ := fun t => volPos t - volNeg t
-  -- Express `volPos t` and `volNeg t` via spherical polar coordinates on the two open hemispheres
-  -- so continuity of `D` on `Ioo a₀ b₀` follows immediately from Dominated Convergence!
-  have hhemi_vol : ∀ (s : Set (sphere (0 : E) 1)), MeasurableSet s →
-      (∀ t ∈ Ioo a₀ b₀,
-        volume.real (P_of t ∩ {y : E | ∃ (r : ℝ) (w : sphere (0 : E) 1), 0 < r ∧ w ∈ s ∧ y = r • w.1}) =
-          volume.real (closedBall (0 : E) 1) *
-            ∫ w in s, (supportFn K w.1 - t * ⟪u, w.1⟫)⁻¹ ^ Module.finrank ℝ E
-              ∂(sphereProb (volume : Measure E))) := by
-    intro s hs t ht
-    let Kt : ConvexBody E := K + bodySingleton (-(t • u))
-    have hKt_coe : (Kt : Set E) = (fun x : E => x - t • u) '' (K : Set E) :=
-      coe_translate_neg K (t • u)
-    have h0t : (0 : E) ∈ interior (Kt : Set E) :=
-      hKt_coe ▸ zero_mem_interior_translate_neg (hint_t t ht)
-    let Q : ConvexBody E := bodyPolar (Kt : Set E) h0t
-    have hQ_coe : (Q : Set E) = P_of t := by rw [coe_bodyPolar, hKt_coe]
-    have h0Q : (0 : E) ∈ interior (Q : Set E) := by
-      rw [coe_bodyPolar]; exact zero_mem_interior_polarBody_of_isBounded Kt.isBounded
-    -- Compute `volume (Q ∩ cone s)` via polar factorization `measurePreserving_homeomorphUnitSphereProd`.
-    let cone_s : Set E := {y : E | ∃ (r : ℝ) (w : sphere (0 : E) 1), 0 < r ∧ w ∈ s ∧ y = r • w.1}
-    have hcone_eq : (Q : Set E) ∩ cone_s =
-        Subtype.val '' ((homeomorphUnitSphereProd E) ⁻¹'
-          {p : sphere (0 : E) 1 × Ioi (0 : ℝ) | p.1 ∈ s ∧ (p.2 : ℝ) ≤ (gauge (Q : Set E) p.1.1)⁻¹}) := by
-      ext y
-      simp only [mem_inter_iff, cone_s, mem_ofPred_eq, mem_image, mem_preimage]
-      constructor
-      · rintro ⟨hyQ, r, w, hr, hws, rfl⟩
-        have hy0 : r • w.1 ∈ ({0}ᶜ : Set E) :=
-          Set.mem_compl_singleton_iff.mpr (smul_ne_zero hr.ne' (ne_of_mem_sphere w.2 one_ne_zero))
-        refine ⟨⟨r • w.1, hy0⟩, ?_, rfl⟩
-        have hpol_eq : homeomorphUnitSphereProd E ⟨r • w.1, hy0⟩ = (w, ⟨r, hr⟩) := by
-          have h : (homeomorphUnitSphereProd E).symm (w, ⟨r, hr⟩) = ⟨r • w.1, hy0⟩ := Subtype.ext rfl
-          rw [← h, (homeomorphUnitSphereProd E).apply_symm_apply]
-        rw [hpol_eq]
-        refine ⟨hws, ?_⟩
-        have hg_pos : 0 < gauge (Q : Set E) w.1 := gauge_pos_of_mem_sphere Q h0Q w.2
-        have hle1 : gauge (Q : Set E) (r • w.1) ≤ 1 := gauge_le_one_of_mem hyQ
-        rw [gauge_smul_of_nonneg hr.le, smul_eq_mul] at hle1
-        rw [inv_eq_one_div, le_div_iff₀ hg_pos]
-        exact hle1
-      · rintro ⟨⟨x, hx0⟩, ⟨hws, hr_le⟩, rfl⟩
-        set w : sphere (0 : E) 1 := (homeomorphUnitSphereProd E ⟨x, hx0⟩).1
-        set r : ℝ := ((homeomorphUnitSphereProd E ⟨x, hx0⟩).2 : ℝ)
-        have hr_pos : 0 < r := (homeomorphUnitSphereProd E ⟨x, hx0⟩).2.2
-        have hx_eq : x = r • w.1 := by
-          have h := (homeomorphUnitSphereProd E).symm_apply_apply ⟨x, hx0⟩
-          exact (congrArg Subtype.val h).symm
-        refine ⟨?_, r, w, hr_pos, hws, hx_eq⟩
-        have hg_pos : 0 < gauge (Q : Set E) w.1 := gauge_pos_of_mem_sphere Q h0Q w.2
-        have hgle1 : gauge (Q : Set E) x ≤ 1 := by
-          rw [hx_eq, gauge_smul_of_nonneg hr_pos.le, smul_eq_mul]
-          rw [inv_eq_one_div, le_div_iff₀ hg_pos] at hr_le
-          exact hr_le
-        -- `Q` is closed convex with `0 ∈ interior Q`, so `gauge Q x ≤ 1 → x ∈ Q`.
-        have hnhds : (Q : Set E) ∈ 𝓝 (0 : E) := mem_interior_iff_mem_nhds.mp h0Q
-        have htend : Tendsto (fun n : ℕ => ((n : ℝ) / ((n : ℝ) + 1)) • x) atTop (𝓝 x) := by
-          have h1 : Tendsto (fun n : ℕ => (n : ℝ) / ((n : ℝ) + 1)) atTop (𝓝 (1 : ℝ)) := by
-            have hinv : Tendsto (fun n : ℕ => ((n : ℝ) + 1)⁻¹) atTop (𝓝 (0 : ℝ)) :=
-              tendsto_inv_atTop_zero.comp (tendsto_natCast_atTop_atTop.atTop_add tendsto_const_nhds)
-            have heq : (fun n : ℕ => (n : ℝ) / ((n : ℝ) + 1)) = fun n : ℕ => 1 - ((n : ℝ) + 1)⁻¹ := by
-              ext n; field_simp [show (n : ℝ) + 1 ≠ 0 by positivity]; ring
-            rw [heq]; simpa using tendsto_const_nhds.sub hinv
-          simpa [one_smul] using h1.smul_const x
-        refine Q.isClosed.mem_of_tendsto htend (Eventually.of_forall fun n => ?_)
-        have hlt1 : gauge (Q : Set E) (((n : ℝ) / ((n : ℝ) + 1)) • x) < 1 := by
-          rw [gauge_smul_of_nonneg (by positivity), smul_eq_mul]
-          have hfrac : (n : ℝ) / ((n : ℝ) + 1) < 1 := (div_lt_one (by positivity)).mpr (by linarith)
-          calc
-            (n : ℝ) / ((n : ℝ) + 1) * gauge (Q : Set E) x
-              ≤ (n : ℝ) / ((n : ℝ) + 1) * 1 := mul_le_mul_of_nonneg_left hgle1 (by positivity)
-            _ < 1 := by linarith
-        exact interior_subset ((gauge_lt_one_iff_mem_interior Q.convex hnhds).mp hlt1)
-    -- Apply `measurePreserving_homeomorphUnitSphereProd` and Tonelli on `S^{d-1} × Ioi 0`.
-    set d : ℕ := Module.finrank ℝ E
-    have hd_pos : 0 < d := Module.finrank_pos
-    have hmp := (volume : Measure E).measurePreserving_homeomorphUnitSphereProd
-    have hemb : MeasurableEmbedding (Subtype.val : ({0}ᶜ : Set E) → E) :=
-      MeasurableEmbedding.subtype_coe (measurableSet_singleton (0 : E)).compl
-    let A : Set (sphere (0 : E) 1 × Ioi (0 : ℝ)) :=
-      {p | p.1 ∈ s ∧ (p.2 : ℝ) ≤ (gauge (Q : Set E) p.1.1)⁻¹}
-    have hgauge_eq : ∀ w : sphere (0 : E) 1, gauge (Q : Set E) w.1 = supportFn K w.1 - t * ⟪u, w.1⟫ := fun w => by
-      rw [hQ_coe]
-      dsimp only [P_of]
-      rw [← hKt_coe, gauge_polarBody_eq_supportFn Kt (interior_subset h0t)]
-      change supportFn (K + bodySingleton (-(t • u))) w.1 = _
-      rw [supportFn_minkowski_add, supportFn_bodySingleton, inner_neg_left, inner_smul_left,
-        RCLike.conj_to_real, sub_eq_add_neg]
-    have hcont_g : Continuous (fun w : sphere (0 : E) 1 => (gauge (Q : Set E) w.1)⁻¹) := by
-      simp_rw [hgauge_eq]
-      exact (((continuous_supportFn K).comp continuous_subtype_val).sub
-        (continuous_const.mul (continuous_const.inner continuous_subtype_val))).inv₀ fun w => by
-          have := supportFn_sub_inner_pos K (hint_t t ht) (mem_sphere_zero_iff_norm.mp w.2)
-          rw [inner_smul_left, RCLike.conj_to_real] at this
-          exact this.ne'
-    have hAm : MeasurableSet A :=
-      (hs.preimage measurable_fst).inter
-        (isClosed_le (continuous_subtype_val.comp continuous_snd) (hcont_g.comp continuous_fst)).measurableSet
-    have hvol_enn : volume (P_of t ∩ cone_s) =
-        volume (closedBall (0 : E) 1) *
-          ∫⁻ w in s, ENNReal.ofReal ((supportFn K w.1 - t * ⟪u, w.1⟫)⁻¹ ^ d)
-            ∂(sphereProb (volume : Measure E)) := by
-      rw [← hQ_coe, hcone_eq]
-      have hpre_m : MeasurableSet ((homeomorphUnitSphereProd E) ⁻¹' A) :=
-        hAm.preimage (homeomorphUnitSphereProd E).continuous.measurable
-      rw [← Measure.comap_apply _ Subtype.val_injective (fun t ht => hemb.measurableSet_image.mpr ht) _ hpre_m,
-        hmp.measure_preimage hAm.nullMeasurableSet, Measure.prod_apply hAm]
-      have hfib : ∀ w : sphere (0 : E) 1,
-          Measure.volumeIoiPow (Module.finrank ℝ E - 1) (Prod.mk w ⁻¹' A) =
-            s.indicator (fun w => ENNReal.ofReal ((d : ℝ)⁻¹ * (gauge (Q : Set E) w.1)⁻¹ ^ d)) w := fun w => by
-        by_cases hws : w ∈ s
-        · rw [indicator_of_mem hws]
-          have hg_inv_pos : 0 < (gauge (Q : Set E) w.1)⁻¹ :=
-            inv_pos.mpr (gauge_pos_of_mem_sphere Q h0Q w.2)
-          have hpre_w : Prod.mk w ⁻¹' A = Iic (⟨(gauge (Q : Set E) w.1)⁻¹, hg_inv_pos⟩ : Ioi (0 : ℝ)) := by
-            ext ⟨r, hr⟩; simp [A, hws, Subtype.mk_le_mk]
-          have hd_cast : ((d - 1 : ℕ) : ℝ) + 1 = (d : ℝ) := by
-            exact_mod_cast Nat.sub_add_cancel hd_pos
-          rw [hpre_w, volumeIoiPow_apply_Iic (d - 1), Nat.sub_add_cancel hd_pos, hd_cast]
-          congr 1; ring
-        · rw [indicator_of_notMem hws]
-          have hpre_w : Prod.mk w ⁻¹' A = ∅ := by ext ⟨r, hr⟩; simp [A, hws]
-          rw [hpre_w, measure_empty]
-      simp_rw [hfib]
-      have hsph_eq : (volume : Measure E).toSphere =
-          ((d : ℝ≥0∞) * volume (closedBall (0 : E) 1)) • sphereProb (volume : Measure E) := by
-        rw [sphereProb, Measure.toSphere_apply_univ,
-          addHaar_closedBall_eq_addHaar_ball volume (0 : E) zero_le_one, smul_smul]
-        have hpos : (d : ℝ≥0∞) * volume (ball (0 : E) 1) ≠ 0 :=
-          mul_ne_zero (Nat.cast_ne_zero.mpr hd_pos.ne')
-            (isOpen_ball.measure_pos volume ⟨0, mem_ball_self zero_lt_one⟩).ne'
-        have hfin : (d : ℝ≥0∞) * volume (ball (0 : E) 1) ≠ ⊤ :=
-          ENNReal.mul_ne_top (ENNReal.natCast_ne_top _)
-            ((measure_mono ball_subset_closedBall).trans_lt (isCompact_closedBall (0 : E) 1).measure_lt_top).ne
-        rw [ENNReal.mul_inv_cancel hpos hfin, one_smul]
-      rw [hsph_eq, lintegral_smul_measure, smul_eq_mul, lintegral_indicator hs]
-      have hfactor : ∀ w : sphere (0 : E) 1,
-          ENNReal.ofReal ((d : ℝ)⁻¹ * (gauge (Q : Set E) w.1)⁻¹ ^ d) =
-            (d : ℝ≥0∞)⁻¹ * ENNReal.ofReal ((supportFn K w.1 - t * ⟪u, w.1⟫)⁻¹ ^ d) := fun w => by
-        rw [hgauge_eq w, ENNReal.ofReal_mul (by positivity),
-          ENNReal.ofReal_inv_of_pos (Nat.cast_pos.mpr hd_pos), ENNReal.ofReal_natCast]
-      simp_rw [hfactor]
-      rw [lintegral_const_mul' (d : ℝ≥0∞)⁻¹ _ (ENNReal.inv_ne_top.mpr (Nat.cast_ne_zero.mpr hd_pos.ne')),
-        mul_comm (d : ℝ≥0∞) (volume (closedBall (0 : E) 1)),
-        mul_assoc (volume (closedBall (0 : E) 1)), ← mul_assoc (d : ℝ≥0∞),
-        ENNReal.mul_inv_cancel (Nat.cast_ne_zero.mpr hd_pos.ne') (ENNReal.natCast_ne_top _), one_mul]
-    have hint_s : IntegrableOn (fun w : sphere (0 : E) 1 => (supportFn K w.1 - t * ⟪u, w.1⟫)⁻¹ ^ d)
-        s (sphereProb (volume : Measure E)) := by
-      have hcont : Continuous (fun w : sphere (0 : E) 1 => (supportFn K w.1 - t * ⟪u, w.1⟫)⁻¹ ^ d) := by
-        convert hcont_g.pow d using 1
-        ext w; simp [hgauge_eq]
-      exact (hcont.integrable_of_hasCompactSupport (HasCompactSupport.of_compactSpace _)).integrableOn
-    have hnn : 0 ≤ᵐ[(sphereProb (volume : Measure E)).restrict s]
-        fun w : sphere (0 : E) 1 => (supportFn K w.1 - t * ⟪u, w.1⟫)⁻¹ ^ d :=
-      ae_of_all _ fun w => pow_nonneg (inv_nonneg.mpr (by
-        have := supportFn_sub_inner_pos K (hint_t t ht) (mem_sphere_zero_iff_norm.mp w.2)
-        rw [inner_smul_left, RCLike.conj_to_real] at this
-        exact this.le)) d
-    rw [Measure.real, hvol_enn, ← ofReal_integral_eq_lintegral_ofReal hint_s hnn, ENNReal.toReal_mul,
-      ENNReal.toReal_ofReal (setIntegral_nonneg hs fun w _ => pow_nonneg (inv_nonneg.mpr (by
-        have := supportFn_sub_inner_pos K (hint_t t ht) (mem_sphere_zero_iff_norm.mp w.2)
-        rw [inner_smul_left, RCLike.conj_to_real] at this
-        exact this.le)) d)]
-    rfl
+  -- Step 1: Continuity of `D = volPos - volNeg` on `Ioo a₀ b₀`.
   let Spos : Set (sphere (0 : E) 1) := {w | 0 < ⟪w.1, u⟫}
   let Sneg : Set (sphere (0 : E) 1) := {w | ⟪w.1, u⟫ < 0}
   have hSpos_m : MeasurableSet Spos :=
     (isOpen_lt continuous_const (continuous_subtype_val.inner continuous_const)).measurableSet
   have hSneg_m : MeasurableSet Sneg :=
     (isOpen_lt (continuous_subtype_val.inner continuous_const) continuous_const).measurableSet
-  have hcone_pos : {y : E | 0 < ⟪y, u⟫} =
-      {y : E | ∃ (r : ℝ) (w : sphere (0 : E) 1), 0 < r ∧ w ∈ Spos ∧ y = r • w.1} := by
+  have hcone_half : ∀ (v : E), {y : E | 0 < ⟪y, v⟫} =
+      {y : E | ∃ (r : ℝ) (w : sphere (0 : E) 1), 0 < r ∧ w ∈ {w : sphere (0 : E) 1 | 0 < ⟪w.1, v⟫} ∧
+        y = r • w.1} := fun v => by
     ext y
-    simp only [mem_ofPred_eq, Spos]
+    simp only [mem_ofPred_eq]
     constructor
     · intro hy
       have hy0 : y ≠ 0 := by intro h; simp [h] at hy
@@ -1730,506 +2013,122 @@ private lemma exists_balanced_polar_slice_shift
     · rintro ⟨r, w, hr, hw, rfl⟩
       rw [inner_smul_left, RCLike.conj_to_real]
       exact mul_pos hr hw
-  have hcone_neg : {y : E | ⟪y, u⟫ < 0} =
-      {y : E | ∃ (r : ℝ) (w : sphere (0 : E) 1), 0 < r ∧ w ∈ Sneg ∧ y = r • w.1} := by
-    ext y
-    simp only [mem_ofPred_eq, Sneg]
-    constructor
-    · intro hy
-      have hy0 : y ≠ 0 := by intro h; simp [h] at hy
-      have hr : 0 < ‖y‖ := norm_pos_iff.mpr hy0
-      refine ⟨‖y‖, ⟨‖y‖⁻¹ • y, by
-        rw [mem_sphere_zero_iff_norm, norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hr),
-          inv_mul_cancel₀ hr.ne']⟩, hr, ?_, by rw [smul_smul, mul_inv_cancel₀ hr.ne', one_smul]⟩
-      rw [inner_smul_left, RCLike.conj_to_real]
-      exact mul_neg_of_pos_of_neg (inv_pos.mpr hr) hy
-    · rintro ⟨r, w, hr, hw, rfl⟩
-      rw [inner_smul_left, RCLike.conj_to_real]
-      exact mul_neg_of_pos_of_neg hr hw
-  -- Continuity of `volPos` and `volNeg` (hence `D`) on `Ioo a₀ b₀` via Dominated Convergence.
-  have hcont_half : ∀ s : Set (sphere (0 : E) 1), MeasurableSet s →
-      ContinuousOn (fun t : ℝ =>
-        volume.real (closedBall (0 : E) 1) *
-          ∫ w in s, (supportFn K w.1 - t * ⟪u, w.1⟫)⁻¹ ^ Module.finrank ℝ E
-            ∂(sphereProb (volume : Measure E))) (Ioo a₀ b₀) := by
-    intro s hs
-    rw [continuousOn_iff_continuous_domRestrict]
-    rw [continuous_iff_continuousAt]
-    rintro ⟨t, ht⟩
-    obtain ⟨r₁, hr₁_pos, hball_t⟩ := Metric.mem_nhds_iff.mp (mem_interior_iff_mem_nhds.mp (hint_t t ht))
-    set δ : ℝ := min (r₁ / 4) (min ((t - a₀) / 2) ((b₀ - t) / 2))
-    have hδ_pos : 0 < δ := lt_min (by positivity) (lt_min (by linarith [ht.1]) (by linarith [ht.2]))
-    have hsup_lb : ∀ t' : ℝ, |t' - t| < δ → ∀ w : sphere (0 : E) 1,
-        r₁ / 4 ≤ supportFn K w.1 - t' * ⟪u, w.1⟫ := fun t' htt' w => by
-      have hw1 : ‖w.1‖ = 1 := mem_sphere_zero_iff_norm.mp w.2
-      have hmem : t • u + (r₁ / 2) • w.1 ∈ (K : Set E) := hball_t (by
-        rw [mem_ball, dist_eq_norm, add_sub_cancel_left, norm_smul, Real.norm_eq_abs,
-          abs_of_pos (half_pos hr₁_pos), hw1, mul_one]; exact half_lt_self hr₁_pos)
-      have h1 := inner_le_supportFn hmem w.1
-      rw [inner_add_left, inner_smul_left, inner_smul_left, RCLike.conj_to_real, RCLike.conj_to_real,
-        real_inner_self_eq_norm_sq, hw1, one_pow, mul_one] at h1
-      have hdiff : |(t' - t) * ⟪u, w.1⟫| ≤ r₁ / 4 := by
-        rw [abs_mul]
-        have huw : |⟪u, w.1⟫| ≤ 1 := by
-          calc
-            |⟪u, w.1⟫| ≤ ‖u‖ * ‖w.1‖ := abs_real_inner_le_norm u w.1
-            _ = 1 := by rw [hu, hw1, mul_one]
-        calc
-          |t' - t| * |⟪u, w.1⟫| ≤ δ * 1 := mul_le_mul htt'.le huw (abs_nonneg _) hδ_pos.le
-          _ = δ := mul_one δ
-          _ ≤ r₁ / 4 := min_le_left _ _
-      linarith [(abs_le.mp hdiff).2]
-    have htend_int : Tendsto
-        (fun x : Ioo a₀ b₀ =>
-          ∫ w in s, (supportFn K w.1 - x.1 * ⟪u, w.1⟫)⁻¹ ^ Module.finrank ℝ E
-            ∂(sphereProb (volume : Measure E)))
-        (𝓝 ⟨t, ht⟩)
-        (𝓝 (∫ w in s, (supportFn K w.1 - t * ⟪u, w.1⟫)⁻¹ ^ Module.finrank ℝ E
-            ∂(sphereProb (volume : Measure E)))) := by
-      refine tendsto_integral_filter_of_dominated_convergence
-        (fun _ : sphere (0 : E) 1 => (r₁ / 4)⁻¹ ^ Module.finrank ℝ E) ?_ ?_ (integrable_const _) ?_
-      · refine Eventually.of_forall fun ⟨x, hx⟩ => ?_
-        have hcont_w : Continuous (fun w : sphere (0 : E) 1 =>
-            (supportFn K w.1 - x * ⟪u, w.1⟫)⁻¹ ^ Module.finrank ℝ E) :=
-          ((((continuous_supportFn K).comp continuous_subtype_val).sub
-            (continuous_const.mul (continuous_const.inner continuous_subtype_val))).inv₀ fun w => by
-              have := supportFn_sub_inner_pos K (hint_t x hx) (mem_sphere_zero_iff_norm.mp w.2)
-              rw [inner_smul_left, RCLike.conj_to_real] at this
-              exact this.ne').pow _
-        exact hcont_w.aestronglyMeasurable
-      · have hev : ∀ᶠ x : Ioo a₀ b₀ in 𝓝 ⟨t, ht⟩, |x.1 - t| < δ := by
-          have h1 : Tendsto (fun x : Ioo a₀ b₀ => |x.1 - t|) (𝓝 ⟨t, ht⟩) (𝓝 0) := by
-            simpa using ((continuous_subtype_val.sub (continuous_const (y := t))).abs).continuousAt
-              (x := (⟨t, ht⟩ : Ioo a₀ b₀)).tendsto
-          exact h1.eventually (Iio_mem_nhds hδ_pos)
-        filter_upwards [hev] with x hx
-        exact ae_of_all _ fun w => by
-          have hlb := hsup_lb x.1 hx w
-          have hpos : 0 < supportFn K w.1 - x.1 * ⟪u, w.1⟫ := lt_of_lt_of_le (by positivity) hlb
-          rw [Real.norm_eq_abs, abs_of_nonneg (pow_nonneg (inv_nonneg.mpr hpos.le) _)]
-          exact pow_le_pow_left₀ (inv_nonneg.mpr hpos.le)
-            ((inv_le_inv₀ hpos (by positivity)).mpr hlb) _
-      · exact ae_of_all _ fun w => by
-          have hpos : 0 < supportFn K w.1 - t * ⟪u, w.1⟫ := by
-            have := supportFn_sub_inner_pos K (hint_t t ht) (mem_sphere_zero_iff_norm.mp w.2)
-            rw [inner_smul_left, RCLike.conj_to_real] at this
-            exact this
-          exact (((tendsto_const_nhds.sub
-            (continuous_subtype_val.continuousAt.tendsto.mul tendsto_const_nhds)).inv₀ hpos.ne').pow _)
-    exact htend_int.const_mul _
   have hD_cont : ContinuousOn D (Ioo a₀ b₀) := by
     have hpos_eq : Set.EqOn volPos
         (fun t : ℝ => volume.real (closedBall (0 : E) 1) *
           ∫ w in Spos, (supportFn K w.1 - t * ⟪u, w.1⟫)⁻¹ ^ Module.finrank ℝ E
             ∂(sphereProb (volume : Measure E))) (Ioo a₀ b₀) := fun t ht => by
-      dsimp only [volPos]; rw [hcone_pos]; exact hhemi_vol Spos hSpos_m t ht
+      dsimp only [volPos]
+      rw [hcone_half u, polarBody_cone_volumeReal K (hint_t t ht) hSpos_m]
+      simp_rw [inner_smul_left, RCLike.conj_to_real]
     have hneg_eq : Set.EqOn volNeg
         (fun t : ℝ => volume.real (closedBall (0 : E) 1) *
           ∫ w in Sneg, (supportFn K w.1 - t * ⟪u, w.1⟫)⁻¹ ^ Module.finrank ℝ E
             ∂(sphereProb (volume : Measure E))) (Ioo a₀ b₀) := fun t ht => by
-      dsimp only [volNeg]; rw [hcone_neg]; exact hhemi_vol Sneg hSneg_m t ht
-    exact ((hcont_half Spos hSpos_m).congr hpos_eq).sub ((hcont_half Sneg hSneg_m).congr hneg_eq)
-  -- Now prove `∃ t₁ ∈ Ioo a₀ b₀, D t₁ ≤ 0` (near `a₀`) and `∃ t₂ ∈ Ioo a₀ b₀, 0 ≤ D t₂` (near `b₀`).
-  -- First, bound the opposite half-volume using a ball around `c • u ∈ interior K` where `c = (a₀ + b₀)/2`.
+      have hneg_set : {y : E | ⟪y, u⟫ < 0} = {y : E | 0 < ⟪y, -u⟫} := by
+        ext y; simp [inner_neg_right]
+      have hSneg_eq : {w : sphere (0 : E) 1 | 0 < ⟪w.1, -u⟫} = Sneg := by
+        ext w; simp [Sneg, inner_neg_right]
+      dsimp only [volNeg]
+      rw [hneg_set, hcone_half (-u), hSneg_eq, polarBody_cone_volumeReal K (hint_t t ht) hSneg_m]
+      simp_rw [inner_smul_left, RCLike.conj_to_real]
+    exact ((continuousOn_polarBody_cone_volumeReal hu K hint_t).congr hpos_eq).sub
+      ((continuousOn_polarBody_cone_volumeReal hu K hint_t).congr hneg_eq)
+  -- Step 2: Uniform bound on opposite half-volumes from an interior ball around `c • u`.
   set c : ℝ := (a₀ + b₀) / 2
   have hc_mem : c ∈ Ioo a₀ b₀ := ⟨by dsimp only [c]; linarith, by dsimp only [c]; linarith⟩
-  obtain ⟨r_c, hr_c_pos, hball_c⟩ := Metric.mem_nhds_iff.mp (mem_interior_iff_mem_nhds.mp (hint_t c hc_mem))
+  obtain ⟨r_c, hr_c_pos, hball_c⟩ :=
+    Metric.mem_nhds_iff.mp (mem_interior_iff_mem_nhds.mp (hint_t c hc_mem))
   set r₁ : ℝ := r_c / 2
   have hr₁_pos : 0 < r₁ := half_pos hr_c_pos
   have hcb_c : closedBall (c • u) r₁ ⊆ (K : Set E) :=
     (closedBall_subset_ball (half_lt_self hr_c_pos)).trans hball_c
   set B_opp : ℝ := volume.real (closedBall (0 : E) r₁⁻¹)
-  have hneg_bdd : ∀ t ∈ Ico c b₀, volNeg t ≤ B_opp := fun t ht => by
-    have hsub : P_of t ∩ {y : E | ⟪y, u⟫ < 0} ⊆ closedBall (0 : E) r₁⁻¹ := by
-      rintro y ⟨hyP, hy_neg⟩
-      rw [mem_closedBall_zero_iff]
-      by_cases hy0 : y = 0
-      · simp [hy0, inv_nonneg.mpr hr₁_pos.le]
-      · have hy_pos : 0 < ‖y‖ := norm_pos_iff.mpr hy0
-        let v : E := (r₁ / ‖y‖) • y
-        have hv_mem : c • u + v ∈ (K : Set E) := hcb_c (by
-          rw [mem_closedBall, dist_eq_norm, add_sub_cancel_left, norm_smul, Real.norm_eq_abs,
-            abs_of_pos (div_pos hr₁_pos hy_pos), div_mul_cancel₀ r₁ hy_pos.ne'])
-        have h1 : ⟪(c • u + v) - t • u, y⟫ ≤ 1 := hyP _ ⟨c • u + v, hv_mem, rfl⟩
-        have h2 : ⟪(c • u + v) - t • u, y⟫ = (c - t) * ⟪u, y⟫ + r₁ * ‖y‖ := by
-          rw [show (c • u + v) - t • u = (c - t) • u + v by rw [sub_smul]; abel,
-            inner_add_left, inner_smul_left, RCLike.conj_to_real]
-          congr 1
-          dsimp only [v]
-          rw [inner_smul_left, RCLike.conj_to_real, real_inner_self_eq_norm_sq]
-          field_simp [hy_pos.ne']
-        rw [h2, real_inner_comm y u] at h1
-        have hct_nonneg : 0 ≤ (c - t) * ⟪y, u⟫ :=
-          mul_nonneg_of_nonpos_of_nonpos (by linarith [ht.1]) hy_neg.le
-        have hr1y : r₁ * ‖y‖ ≤ 1 := by linarith
-        rw [inv_eq_one_div, le_div_iff₀ hr₁_pos]
-        linarith
-    exact measureReal_mono hsub (isCompact_closedBall _ _).measure_lt_top.ne
-  have hpos_bdd : ∀ t ∈ Ioc a₀ c, volPos t ≤ B_opp := fun t ht => by
-    have hsub : P_of t ∩ {y : E | 0 < ⟪y, u⟫} ⊆ closedBall (0 : E) r₁⁻¹ := by
-      rintro y ⟨hyP, hy_pos_u⟩
-      rw [mem_closedBall_zero_iff]
-      by_cases hy0 : y = 0
-      · simp [hy0, inv_nonneg.mpr hr₁_pos.le]
-      · have hy_pos : 0 < ‖y‖ := norm_pos_iff.mpr hy0
-        let v : E := (r₁ / ‖y‖) • y
-        have hv_mem : c • u + v ∈ (K : Set E) := hcb_c (by
-          rw [mem_closedBall, dist_eq_norm, add_sub_cancel_left, norm_smul, Real.norm_eq_abs,
-            abs_of_pos (div_pos hr₁_pos hy_pos), div_mul_cancel₀ r₁ hy_pos.ne'])
-        have h1 : ⟪(c • u + v) - t • u, y⟫ ≤ 1 := hyP _ ⟨c • u + v, hv_mem, rfl⟩
-        have h2 : ⟪(c • u + v) - t • u, y⟫ = (c - t) * ⟪u, y⟫ + r₁ * ‖y‖ := by
-          rw [show (c • u + v) - t • u = (c - t) • u + v by rw [sub_smul]; abel,
-            inner_add_left, inner_smul_left, RCLike.conj_to_real]
-          congr 1
-          dsimp only [v]
-          rw [inner_smul_left, RCLike.conj_to_real, real_inner_self_eq_norm_sq]
-          field_simp [hy_pos.ne']
-        rw [h2, real_inner_comm y u] at h1
-        have hct_nonneg : 0 ≤ (c - t) * ⟪y, u⟫ := mul_nonneg (by linarith [ht.2]) hy_pos_u.le
-        have hr1y : r₁ * ‖y‖ ≤ 1 := by linarith
-        rw [inv_eq_one_div, le_div_iff₀ hr₁_pos]
-        linarith
-    exact measureReal_mono hsub (isCompact_closedBall _ _).measure_lt_top.ne
-  -- Uniform diameter bound `M` for `(K - t • u)` for all `t ∈ Icc a₀ b₀`.
-  obtain ⟨R₀, hKR₀⟩ := K.isBounded.subset_closedBall (0 : E)
-  set M : ℝ := max R₀ 1 + max |a₀| |b₀| + 1
-  have hM_pos : 0 < M := by positivity
-  have hKt_bdd : ∀ t ∈ Icc a₀ b₀, (fun x : E => x - t • u) '' (K : Set E) ⊆ closedBall (0 : E) M := by
-    rintro t ht _ ⟨x, hxK, rfl⟩
-    rw [mem_closedBall_zero_iff]
-    have hxR : ‖x‖ ≤ max R₀ 1 := (mem_closedBall_zero_iff.mp (hKR₀ hxK)).trans (le_max_left _ _)
-    have ht_bd : |t| ≤ max |a₀| |b₀| := by
-      rcases le_total 0 t with ht0 | ht0
-      · rw [abs_of_nonneg ht0]; exact (ht.2.trans (le_abs_self b₀)).trans (le_max_right _ _)
-      · rw [abs_of_nonpos ht0]
-        have : -t ≤ -a₀ := by linarith [ht.1]
-        exact (this.trans (neg_le_abs a₀)).trans (le_max_left _ _)
-    calc
-      ‖x - t • u‖ ≤ ‖x‖ + ‖t • u‖ := norm_sub_le x (t • u)
-      _ = ‖x‖ + |t| := by rw [norm_smul, Real.norm_eq_abs, hu, mul_one]
-      _ ≤ M := by dsimp only [M]; linarith
-  -- Cylinder blow-up in the positive half-space as `t → b₀⁻`, yielding `t₂ ∈ Ioo c b₀` with `D t₂ ≥ 0`.
-  have hex_pos : ∃ t₂ ∈ Ioo a₀ b₀, 0 ≤ D t₂ := by
+  have hne0 : (steinerFiber K' 0).Nonempty := by
+    have h0S' : ((0 : ℝ), (0 : H)) ∈ steinerSymm K' :=
+      image_steinerSymmDir hu (K : Set E) ▸ ⟨0, interior_subset h0S, map_zero Φ⟩
+    exact h0S'.1
+  -- Step 3: Endpoint frontier checks at `b₀ • u` and `a₀ • u` + cylinder blow-up in `±u`.
+  have hb_fr : b₀ • u ∈ frontier (K : Set E) := by
     have hb_mem : b₀ • u ∈ (K : Set E) := by
-      have hK'c : IsCompact K' := K.isCompact.image (continuous_orthoSplitProd hu)
-      have hne0 : (steinerFiber K' 0).Nonempty := by
-        have h0S' : ((0 : ℝ), (0 : H)) ∈ steinerSymm K' :=
-          image_steinerSymmDir hu (K : Set E) ▸ ⟨0, interior_subset h0S, map_zero Φ⟩
-        exact h0S'.1
       have hbK' : (b₀, (0 : H)) ∈ K' := (isCompact_steinerFiber hK'c 0).sSup_mem hne0
       rcases hbK' with ⟨x, hxK, hxp⟩
       have hx_eq : x = b₀ • u := by
         have := congrArg Φ.symm hxp
-        rw [Φ.symm_apply_apply] at this
-        dsimp only [Φ] at this
-        rw [orthoSplitProd_symm_apply] at this
-        simpa using this
+        rw [Φ.symm_apply_apply] at this; dsimp only [Φ] at this
+        rw [orthoSplitProd_symm_apply] at this; simpa using this
       rwa [← hx_eq]
-    have hb_fr : b₀ • u ∈ frontier (K : Set E) := by
-      refine ⟨K.isClosed.closure_eq.symm ▸ hb_mem, fun hb_int => ?_⟩
-      obtain ⟨δ, hδ_pos, hball_b⟩ := Metric.mem_nhds_iff.mp (mem_interior_iff_mem_nhds.mp hb_int)
-      have hmem' : (b₀ + δ / 2) • u ∈ (K : Set E) := hball_b (by
-        rw [mem_ball, dist_eq_norm, show (b₀ + δ / 2) • u - b₀ • u = (δ / 2) • u by rw [add_smul]; abel,
-          norm_smul, Real.norm_eq_abs, abs_of_pos (half_pos hδ_pos), hu, mul_one]
-        exact half_lt_self hδ_pos)
-      have hfib_mem : b₀ + δ / 2 ∈ steinerFiber K' 0 := by
-        refine ⟨(b₀ + δ / 2) • u, hmem', ?_⟩
-        ext
-        · simp only [Φ, orthoSplitProd_apply, inner_smul_left, RCLike.conj_to_real,
-            real_inner_self_eq_norm_sq, hu, one_pow, mul_one]
-        · simp only [Φ, orthoSplitProd_apply, inner_smul_left, RCLike.conj_to_real,
-            real_inner_self_eq_norm_sq, hu, one_pow, mul_one, sub_self, ZeroMemClass.coe_zero]
-      have hK'c : IsCompact K' := K.isCompact.image (continuous_orthoSplitProd hu)
-      have hle : b₀ + δ / 2 ≤ b₀ := le_csSup (isCompact_steinerFiber hK'c 0).bddAbove hfib_mem
-      linarith
-    obtain ⟨n, hn, hsup_n⟩ := exists_unit_supportFn_eq_of_mem_frontier K hb_fr
-    have hn_u_pos : 0 < ⟪n, u⟫ := by
-      have hmem_c : c • u + (r₁ / 2) • n ∈ (K : Set E) := hcb_c (by
-        rw [mem_closedBall, dist_eq_norm, add_sub_cancel_left, norm_smul, Real.norm_eq_abs,
-          abs_of_pos (half_pos hr₁_pos), hn, mul_one]; exact half_le_self hr₁_pos.le)
-      have h1 := inner_le_supportFn hmem_c n
-      rw [hsup_n, inner_add_left, inner_smul_left, inner_smul_left, inner_smul_left,
-        RCLike.conj_to_real, RCLike.conj_to_real, RCLike.conj_to_real,
-        real_inner_self_eq_norm_sq, hn, one_pow, mul_one, real_inner_comm n u] at h1
-      have hbc : 0 < b₀ - c := by dsimp only [c]; linarith
-      nlinarith
-    -- Build the positive cylinder inside `P_of t₂ ∩ {y | 0 < ⟪y, u⟫}` using `orthoSplitProd hn`.
-    set cN : ℝ := volume.real (closedBall (0 : orthoHyperplane n) (2 * M)⁻¹)
-    have hcN_pos : 0 < cN := by
-      dsimp only [cN]
-      rw [Measure.real, ENNReal.toReal_pos_iff]
-      exact ⟨(isOpen_ball.measure_pos volume ⟨0, mem_ball_self (by positivity)⟩).trans_le
-          (measure_mono ball_subset_closedBall),
-        (isCompact_closedBall _ _).measure_lt_top⟩
-    set δ₀ : ℝ := min ((b₀ - c) / 2) (min (M / 4) (cN / (4 * (B_opp + 1) * ⟪n, u⟫)))
-    have hδ₀_pos : 0 < δ₀ := lt_min (by dsimp only [c]; linarith)
-      (lt_min (by positivity) (by
-        have : 0 ≤ B_opp := measureReal_nonneg
-        positivity))
-    set t₂ : ℝ := b₀ - δ₀
-    have ht₂_c : c < t₂ := by
-      have : δ₀ ≤ (b₀ - c) / 2 := min_le_left _ _
-      dsimp only [t₂, c] at this ⊢; linarith
-    have ht₂_mem : t₂ ∈ Ioo a₀ b₀ := ⟨by linarith [hc_mem.1], by dsimp only [t₂]; linarith⟩
-    refine ⟨t₂, ht₂_mem, ?_⟩
-    set ε : ℝ := δ₀ * ⟪n, u⟫
-    have hε_pos : 0 < ε := mul_pos hδ₀_pos hn_u_pos
-    let Φn := orthoSplitProd hn
-    let C : Set (ℝ × orthoHyperplane n) :=
-      Icc (1 / (4 * ε)) (1 / (2 * ε)) ×ˢ closedBall (0 : orthoHyperplane n) (2 * M)⁻¹
-    have hC_sub : Φn ⁻¹' C ⊆ P_of t₂ ∩ {y : E | 0 < ⟪y, u⟫} := by
-      intro y hy
-      have hs_lo : 1 / (4 * ε) ≤ (Φn y).1 := hy.1.1
-      have hs_hi : (Φn y).1 ≤ 1 / (2 * ε) := hy.1.2
-      have hw : ‖(Φn y).2‖ ≤ (2 * M)⁻¹ := mem_closedBall_zero_iff.mp hy.2
-      constructor
-      · rintro _ ⟨x, hxK, rfl⟩
-        have hx_n : (Φn (x - t₂ • u)).1 ≤ ε := by
-          simp only [Φn, orthoSplitProd_apply]
-          rw [inner_sub_left, inner_smul_left, RCLike.conj_to_real]
-          have h1 := inner_le_supportFn hxK n
-          rw [hsup_n, inner_smul_left, RCLike.conj_to_real] at h1
-          rw [real_inner_comm n u] at h1 ⊢
-          dsimp only [ε, t₂]; linarith
-        have hx_M : ‖(Φn (x - t₂ • u)).2‖ ≤ M := by
-          have hsq : ‖x - t₂ • u‖ ^ 2 = (Φn (x - t₂ • u)).1 ^ 2 + ‖(Φn (x - t₂ • u)).2‖ ^ 2 :=
-            orthoSplitProd_norm_sq hn (x - t₂ • u)
-          have hnorm : ‖x - t₂ • u‖ ≤ M :=
-            mem_closedBall_zero_iff.mp (hKt_bdd t₂ ⟨ht₂_mem.1.le, ht₂_mem.2.le⟩ ⟨x, hxK, rfl⟩)
-          have hnorm_sq : ‖x - t₂ • u‖ ^ 2 ≤ M ^ 2 := pow_le_pow_left₀ (norm_nonneg _) hnorm 2
-          have h1 : ‖(Φn (x - t₂ • u)).2‖ ^ 2 ≤ M ^ 2 := by linarith [sq_nonneg (Φn (x - t₂ • u)).1]
-          exact le_of_sq_le_sq h1 hM_pos.le
-        rw [orthoSplitProd_inner hn (x - t₂ • u) y]
-        have h1 : (Φn (x - t₂ • u)).1 * (Φn y).1 ≤ 1 / 2 := by
-          have hs_nn : 0 ≤ (Φn y).1 := (by positivity : (0 : ℝ) ≤ 1 / (4 * ε)).trans hs_lo
-          calc
-            (Φn (x - t₂ • u)).1 * (Φn y).1 ≤ ε * (Φn y).1 := mul_le_mul_of_nonneg_right hx_n hs_nn
-            _ ≤ ε * (1 / (2 * ε)) := mul_le_mul_of_nonneg_left hs_hi hε_pos.le
-            _ = 1 / 2 := by field_simp [hε_pos.ne']
-        have h2 : ⟪(Φn (x - t₂ • u)).2, (Φn y).2⟫ ≤ 1 / 2 := by
-          calc
-            ⟪(Φn (x - t₂ • u)).2, (Φn y).2⟫ ≤ ‖(Φn (x - t₂ • u)).2‖ * ‖(Φn y).2‖ :=
-              real_inner_le_norm _ _
-            _ ≤ M * (2 * M)⁻¹ := mul_le_mul hx_M hw (norm_nonneg _) hM_pos.le
-            _ = 1 / 2 := by field_simp [hM_pos.ne']
-        linarith
-      · -- Check `0 < ⟪y, u⟫` on `C`.
-        have hy_eq : y = (Φn y).1 • n + ((Φn y).2 : E) := by
-          have := Φn.symm_apply_apply y
-          dsimp only [Φn] at this
-          rw [orthoSplitProd_symm_apply] at this
-          exact this.symm
-        change 0 < ⟪y, u⟫
-        rw [hy_eq, inner_add_left, inner_smul_left, RCLike.conj_to_real]
-        have hwu : |⟪((Φn y).2 : E), u⟫| ≤ (2 * M)⁻¹ := by
-          calc
-            |⟪((Φn y).2 : E), u⟫| ≤ ‖((Φn y).2 : E)‖ * ‖u‖ := abs_real_inner_le_norm _ _
-            _ ≤ (2 * M)⁻¹ * 1 := by rw [hu]; exact mul_le_mul_of_nonneg_right hw zero_le_one
-            _ = (2 * M)⁻¹ := mul_one _
-        have hmain : (2 * M)⁻¹ < (Φn y).1 * ⟪n, u⟫ := by
-          have h1 : (2 * M)⁻¹ < (1 / (4 * ε)) * ⟪n, u⟫ := by
-            have heq : (1 / (4 * ε)) * ⟪n, u⟫ = (4 * δ₀)⁻¹ := by
-              dsimp only [ε]; field_simp [hδ₀_pos.ne', hn_u_pos.ne']
-            rw [heq]
-            have h4δ : 4 * δ₀ < 2 * M := by
-              have : δ₀ ≤ M / 4 := (min_le_right _ _).trans (min_le_left _ _)
-              linarith
-            exact (inv_lt_inv₀ (by positivity) (by positivity)).mpr h4δ
-          exact h1.trans_le (mul_le_mul_of_nonneg_right hs_lo hn_u_pos.le)
-        linarith [(abs_le.mp hwu).1]
-    have hC_meas : MeasurableSet C := measurableSet_Icc.prod measurableSet_closedBall
-    have hmpn := measurePreserving_orthoSplitProd hn
-    have hvol_C : volume (Φn ⁻¹' C) = ENNReal.ofReal (cN / (4 * ε)) := by
-      rw [hmpn.measure_preimage hC_meas.nullMeasurableSet, Measure.volume_eq_prod, Measure.prod_prod,
-        Real.volume_Icc,
-        show 1 / (2 * ε) - 1 / (4 * ε) = 1 / (4 * ε) by field_simp [hε_pos.ne']; ring,
-        ← ENNReal.ofReal_toReal (isCompact_closedBall _ _).measure_lt_top.ne,
-        ← ENNReal.ofReal_mul (by positivity)]
-      congr 1
-      change 1 / (4 * ε) * cN = cN / (4 * ε)
-      ring
-    have hfin_pos : volume (P_of t₂ ∩ {y : E | 0 < ⟪y, u⟫}) ≠ ⊤ :=
-      ((measure_mono inter_subset_left).trans_lt
-        (isCompact_polarBody_of_zero_mem_interior
-          (zero_mem_interior_translate_neg (hint_t t₂ ht₂_mem))).measure_lt_top).ne
-    have hpos_ge : cN / (4 * ε) ≤ volPos t₂ := by
-      rw [show volPos t₂ = (volume (P_of t₂ ∩ {y : E | 0 < ⟪y, u⟫})).toReal from rfl]
-      have h1 := ENNReal.toReal_mono hfin_pos (hvol_C ▸ measure_mono hC_sub)
-      rwa [ENNReal.toReal_ofReal (by positivity)] at h1
-    have hge_B : B_opp + 1 ≤ cN / (4 * ε) := by
-      have hB1 : 0 < B_opp + 1 := by linarith [show 0 ≤ B_opp from measureReal_nonneg]
-      have hδ_le : δ₀ ≤ cN / (4 * (B_opp + 1) * ⟪n, u⟫) :=
-        (min_le_right _ _).trans (min_le_right _ _)
-      rw [le_div_iff₀ (by positivity)]
-      have hmul := (le_div_iff₀ (by positivity : (0 : ℝ) < 4 * (B_opp + 1) * ⟪n, u⟫)).mp hδ_le
-      dsimp only [ε]; linarith
-    have hneg_le : volNeg t₂ ≤ B_opp := hneg_bdd t₂ ⟨ht₂_c.le, ht₂_mem.2⟩
-    dsimp only [D]; linarith
-  -- Symmetrically, cylinder blow-up in the negative half-space as `t → a₀⁺`, yielding `t₁` with `D t₁ ≤ 0`.
-  have hex_neg : ∃ t₁ ∈ Ioo a₀ b₀, D t₁ ≤ 0 := by
+    refine ⟨K.isClosed.closure_eq.symm ▸ hb_mem, fun hb_int => ?_⟩
+    obtain ⟨δ, hδ_pos, hball_b⟩ := Metric.mem_nhds_iff.mp (mem_interior_iff_mem_nhds.mp hb_int)
+    have hmem' : (b₀ + δ / 2) • u ∈ (K : Set E) := hball_b (by
+      rw [mem_ball, dist_eq_norm, show (b₀ + δ / 2) • u - b₀ • u = (δ / 2) • u by rw [add_smul]; abel,
+        norm_smul, Real.norm_eq_abs, abs_of_pos (half_pos hδ_pos), hu, mul_one]
+      exact half_lt_self hδ_pos)
+    have hfib_mem : b₀ + δ / 2 ∈ steinerFiber K' 0 := by
+      refine ⟨(b₀ + δ / 2) • u, hmem', ?_⟩
+      ext
+      · simp [Φ, orthoSplitProd_apply, hu]
+      · simp [Φ, orthoSplitProd_apply, hu]
+    have hle : b₀ + δ / 2 ≤ b₀ := le_csSup (isCompact_steinerFiber hK'c 0).bddAbove hfib_mem
+    linarith
+  have ha_fr : a₀ • u ∈ frontier (K : Set E) := by
     have ha_mem : a₀ • u ∈ (K : Set E) := by
-      have hK'c : IsCompact K' := K.isCompact.image (continuous_orthoSplitProd hu)
-      have hne0 : (steinerFiber K' 0).Nonempty := by
-        have h0S' : ((0 : ℝ), (0 : H)) ∈ steinerSymm K' :=
-          image_steinerSymmDir hu (K : Set E) ▸ ⟨0, interior_subset h0S, map_zero Φ⟩
-        exact h0S'.1
       have haK' : (a₀, (0 : H)) ∈ K' := (isCompact_steinerFiber hK'c 0).sInf_mem hne0
       rcases haK' with ⟨x, hxK, hxp⟩
       have hx_eq : x = a₀ • u := by
         have := congrArg Φ.symm hxp
-        rw [Φ.symm_apply_apply] at this
-        dsimp only [Φ] at this
-        rw [orthoSplitProd_symm_apply] at this
-        simpa using this
+        rw [Φ.symm_apply_apply] at this; dsimp only [Φ] at this
+        rw [orthoSplitProd_symm_apply] at this; simpa using this
       rwa [← hx_eq]
-    have ha_fr : a₀ • u ∈ frontier (K : Set E) := by
-      refine ⟨K.isClosed.closure_eq.symm ▸ ha_mem, fun ha_int => ?_⟩
-      obtain ⟨δ, hδ_pos, hball_a⟩ := Metric.mem_nhds_iff.mp (mem_interior_iff_mem_nhds.mp ha_int)
-      have hmem' : (a₀ - δ / 2) • u ∈ (K : Set E) := hball_a (by
-        rw [mem_ball, dist_eq_norm,
-          show (a₀ - δ / 2) • u - a₀ • u = (-(δ / 2)) • u by rw [sub_smul, neg_smul]; abel,
-          norm_smul, Real.norm_eq_abs, abs_neg, abs_of_pos (half_pos hδ_pos), hu, mul_one]
-        exact half_lt_self hδ_pos)
-      have hfib_mem : a₀ - δ / 2 ∈ steinerFiber K' 0 := by
-        refine ⟨(a₀ - δ / 2) • u, hmem', ?_⟩
-        ext
-        · simp only [Φ, orthoSplitProd_apply, inner_smul_left, RCLike.conj_to_real,
-            real_inner_self_eq_norm_sq, hu, one_pow, mul_one]
-        · simp only [Φ, orthoSplitProd_apply, inner_smul_left, RCLike.conj_to_real,
-            real_inner_self_eq_norm_sq, hu, one_pow, mul_one, sub_self, ZeroMemClass.coe_zero]
-      have hK'c : IsCompact K' := K.isCompact.image (continuous_orthoSplitProd hu)
-      have hge : a₀ ≤ a₀ - δ / 2 := csInf_le (isCompact_steinerFiber hK'c 0).bddBelow hfib_mem
-      linarith
-    obtain ⟨n, hn, hsup_n⟩ := exists_unit_supportFn_eq_of_mem_frontier K ha_fr
-    have hn_u_neg : 0 < -⟪n, u⟫ := by
-      have hmem_c : c • u + (r₁ / 2) • n ∈ (K : Set E) := hcb_c (by
-        rw [mem_closedBall, dist_eq_norm, add_sub_cancel_left, norm_smul, Real.norm_eq_abs,
-          abs_of_pos (half_pos hr₁_pos), hn, mul_one]; exact half_le_self hr₁_pos.le)
-      have h1 := inner_le_supportFn hmem_c n
-      rw [hsup_n, inner_add_left, inner_smul_left, inner_smul_left, inner_smul_left,
-        RCLike.conj_to_real, RCLike.conj_to_real, RCLike.conj_to_real,
-        real_inner_self_eq_norm_sq, hn, one_pow, mul_one, real_inner_comm n u] at h1
-      have hca : 0 < c - a₀ := by dsimp only [c]; linarith
-      nlinarith
-    set cN : ℝ := volume.real (closedBall (0 : orthoHyperplane n) (2 * M)⁻¹)
-    have hcN_pos : 0 < cN := by
-      dsimp only [cN]
-      rw [Measure.real, ENNReal.toReal_pos_iff]
-      exact ⟨(isOpen_ball.measure_pos volume ⟨0, mem_ball_self (by positivity)⟩).trans_le
-          (measure_mono ball_subset_closedBall),
-        (isCompact_closedBall _ _).measure_lt_top⟩
-    set δ₀ : ℝ := min ((c - a₀) / 2) (min (M / 4) (cN / (4 * (B_opp + 1) * (-⟪n, u⟫))))
-    have hδ₀_pos : 0 < δ₀ := lt_min (by dsimp only [c]; linarith)
-      (lt_min (by positivity) (by
-        have : 0 ≤ B_opp := measureReal_nonneg
-        positivity))
-    set t₁ : ℝ := a₀ + δ₀
-    have ht₁_c : t₁ < c := by
-      have : δ₀ ≤ (c - a₀) / 2 := min_le_left _ _
-      dsimp only [t₁, c] at this ⊢; linarith
-    have ht₁_mem : t₁ ∈ Ioo a₀ b₀ := ⟨by dsimp only [t₁]; linarith, by linarith [hc_mem.2]⟩
-    refine ⟨t₁, ht₁_mem, ?_⟩
-    set ε : ℝ := δ₀ * (-⟪n, u⟫)
-    have hε_pos : 0 < ε := mul_pos hδ₀_pos hn_u_neg
-    let Φn := orthoSplitProd hn
-    let C : Set (ℝ × orthoHyperplane n) :=
-      Icc (1 / (4 * ε)) (1 / (2 * ε)) ×ˢ closedBall (0 : orthoHyperplane n) (2 * M)⁻¹
-    have hC_sub : Φn ⁻¹' C ⊆ P_of t₁ ∩ {y : E | ⟪y, u⟫ < 0} := by
-      intro y hy
-      have hs_lo : 1 / (4 * ε) ≤ (Φn y).1 := hy.1.1
-      have hs_hi : (Φn y).1 ≤ 1 / (2 * ε) := hy.1.2
-      have hw : ‖(Φn y).2‖ ≤ (2 * M)⁻¹ := mem_closedBall_zero_iff.mp hy.2
-      constructor
-      · rintro _ ⟨x, hxK, rfl⟩
-        have hx_n : (Φn (x - t₁ • u)).1 ≤ ε := by
-          simp only [Φn, orthoSplitProd_apply]
-          rw [inner_sub_left, inner_smul_left, RCLike.conj_to_real]
-          have h1 := inner_le_supportFn hxK n
-          rw [hsup_n, inner_smul_left, RCLike.conj_to_real] at h1
-          rw [real_inner_comm n u] at h1 ⊢
-          dsimp only [ε, t₁]; linarith
-        have hx_M : ‖(Φn (x - t₁ • u)).2‖ ≤ M := by
-          have hsq : ‖x - t₁ • u‖ ^ 2 = (Φn (x - t₁ • u)).1 ^ 2 + ‖(Φn (x - t₁ • u)).2‖ ^ 2 :=
-            orthoSplitProd_norm_sq hn (x - t₁ • u)
-          have hnorm : ‖x - t₁ • u‖ ≤ M :=
-            mem_closedBall_zero_iff.mp (hKt_bdd t₁ ⟨ht₁_mem.1.le, ht₁_mem.2.le⟩ ⟨x, hxK, rfl⟩)
-          have hnorm_sq : ‖x - t₁ • u‖ ^ 2 ≤ M ^ 2 := pow_le_pow_left₀ (norm_nonneg _) hnorm 2
-          have h1 : ‖(Φn (x - t₁ • u)).2‖ ^ 2 ≤ M ^ 2 := by linarith [sq_nonneg (Φn (x - t₁ • u)).1]
-          exact le_of_sq_le_sq h1 hM_pos.le
-        rw [orthoSplitProd_inner hn (x - t₁ • u) y]
-        have h1 : (Φn (x - t₁ • u)).1 * (Φn y).1 ≤ 1 / 2 := by
-          have hs_nn : 0 ≤ (Φn y).1 := (by positivity : (0 : ℝ) ≤ 1 / (4 * ε)).trans hs_lo
-          calc
-            (Φn (x - t₁ • u)).1 * (Φn y).1 ≤ ε * (Φn y).1 := mul_le_mul_of_nonneg_right hx_n hs_nn
-            _ ≤ ε * (1 / (2 * ε)) := mul_le_mul_of_nonneg_left hs_hi hε_pos.le
-            _ = 1 / 2 := by field_simp [hε_pos.ne']
-        have h2 : ⟪(Φn (x - t₁ • u)).2, (Φn y).2⟫ ≤ 1 / 2 := by
-          calc
-            ⟪(Φn (x - t₁ • u)).2, (Φn y).2⟫ ≤ ‖(Φn (x - t₁ • u)).2‖ * ‖(Φn y).2‖ :=
-              real_inner_le_norm _ _
-            _ ≤ M * (2 * M)⁻¹ := mul_le_mul hx_M hw (norm_nonneg _) hM_pos.le
-            _ = 1 / 2 := by field_simp [hM_pos.ne']
-        linarith
-      · have hy_eq : y = (Φn y).1 • n + ((Φn y).2 : E) := by
-          have := Φn.symm_apply_apply y
-          dsimp only [Φn] at this
-          rw [orthoSplitProd_symm_apply] at this
-          exact this.symm
-        change ⟪y, u⟫ < 0
-        rw [hy_eq, inner_add_left, inner_smul_left, RCLike.conj_to_real]
-        have hwu : |⟪((Φn y).2 : E), u⟫| ≤ (2 * M)⁻¹ := by
-          calc
-            |⟪((Φn y).2 : E), u⟫| ≤ ‖((Φn y).2 : E)‖ * ‖u‖ := abs_real_inner_le_norm _ _
-            _ ≤ (2 * M)⁻¹ * 1 := by rw [hu]; exact mul_le_mul_of_nonneg_right hw zero_le_one
-            _ = (2 * M)⁻¹ := mul_one _
-        have hmain : (2 * M)⁻¹ < (Φn y).1 * (-⟪n, u⟫) := by
-          have h1 : (2 * M)⁻¹ < (1 / (4 * ε)) * (-⟪n, u⟫) := by
-            have heq : (1 / (4 * ε)) * (-⟪n, u⟫) = (4 * δ₀)⁻¹ := by
-              have hnu_ne : ⟪n, u⟫ ≠ 0 := by linarith
-              dsimp only [ε]; field_simp [hδ₀_pos.ne', hnu_ne]
-            rw [heq]
-            have h4δ : 4 * δ₀ < 2 * M := by
-              have : δ₀ ≤ M / 4 := (min_le_right _ _).trans (min_le_left _ _)
-              linarith
-            exact (inv_lt_inv₀ (by positivity) (by positivity)).mpr h4δ
-          exact h1.trans_le (mul_le_mul_of_nonneg_right hs_lo hn_u_neg.le)
-        linarith [(abs_le.mp hwu).2]
-    have hC_meas : MeasurableSet C := measurableSet_Icc.prod measurableSet_closedBall
-    have hmpn := measurePreserving_orthoSplitProd hn
-    have hvol_C : volume (Φn ⁻¹' C) = ENNReal.ofReal (cN / (4 * ε)) := by
-      rw [hmpn.measure_preimage hC_meas.nullMeasurableSet, Measure.volume_eq_prod, Measure.prod_prod,
-        Real.volume_Icc,
-        show 1 / (2 * ε) - 1 / (4 * ε) = 1 / (4 * ε) by field_simp [hε_pos.ne']; ring,
-        ← ENNReal.ofReal_toReal (isCompact_closedBall _ _).measure_lt_top.ne,
-        ← ENNReal.ofReal_mul (by positivity)]
-      congr 1
-      change 1 / (4 * ε) * cN = cN / (4 * ε)
-      ring
-    have hfin_neg : volume (P_of t₁ ∩ {y : E | ⟪y, u⟫ < 0}) ≠ ⊤ :=
-      ((measure_mono inter_subset_left).trans_lt
-        (isCompact_polarBody_of_zero_mem_interior
-          (zero_mem_interior_translate_neg (hint_t t₁ ht₁_mem))).measure_lt_top).ne
-    have hneg_ge : cN / (4 * ε) ≤ volNeg t₁ := by
-      rw [show volNeg t₁ = (volume (P_of t₁ ∩ {y : E | ⟪y, u⟫ < 0})).toReal from rfl]
-      have h1 := ENNReal.toReal_mono hfin_neg (hvol_C ▸ measure_mono hC_sub)
-      rwa [ENNReal.toReal_ofReal (by positivity)] at h1
-    have hge_B : B_opp + 1 ≤ cN / (4 * ε) := by
-      have hB1 : 0 < B_opp + 1 := by linarith [show 0 ≤ B_opp from measureReal_nonneg]
-      have hδ_le : δ₀ ≤ cN / (4 * (B_opp + 1) * (-⟪n, u⟫)) :=
-        (min_le_right _ _).trans (min_le_right _ _)
-      rw [le_div_iff₀ (by positivity)]
-      have hmul := (le_div_iff₀ (by positivity : (0 : ℝ) < 4 * (B_opp + 1) * (-⟪n, u⟫))).mp hδ_le
-      dsimp only [ε]; linarith
-    have hpos_le : volPos t₁ ≤ B_opp := hpos_bdd t₁ ⟨ht₁_mem.1, ht₁_c.le⟩
+    refine ⟨K.isClosed.closure_eq.symm ▸ ha_mem, fun ha_int => ?_⟩
+    obtain ⟨δ, hδ_pos, hball_a⟩ := Metric.mem_nhds_iff.mp (mem_interior_iff_mem_nhds.mp ha_int)
+    have hmem' : (a₀ - δ / 2) • u ∈ (K : Set E) := hball_a (by
+      rw [mem_ball, dist_eq_norm,
+        show (a₀ - δ / 2) • u - a₀ • u = (-(δ / 2)) • u by rw [sub_smul, neg_smul]; abel,
+        norm_smul, Real.norm_eq_abs, abs_neg, abs_of_pos (half_pos hδ_pos), hu, mul_one]
+      exact half_lt_self hδ_pos)
+    have hfib_mem : a₀ - δ / 2 ∈ steinerFiber K' 0 := by
+      refine ⟨(a₀ - δ / 2) • u, hmem', ?_⟩
+      ext
+      · simp [Φ, orthoSplitProd_apply, hu]
+      · simp [Φ, orthoSplitProd_apply, hu]
+    have hge : a₀ ≤ a₀ - δ / 2 := csInf_le (isCompact_steinerFiber hK'c 0).bddBelow hfib_mem
+    linarith
+  obtain ⟨t₂, ht₂_cb, ht₂_ge⟩ :=
+    exists_polar_halfVol_ge_of_dir hu K hc_mem hr₁_pos hcb_c hint_t hb_fr (B := B_opp)
+      measureReal_nonneg
+  have ht₂_mem : t₂ ∈ Ioo a₀ b₀ := ⟨hc_mem.1.trans ht₂_cb.1, ht₂_cb.2⟩
+  have hDt₂ : 0 ≤ D t₂ := by
+    have hneg_le : volNeg t₂ ≤ B_opp := by
+      have hcb_neg : closedBall ((-c) • (-u)) r₁ ⊆ (K : Set E) := by simpa [neg_smul, smul_neg] using hcb_c
+      have hle := polarBody_half_le_closedBall_of_ball_subset hr₁_pos hcb_neg (t := -t₂) (by linarith [ht₂_cb.1])
+      simpa [volNeg, P_of, neg_smul, smul_neg, inner_neg_right] using hle
+    dsimp only [D, volPos, P_of] at ht₂_ge ⊢
+    linarith
+  have hnu : ‖-u‖ = 1 := by rw [norm_neg, hu]
+  have hint_neg : ∀ s ∈ Ioo (-b₀) (-a₀), s • (-u) ∈ interior (K : Set E) := fun s hs => by
+    rw [smul_neg, ← neg_smul]
+    exact hint_t (-s) ⟨by linarith [hs.2], by linarith [hs.1]⟩
+  obtain ⟨s₁, hs₁_ca, hs₁_ge⟩ :=
+    exists_polar_halfVol_ge_of_dir hnu K (a := -b₀) (b := -a₀) (c := -c)
+      ⟨by linarith [hc_mem.2], by linarith [hc_mem.1]⟩ hr₁_pos
+      (by simpa [neg_smul, smul_neg] using hcb_c) hint_neg
+      (by simpa [neg_smul, smul_neg] using ha_fr) (B := B_opp) measureReal_nonneg
+  set t₁ : ℝ := -s₁
+  have ht₁_mem : t₁ ∈ Ioo a₀ b₀ := ⟨by dsimp only [t₁]; linarith [hs₁_ca.2],
+    by dsimp only [t₁]; linarith [hs₁_ca.1, hc_mem.2]⟩
+  have hDt₁ : D t₁ ≤ 0 := by
+    have hpos_le : volPos t₁ ≤ B_opp :=
+      polarBody_half_le_closedBall_of_ball_subset hr₁_pos hcb_c (by dsimp only [t₁]; linarith [hs₁_ca.1])
+    have hneg_ge : B_opp + 1 ≤ volNeg t₁ := by
+      simpa [volNeg, P_of, t₁, neg_smul, smul_neg, inner_neg_right] using hs₁_ge
     dsimp only [D]; linarith
-  -- Apply the Intermediate Value Theorem to `D` on `[min t₁ t₂, max t₁ t₂] ⊆ Ioo a₀ b₀`.
-  obtain ⟨t₁, ht₁, hDt₁⟩ := hex_neg
-  obtain ⟨t₂, ht₂, hDt₂⟩ := hex_pos
+  -- Step 4: Apply the Intermediate Value Theorem to `D` on `[min t₁ t₂, max t₁ t₂] ⊆ Ioo a₀ b₀`.
   rcases le_total t₁ t₂ with h12 | h21
-  · have hsub : Icc t₁ t₂ ⊆ Ioo a₀ b₀ := fun t ht => ⟨ht₁.1.trans_le ht.1, ht.2.trans_lt ht₂.2⟩
+  · have hsub : Icc t₁ t₂ ⊆ Ioo a₀ b₀ := fun t ht => ⟨ht₁_mem.1.trans_le ht.1, ht.2.trans_lt ht₂_mem.2⟩
     obtain ⟨t₀, ht₀_Icc, hDt₀⟩ := intermediate_value_Icc h12 (hD_cont.mono hsub) ⟨hDt₁, hDt₂⟩
     exact ⟨t₀, (hsub ht₀_Icc).1, (hsub ht₀_Icc).2, sub_eq_zero.mp hDt₀⟩
-  · have hsub : Icc t₂ t₁ ⊆ Ioo a₀ b₀ := fun t ht => ⟨ht₂.1.trans_le ht.1, ht.2.trans_lt ht₁.2⟩
+  · have hsub : Icc t₂ t₁ ⊆ Ioo a₀ b₀ := fun t ht => ⟨ht₂_mem.1.trans_le ht.1, ht.2.trans_lt ht₁_mem.2⟩
     obtain ⟨t₀, ht₀_Icc, hDt₀⟩ := intermediate_value_Icc' h21 (hD_cont.mono hsub) ⟨hDt₁, hDt₂⟩
     exact ⟨t₀, (hsub ht₀_Icc).1, (hsub ht₀_Icc).2, sub_eq_zero.mp hDt₀⟩
 
@@ -2378,50 +2277,25 @@ private lemma one_le_two_mul_rpow_self {lam : ℝ} (h0 : 0 < lam) (h1 : lam < 1)
     ← Real.rpow_def_of_pos h0, ← Real.rpow_def_of_pos h1lam] at hexp
   exact hexp
 
-/-- **Meyer–Pajor (1990) Steiner Symmetrization Inequality:**
-in dimension `d ≥ 2`, Steiner symmetrization in any unit direction `u` does not decrease the
-Santaló Mahler volume:
-$$\mathcal{P}^*(K) \le \mathcal{P}^*(S_u K).$$ -/
-theorem santaloMahlerVolume_le_bodySteinerSymmDir
-    {u : E} (hu : ‖u‖ = 1) (hd2 : 2 ≤ Module.finrank ℝ E)
-    (K : ConvexBody E) (hne : (interior (K : Set E)).Nonempty) :
-    santaloMahlerVolume (volume : Measure E) (K : Set E) ≤
-      santaloMahlerVolume (volume : Measure E) (bodySteinerSymmDir hu K : Set E) := by
-  have : Nontrivial E := Module.nontrivial_of_finrank_pos (R := ℝ) (M := E) (by omega)
-  let H := orthoHyperplane u
-  have hH_dim : Module.finrank ℝ H = Module.finrank ℝ E - 1 := by
-    have hsplit := (orthoSplitProd hu).finrank_eq
-    rw [Module.finrank_prod, Module.finrank_self] at hsplit
-    change Module.finrank ℝ E = 1 + Module.finrank ℝ H at hsplit
-    omega
-  have hH_pos : 1 ≤ Module.finrank ℝ H := by omega
-  have : Nontrivial H := Module.nontrivial_of_finrank_pos (R := ℝ) (M := H) (by omega)
-  let KS : ConvexBody E := bodySteinerSymmDir hu K
-  -- Step 1: Show `(interior KS).Nonempty` from `volume KS = volume K > 0`.
-  have hKS_ne : (interior (KS : Set E)).Nonempty := by
-    by_contra hemp
-    rw [Set.not_nonempty_iff_eq_empty] at hemp
-    have hvol0 : volume (KS : Set E) = 0 := by
-      have hfr : (KS : Set E) = frontier (KS : Set E) := by
-        rw [frontier, KS.isClosed.closure_eq, hemp, sdiff_empty]
-      rw [hfr]; exact KS.convex.addHaar_frontier volume
-    have hvol_pos : 0 < volume (K : Set E) :=
-      (isOpen_interior.measure_pos volume hne).trans_le (measure_mono interior_subset)
-    rw [show KS = bodySteinerSymmDir hu K from rfl, volume_bodySteinerSymmDir] at hvol0
-    exact hvol_pos.ne' hvol0
-  -- Step 2: Find a Santaló point `z₀ ∈ interior KS` lying on the hyperplane `u⊥`.
+/-- If `K` is reflection-symmetric across `u⊥`, then `K` admits a Santaló point lying on `u⊥`. -/
+private lemma exists_santaloPoint_orth [Nontrivial E]
+    {u : E} (hu : ‖u‖ = 1) (KS : ConvexBody E) (hKS_ne : (interior (KS : Set E)).Nonempty)
+    (hrefl : reflectBody hu KS = KS) :
+    ∃ z₀ ∈ interior (KS : Set E), ⟪z₀, u⟫ = 0 ∧
+      mahlerVolumeAt (volume : Measure E) (KS : Set E) z₀ =
+        santaloMahlerVolume (volume : Measure E) (KS : Set E) := by
   obtain ⟨zS, hzS_int, hzS_min⟩ := exists_santaloPoint KS hKS_ne
   set z₀ : E := (1 / 2 : ℝ) • zS + (1 / 2 : ℝ) • reflectHyperplane hu zS
   have hz₀_orth : ⟪z₀, u⟫ = 0 := by
     simp only [z₀, inner_add_left, inner_smul_left, RCLike.conj_to_real, reflectHyperplane_apply,
       inner_sub_left, real_inner_self_eq_norm_sq, hu, one_pow, mul_one]
     ring
-  have hrefl_KS : reflectBody hu KS = KS := reflectBody_bodySteinerSymmDir hu K
   have hzS_refl_int : reflectHyperplane hu zS ∈ interior (KS : Set E) := by
     have himg : (reflectHyperplane hu).toHomeomorph '' (KS : Set E) = (KS : Set E) := by
-      have h1 : (reflectBody hu KS : Set E) = (KS : Set E) := congrArg SetLike.coe hrefl_KS
+      have h1 : (reflectBody hu KS : Set E) = (KS : Set E) := congrArg SetLike.coe hrefl
       simpa [coe_reflectBody] using h1
-    have hmem : reflectHyperplane hu zS ∈ (reflectHyperplane hu).toHomeomorph '' interior (KS : Set E) :=
+    have hmem :
+        reflectHyperplane hu zS ∈ (reflectHyperplane hu).toHomeomorph '' interior (KS : Set E) :=
       ⟨zS, hzS_int, rfl⟩
     rwa [(reflectHyperplane hu).toHomeomorph.image_interior, himg] at hmem
   have hz₀_int : z₀ ∈ interior (KS : Set E) :=
@@ -2429,26 +2303,25 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
   have hpol_refl : polarVolAt KS (reflectHyperplane hu zS) = polarVolAt KS zS := by
     have hpre : polarBody ((fun x : E => x - reflectHyperplane hu zS) '' (KS : Set E)) =
         (reflectHyperplane hu) ⁻¹' polarBody ((fun x : E => x - zS) '' (KS : Set E)) := by
-      have hKS_img : ∀ x : E, x ∈ (KS : Set E) ↔ reflectHyperplane hu x ∈ (KS : Set E) := fun x => by
-        have h1 : (reflectBody hu KS : Set E) = (KS : Set E) := congrArg SetLike.coe hrefl_KS
-        constructor
-        · intro hx; rw [← h1, coe_reflectBody]; exact ⟨x, hx, rfl⟩
-        · intro hrx
-          have : reflectHyperplane hu (reflectHyperplane hu x) ∈ (KS : Set E) := by
-            rw [← h1, coe_reflectBody]; exact ⟨reflectHyperplane hu x, hrx, rfl⟩
-          rwa [reflectHyperplane_involutive] at this
+      have hKS_img : ∀ x : E, x ∈ (KS : Set E) ↔ reflectHyperplane hu x ∈ (KS : Set E) :=
+        fun x => by
+          have h1 : (reflectBody hu KS : Set E) = (KS : Set E) := congrArg SetLike.coe hrefl
+          constructor
+          · intro hx; rw [← h1, coe_reflectBody]; exact ⟨x, hx, rfl⟩
+          · intro hrx
+            have : reflectHyperplane hu (reflectHyperplane hu x) ∈ (KS : Set E) := by
+              rw [← h1, coe_reflectBody]; exact ⟨reflectHyperplane hu x, hrx, rfl⟩
+            rwa [reflectHyperplane_involutive] at this
       ext y
       simp only [mem_polarBody, mem_image, mem_preimage, forall_exists_index, and_imp,
         forall_apply_eq_imp_iff₂]
       constructor
       · intro h x hx
         have h1 := h (reflectHyperplane hu x) ((hKS_img x).mp hx)
-        rw [← map_sub, inner_reflectHyperplane] at h1
-        exact h1
+        rwa [← map_sub, inner_reflectHyperplane] at h1
       · intro h x hx
         have h1 := h (reflectHyperplane hu x) ((hKS_img x).mp hx)
-        rw [← inner_reflectHyperplane, map_sub, reflectHyperplane_involutive] at h1
-        exact h1
+        rwa [← inner_reflectHyperplane, map_sub, reflectHyperplane_involutive] at h1
     rw [polarVolAt, polarVolAt, Measure.real, Measure.real, hpre,
       (reflectHyperplane hu).measurePreserving.measure_preimage
         (isClosed_polarBody _).measurableSet.nullMeasurableSet]
@@ -2457,125 +2330,45 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
       (show (0 : ℝ) ≤ 1 / 2 by norm_num) (show (0 : ℝ) ≤ 1 / 2 by norm_num) (by norm_num)
     rw [smul_eq_mul, smul_eq_mul, hpol_refl] at hconv
     linarith
-  have hz₀_mahler_eq : mahlerVolumeAt (volume : Measure E) (KS : Set E) z₀ =
-      santaloMahlerVolume (volume : Measure E) (KS : Set E) := by
-    apply le_antisymm _ (santaloMahlerVolume_le_mahlerVolumeAt volume hz₀_int)
-    rw [← hzS_min]
-    have hvol_eq : ∀ z : E, volume ((fun x : E => x - z) '' (KS : Set E)) = volume (KS : Set E) := fun z => by
+  refine ⟨z₀, hz₀_int, hz₀_orth, le_antisymm ?_ (santaloMahlerVolume_le_mahlerVolumeAt volume hz₀_int)⟩
+  rw [← hzS_min]
+  have hvol_eq : ∀ z : E, volume ((fun x : E => x - z) '' (KS : Set E)) = volume (KS : Set E) :=
+    fun z => by
       have hpre : (fun x : E => x - z) '' (KS : Set E) = (fun x : E => z + x) ⁻¹' (KS : Set E) := by
         ext y; simp only [mem_image, mem_preimage]
         exact ⟨fun ⟨x, hx, hxy⟩ => by rw [← hxy]; simpa [add_sub_cancel] using hx,
           fun hy => ⟨z + y, hy, by abel⟩⟩
       rw [hpre, measure_preimage_add]
-    unfold mahlerVolumeAt mahlerVolume
-    rw [hvol_eq z₀, hvol_eq zS]
-    refine mul_le_mul' le_rfl ?_
-    have hfin0 : volume (polarBody ((fun x : E => x - z₀) '' (KS : Set E))) ≠ ⊤ :=
-      (isCompact_polarBody_of_zero_mem_interior (zero_mem_interior_translate_neg hz₀_int)).measure_lt_top.ne
-    have hfinS : volume (polarBody ((fun x : E => x - zS) '' (KS : Set E))) ≠ ⊤ :=
-      (isCompact_polarBody_of_zero_mem_interior (zero_mem_interior_translate_neg hzS_int)).measure_lt_top.ne
-    rw [← ENNReal.ofReal_toReal hfin0, ← ENNReal.ofReal_toReal hfinS]
-    exact ENNReal.ofReal_le_ofReal hz₀_pol_le
-  -- Step 3: Translate both `K` and `KS` by `-z₀ ∈ u⊥` so `0 ∈ interior KS₁`.
-  let K₁ : ConvexBody E := K + bodySingleton (-z₀)
-  let KS₁ : ConvexBody E := bodySteinerSymmDir hu K₁
-  have hKS₁_eq : KS₁ = KS + bodySingleton (-z₀) :=
-    bodySteinerSymmDir_translate_orth hu K (by rw [inner_neg_left, hz₀_orth, neg_zero])
-  have h0S₁ : (0 : E) ∈ interior (KS₁ : Set E) := by
-    rw [hKS₁_eq, coe_translate_neg]
-    exact zero_mem_interior_translate_neg hz₀_int
-  have hK₁_sant : santaloMahlerVolume (volume : Measure E) (K₁ : Set E) =
-      santaloMahlerVolume (volume : Measure E) (K : Set E) := by
-    have hcoe : (K₁ : Set E) = (fun x : E => x + (-z₀)) '' (K : Set E) := by
-      rw [coe_translate_neg]; ext y; simp [sub_eq_add_neg]
-    rw [hcoe, santaloMahlerVolume_translate]
-  have hKS₁_mahler : mahlerVolume (volume : Measure E) (KS₁ : Set E) =
-      santaloMahlerVolume (volume : Measure E) (KS : Set E) := by
-    rw [← hz₀_mahler_eq, mahlerVolumeAt, ← coe_translate_neg, ← hKS₁_eq]
-  -- It suffices to find `t₀` with `t₀ • u ∈ interior K₁` and `volume ((K₁ - t₀ • u)°) ≤ volume (KS₁°)`.
-  rw [← hK₁_sant, ← hKS₁_mahler]
-  -- Step 4: Choose balanced shift `t₀ ∈ Ioo a₀ b₀` by IVT!
-  obtain ⟨t₀, ht₀_lo, ht₀_hi, hbal⟩ := exists_balanced_polar_slice_shift hu hd2 K₁ h0S₁
-  have hfib₁ := mem_interior_along_fiber_of_zero_mem_interior_steinerSymmDir hu K₁ h0S₁
-  have ht₀_int : t₀ • u ∈ interior (K₁ : Set E) := hfib₁.2 t₀ ht₀_lo ht₀_hi
-  let K₀ : Set E := (fun x : E => x - t₀ • u) '' (K₁ : Set E)
-  have h0K₀ : (0 : E) ∈ interior K₀ := zero_mem_interior_translate_neg ht₀_int
-  suffices hpol_le : volume (polarBody K₀) ≤ volume (polarBody (KS₁ : Set E)) by
-    have hvol_K₀ : volume K₀ = volume (KS₁ : Set E) := by
-      have h1 : volume K₀ = volume (K₁ : Set E) := by
-        have hpre : K₀ = (fun x : E => t₀ • u + x) ⁻¹' (K₁ : Set E) := by
-          ext y; simp only [K₀, mem_image, mem_preimage]
-          exact ⟨fun ⟨x, hx, hxy⟩ => by rw [← hxy]; simpa [add_sub_cancel] using hx,
-            fun hy => ⟨t₀ • u + y, hy, by abel⟩⟩
-        rw [hpre, measure_preimage_add]
-      rw [h1, show KS₁ = bodySteinerSymmDir hu K₁ from rfl, volume_bodySteinerSymmDir]
-    calc
-      santaloMahlerVolume (volume : Measure E) (K₁ : Set E)
-        ≤ mahlerVolumeAt (volume : Measure E) (K₁ : Set E) (t₀ • u) :=
-            santaloMahlerVolume_le_mahlerVolumeAt volume ht₀_int
-      _ = volume K₀ * volume (polarBody K₀) := rfl
-      _ ≤ volume (KS₁ : Set E) * volume (polarBody (KS₁ : Set E)) := by
-            rw [hvol_K₀]; exact mul_le_mul' le_rfl hpol_le
-  -- Step 5: Move `polarBody K₀` and `polarBody KS₁` to `ℝ × H` via `Φ := orthoSplitProd hu`.
-  let Φ := orthoSplitProd hu
-  have hmp : MeasurePreserving Φ (volume : Measure E) (volume : Measure (ℝ × H)) :=
-    measurePreserving_orthoSplitProd hu
-  let P : Set (ℝ × H) := Φ '' polarBody K₀
-  let Q : Set (ℝ × H) := Φ '' polarBody (KS₁ : Set E)
-  have hPc : IsCompact P :=
-    (isCompact_polarBody_of_zero_mem_interior h0K₀).image (continuous_orthoSplitProd hu)
-  have hPconv : Convex ℝ P := (convex_polarBody K₀).linear_image Φ.toLinearMap
-  have hQc : IsCompact Q :=
-    (isCompact_polarBody_of_zero_mem_interior h0S₁).image (continuous_orthoSplitProd hu)
-  have h0P : ((0 : ℝ), (0 : H)) ∈ interior P := by
-    have hK₀_bdd : Bornology.IsBounded K₀ := by
-      obtain ⟨R, hR⟩ := K₁.isBounded.subset_closedBall (0 : E)
-      rw [Metric.isBounded_iff_subset_closedBall (0 : E)]
-      refine ⟨R + ‖t₀ • u‖, ?_⟩
-      rintro _ ⟨x, hx, rfl⟩
-      rw [mem_closedBall_zero_iff]
-      have hxR : ‖x‖ ≤ R := mem_closedBall_zero_iff.mp (hR hx)
-      linarith [norm_sub_le x (t₀ • u)]
-    have h0pol : (0 : E) ∈ interior (polarBody K₀) :=
-      zero_mem_interior_polarBody_of_isBounded hK₀_bdd
-    have h1 : (orthoSplitHomeomorph hu : E → ℝ × H) = Φ := funext (orthoSplitHomeomorph_coe hu)
-    have himg : Φ '' interior (polarBody K₀) = interior P := by
-      rw [← h1]
-      exact (orthoSplitHomeomorph hu).image_interior (polarBody K₀)
-    rw [← himg]
-    exact ⟨0, h0pol, map_zero Φ⟩
-  have hQ_sym : ∀ s : ℝ, ∀ y : H, (-s, y) ∈ Q ↔ (s, y) ∈ Q := fun s y => by
-    have hKS₁_refl : reflectBody hu KS₁ = KS₁ := reflectBody_bodySteinerSymmDir hu K₁
-    have hpol_refl' : ∀ z : E, z ∈ polarBody (KS₁ : Set E) ↔ reflectHyperplane hu z ∈ polarBody (KS₁ : Set E) := by
-      intro z
-      have h1 : (reflectBody hu KS₁ : Set E) = (KS₁ : Set E) := congrArg SetLike.coe hKS₁_refl
-      constructor
-      · intro hz x hx
-        have hrx : reflectHyperplane hu x ∈ (KS₁ : Set E) := by
-          rw [← h1, coe_reflectBody]; exact ⟨x, hx, rfl⟩
-        rw [← inner_reflectHyperplane]; exact hz _ hrx
-      · intro hrz x hx
-        have hrx : reflectHyperplane hu x ∈ (KS₁ : Set E) := by
-          rw [← h1, coe_reflectBody]; exact ⟨x, hx, rfl⟩
-        have := hrz (reflectHyperplane hu x) hrx
-        rwa [inner_reflectHyperplane, reflectHyperplane_involutive] at this
-    constructor
-    · rintro ⟨z, hz, hzp⟩
-      refine ⟨reflectHyperplane hu z, (hpol_refl' z).mp hz, ?_⟩
-      rw [orthoSplitProd_reflectHyperplane, hzp]; simp
-    · rintro ⟨z, hz, hzp⟩
-      refine ⟨reflectHyperplane hu z, (hpol_refl' z).mp hz, ?_⟩
-      rw [orthoSplitProd_reflectHyperplane, hzp]
-  -- Define slice volume functions `f(s) = vol_H(sliceP s)`, `g(s) = vol_H(sliceP (-s))`, `h(τ) = vol_H(sliceQ τ)`.
+  unfold mahlerVolumeAt mahlerVolume
+  rw [hvol_eq z₀, hvol_eq zS]
+  refine mul_le_mul' le_rfl ?_
+  have hfin0 : volume (polarBody ((fun x : E => x - z₀) '' (KS : Set E))) ≠ ⊤ :=
+    (isCompact_polarBody_of_zero_mem_interior
+      (zero_mem_interior_translate_neg hz₀_int)).measure_lt_top.ne
+  have hfinS : volume (polarBody ((fun x : E => x - zS) '' (KS : Set E))) ≠ ⊤ :=
+    (isCompact_polarBody_of_zero_mem_interior
+      (zero_mem_interior_translate_neg hzS_int)).measure_lt_top.ne
+  rw [← ENNReal.ofReal_toReal hfin0, ← ENNReal.ofReal_toReal hfinS]
+  exact ENNReal.ofReal_le_ofReal hz₀_pol_le
+
+/-- Slice-volume regularity for a compact convex set `P ⊆ ℝ × H` containing `(0, 0)` in its
+interior: positive extent `M = sSup (Prod.fst '' P)`, uniform bound, measurability, strict
+positivity and Brunn-concavity continuity on `Ioo 0 M`, and Fubini half-volume identity. -/
+private lemma convex_prod_posSlice_properties {H : Type*}
+    [NormedAddCommGroup H] [InnerProductSpace ℝ H] [FiniteDimensional ℝ H] [Nontrivial H]
+    [MeasurableSpace H] [BorelSpace H]
+    {P : Set (ℝ × H)} (hPc : IsCompact P) (hPconv : Convex ℝ P)
+    (h0P : ((0 : ℝ), (0 : H)) ∈ interior P) :
+    let f : ℝ → ℝ := fun s => volume.real {y : H | (s, y) ∈ P}
+    let M : ℝ := sSup (Prod.fst '' P)
+    0 < M ∧ (∃ C : ℝ, 0 ≤ C ∧ ∀ s : ℝ, 0 ≤ f s ∧ f s ≤ C) ∧ Measurable f ∧
+      (∀ s ∈ Ioo 0 M, 0 < f s) ∧ ContinuousOn f (Ioo 0 M) ∧
+      ∫ t in Ioo 0 M, f t = volume.real (P ∩ {p : ℝ × H | 0 < p.1}) := by
   let sliceP : ℝ → Set H := fun s => {y : H | (s, y) ∈ P}
-  let sliceQ : ℝ → Set H := fun s => {y : H | (s, y) ∈ Q}
   let f : ℝ → ℝ := fun s => volume.real (sliceP s)
-  let g : ℝ → ℝ := fun s => volume.real (sliceP (-s))
-  let h : ℝ → ℝ := fun τ => volume.real (sliceQ τ)
-  -- Uniform bound `C_H` on slice volumes from compactness of `P`.
+  set M : ℝ := sSup (Prod.fst '' P)
   obtain ⟨RP, hPR⟩ := hPc.isBounded.subset_closedBall ((0 : ℝ), (0 : H))
   set C_H : ℝ := volume.real (closedBall (0 : H) (max RP 1))
-  have hC_H_nn : 0 ≤ C_H := measureReal_nonneg
   have hsliceP_sub : ∀ s : ℝ, sliceP s ⊆ closedBall (0 : H) (max RP 1) := fun s y hy => by
     have h1 := hPR hy
     rw [mem_closedBall, dist_eq_norm, Prod.mk_sub_mk, sub_zero, sub_zero, Prod.norm_def] at h1
@@ -2585,33 +2378,18 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
       (hPc.isClosed.preimage (continuous_const.prodMk continuous_id)) (hsliceP_sub s)
   have hf_bdd : ∀ s : ℝ, 0 ≤ f s ∧ f s ≤ C_H := fun s =>
     ⟨measureReal_nonneg, measureReal_mono (hsliceP_sub s) (isCompact_closedBall _ _).measure_lt_top.ne⟩
-  have hg_bdd : ∀ s : ℝ, 0 ≤ g s ∧ g s ≤ C_H := fun s => hf_bdd (-s)
-  have hf_meas : Measurable f := by
-    have hm_enn : Measurable (fun s : ℝ => volume (sliceP s)) :=
-      measurable_measure_prodMk_left (ν := (volume : Measure H)) hPc.isClosed.measurableSet
-    exact ENNReal.measurable_toReal.comp hm_enn
-  have hg_meas : Measurable g := hf_meas.comp measurable_neg
-  -- Define positive/negative extents `M_f := sSup (Prod.fst '' P)` and `M_g := sSup ((-Prod.fst) '' P)`.
-  set M_f : ℝ := sSup (Prod.fst '' P)
-  set M_g : ℝ := sSup ((fun p : ℝ × H => -p.1) '' P)
+  have hf_meas : Measurable f :=
+    ENNReal.measurable_toReal.comp
+      (measurable_measure_prodMk_left (ν := (volume : Measure H)) hPc.isClosed.measurableSet)
   obtain ⟨δ₀, hδ₀_pos, hball0P⟩ := Metric.mem_nhds_iff.mp (mem_interior_iff_mem_nhds.mp h0P)
-  have hM_f_pos : 0 < M_f := by
+  have hM_pos : 0 < M := by
     have hmem : δ₀ / 2 ∈ Prod.fst '' P :=
       ⟨(δ₀ / 2, 0), hball0P (by
         rw [mem_ball, Prod.dist_eq, dist_zero_right, dist_zero_right, Real.norm_eq_abs,
           abs_of_pos (half_pos hδ₀_pos), norm_zero]
         exact max_lt (half_lt_self hδ₀_pos) hδ₀_pos), rfl⟩
     exact (half_pos hδ₀_pos).trans_le (le_csSup (hPc.image continuous_fst).bddAbove hmem)
-  have hM_g_pos : 0 < M_g := by
-    have hmem : δ₀ / 2 ∈ (fun p : ℝ × H => -p.1) '' P :=
-      ⟨(-(δ₀ / 2), 0), hball0P (by
-        rw [mem_ball, Prod.dist_eq, dist_zero_right, dist_zero_right, Real.norm_eq_abs,
-          abs_neg, abs_of_pos (half_pos hδ₀_pos), norm_zero]
-        exact max_lt (half_lt_self hδ₀_pos) hδ₀_pos), by simp⟩
-    exact (half_pos hδ₀_pos).trans_le
-      (le_csSup (hPc.image continuous_fst.neg).bddAbove hmem)
-  -- For `s ∈ Ioo 0 M_f`, `sliceP s` contains a positive-radius ball in `H`, hence `0 < f s`.
-  have hf_pos : ∀ s ∈ Ioo 0 M_f, 0 < f s := fun s hs => by
+  have hf_pos : ∀ s ∈ Ioo 0 M, 0 < f s := fun s hs => by
     have hex : ∃ s₁ ∈ Prod.fst '' P, s < s₁ :=
       exists_lt_of_lt_csSup ⟨0, ⟨(0, 0), interior_subset h0P, rfl⟩⟩ hs.2
     rcases hex with ⟨s₁, ⟨⟨t₁, y₁⟩, hp₁, ht₁⟩, hs_lt⟩
@@ -2641,50 +2419,14 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
       rwa [heq] at hcomb
     have hpos_ball : 0 < volume.real (ball (lam • y₁) ((1 - lam) * (δ₀ / 2))) := by
       rw [Measure.real, ENNReal.toReal_pos_iff]
-      exact ⟨isOpen_ball.measure_pos volume ⟨_, mem_ball_self (mul_pos (sub_pos.mpr hlam1) (half_pos hδ₀_pos))⟩,
+      exact ⟨isOpen_ball.measure_pos volume
+          ⟨_, mem_ball_self (mul_pos (sub_pos.mpr hlam1) (half_pos hδ₀_pos))⟩,
         (measure_mono ball_subset_closedBall).trans_lt (isCompact_closedBall _ _).measure_lt_top⟩
     exact hpos_ball.trans_le (measureReal_mono hball_sub (hsliceP_compact s).measure_lt_top.ne)
-  -- Symmetrically, `0 < g s` for all `s ∈ Ioo 0 M_g`.
-  have hg_pos : ∀ s ∈ Ioo 0 M_g, 0 < g s := fun s hs => by
-    have hex : ∃ s₁ ∈ (fun p : ℝ × H => -p.1) '' P, s < s₁ :=
-      exists_lt_of_lt_csSup ⟨0, ⟨(0, 0), interior_subset h0P, by simp⟩⟩ hs.2
-    rcases hex with ⟨s₁, ⟨⟨t₁, y₁⟩, hp₁, ht₁_eq⟩, hs_lt⟩
-    dsimp only at ht₁_eq
-    have ht₁_val : t₁ = -s₁ := by linarith
-    subst ht₁_val
-    have hs₁_pos : 0 < s₁ := hs.1.trans hs_lt
-    set lam : ℝ := s / s₁
-    have hlam0 : 0 < lam := div_pos hs.1 hs₁_pos
-    have hlam1 : lam < 1 := (div_lt_one hs₁_pos).mpr hs_lt
-    have hball_sub : ball (lam • y₁) ((1 - lam) * (δ₀ / 2)) ⊆ sliceP (-s) := fun w hw => by
-      set z : H := (1 - lam)⁻¹ • (w - lam • y₁)
-      have hz_lt : ‖z‖ < δ₀ / 2 := by
-        dsimp only [z]
-        rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr (sub_pos.mpr hlam1))]
-        rw [mem_ball, dist_eq_norm] at hw
-        exact (inv_mul_lt_iff₀ (sub_pos.mpr hlam1)).mpr (by linarith)
-      have h0z : ((0 : ℝ), z) ∈ P := hball0P (by
-        rw [mem_ball, Prod.dist_eq, dist_zero_right, dist_zero_right, Real.norm_eq_abs, abs_zero]
-        exact max_lt hδ₀_pos (hz_lt.trans (half_lt_self hδ₀_pos)))
-      have hcomb := hPconv h0z hp₁ (sub_pos.mpr hlam1).le hlam0.le (by ring)
-      have heq : (1 - lam) • ((0 : ℝ), z) + lam • (-s₁, y₁) = (-s, w) := by
-        apply Prod.ext
-        · change (1 - lam) * 0 + lam * (-s₁) = -s
-          dsimp only [lam]; field_simp [hs₁_pos.ne']; ring
-        · change (1 - lam) • z + lam • y₁ = w
-          dsimp only [z]
-          rw [smul_smul, mul_inv_cancel₀ (sub_pos.mpr hlam1).ne', one_smul, sub_add_cancel]
-      rwa [heq] at hcomb
-    have hpos_ball : 0 < volume.real (ball (lam • y₁) ((1 - lam) * (δ₀ / 2))) := by
-      rw [Measure.real, ENNReal.toReal_pos_iff]
-      exact ⟨isOpen_ball.measure_pos volume ⟨_, mem_ball_self (mul_pos (sub_pos.mpr hlam1) (half_pos hδ₀_pos))⟩,
-        (measure_mono ball_subset_closedBall).trans_lt (isCompact_closedBall _ _).measure_lt_top⟩
-    exact hpos_ball.trans_le (measureReal_mono hball_sub (hsliceP_compact (-s)).measure_lt_top.ne)
-  -- Continuity of `f` on `Ioo 0 M_f` and `g` on `Ioo 0 M_g` via Brunn concavity of `f^(1/(d-1))`!
   set m : ℕ := Module.finrank ℝ H
-  have hm_rpos : (0 : ℝ) < (m : ℝ) := Nat.cast_pos.mpr hH_pos
-  have hf_concave_rpow : ConcaveOn ℝ (Ioo 0 M_f) (fun s : ℝ => f s ^ ((1 : ℝ) / (m : ℝ))) := by
-    refine ⟨convex_Ioo 0 M_f, fun s₁ hs₁ s₂ hs₂ a b ha hb hab => ?_⟩
+  have hm_rpos : (0 : ℝ) < (m : ℝ) := Nat.cast_pos.mpr Module.finrank_pos
+  have hf_concave : ConcaveOn ℝ (Ioo 0 M) (fun s : ℝ => f s ^ ((1 : ℝ) / (m : ℝ))) := by
+    refine ⟨convex_Ioo 0 M, fun s₁ hs₁ s₂ hs₂ a b ha hb hab => ?_⟩
     rcases ha.eq_or_lt with rfl | ha_pos
     · have hb1 : b = 1 := by linarith
       subst hb1; simp
@@ -2692,110 +2434,41 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
     · have ha1 : a = 1 := by linarith
       subst ha1; simp
     have hne1 : (sliceP s₁).Nonempty := by
-      by_contra hemp
-      rw [Set.not_nonempty_iff_eq_empty] at hemp
+      by_contra hemp; rw [Set.not_nonempty_iff_eq_empty] at hemp
       have : f s₁ = 0 := by simp [f, hemp]
       linarith [hf_pos s₁ hs₁]
     have hne2 : (sliceP s₂).Nonempty := by
-      by_contra hemp
-      rw [Set.not_nonempty_iff_eq_empty] at hemp
+      by_contra hemp; rw [Set.not_nonempty_iff_eq_empty] at hemp
       have : f s₂ = 0 := by simp [f, hemp]
       linarith [hf_pos s₂ hs₂]
     have hsub_add : a • sliceP s₁ + b • sliceP s₂ ⊆ sliceP (a * s₁ + b * s₂) := by
       rintro _ ⟨_, ⟨y₁, hy₁, rfl⟩, _, ⟨y₂, hy₂, rfl⟩, rfl⟩
       change (a * s₁ + b * s₂, a • y₁ + b • y₂) ∈ P
       simpa [Prod.smul_mk, Prod.mk_add_mk] using hPconv hy₁ hy₂ ha hb hab
-    have hbm := brunn_minkowski_compact (E := H) ((hsliceP_compact s₁).smul a)
-      (hne1.smul_set) ((hsliceP_compact s₂).smul b) (hne2.smul_set)
-    have hbm' := hbm.trans (ENNReal.rpow_le_rpow (measure_mono hsub_add) (by positivity))
+    have hbm := (brunn_minkowski_compact (E := H) ((hsliceP_compact s₁).smul a)
+      (hne1.smul_set) ((hsliceP_compact s₂).smul b) (hne2.smul_set)).trans
+      (ENNReal.rpow_le_rpow (measure_mono hsub_add) (by positivity))
     rw [addHaar_smul_rpow_inv_finrank volume ha (sliceP s₁),
-      addHaar_smul_rpow_inv_finrank volume hb (sliceP s₂)] at hbm'
-    have hfin1 : volume (sliceP s₁) ≠ ⊤ := (hsliceP_compact s₁).measure_lt_top.ne
-    have hfin2 : volume (sliceP s₂) ≠ ⊤ := (hsliceP_compact s₂).measure_lt_top.ne
-    have hfin12 : volume (sliceP (a * s₁ + b * s₂)) ≠ ⊤ := (hsliceP_compact _).measure_lt_top.ne
-    have htoReal : a * f s₁ ^ ((1 : ℝ) / (m : ℝ)) + b * f s₂ ^ ((1 : ℝ) / (m : ℝ)) ≤
-        f (a * s₁ + b * s₂) ^ ((1 : ℝ) / (m : ℝ)) := by
-      have hconv_enn : ∀ s : ℝ, volume (sliceP s) ≠ ⊤ →
-          volume (sliceP s) ^ ((1 : ℝ) / (m : ℝ)) = ENNReal.ofReal (f s ^ ((1 : ℝ) / (m : ℝ))) := fun s hfin => by
-        rw [← ENNReal.ofReal_rpow_of_nonneg measureReal_nonneg (by positivity),
-          Measure.real, ENNReal.ofReal_toReal hfin]
-      rw [hconv_enn s₁ hfin1, hconv_enn s₂ hfin2, hconv_enn _ hfin12,
-        ← ENNReal.ofReal_mul ha, ← ENNReal.ofReal_mul hb,
-        ← ENNReal.ofReal_add (by positivity) (by positivity)] at hbm'
-      exact (ENNReal.ofReal_le_ofReal_iff (by positivity)).mp hbm'
-    simpa [smul_eq_mul] using htoReal
-  have hf_cont : ContinuousOn f (Ioo 0 M_f) := by
-    have hcvx : ConvexOn ℝ (Ioo 0 M_f) (fun s : ℝ => -(f s ^ ((1 : ℝ) / (m : ℝ)))) :=
-      hf_concave_rpow.neg
-    have hcont_rpow : ContinuousOn (fun s : ℝ => f s ^ ((1 : ℝ) / (m : ℝ))) (Ioo 0 M_f) := by
-      simpa using (hcvx.continuousOn isOpen_Ioo).neg
-    have hpow := hcont_rpow.pow m
-    refine hpow.congr fun s hs => ?_
-    have hfs : 0 ≤ f s := (hf_bdd s).1
+      addHaar_smul_rpow_inv_finrank volume hb (sliceP s₂)] at hbm
+    have hconv_enn : ∀ s : ℝ, volume (sliceP s) ^ ((1 : ℝ) / (m : ℝ)) =
+        ENNReal.ofReal (f s ^ ((1 : ℝ) / (m : ℝ))) := fun s => by
+      rw [← ENNReal.ofReal_rpow_of_nonneg measureReal_nonneg (by positivity),
+        Measure.real, ENNReal.ofReal_toReal (hsliceP_compact s).measure_lt_top.ne]
+    rw [hconv_enn s₁, hconv_enn s₂, hconv_enn _, ← ENNReal.ofReal_mul ha, ← ENNReal.ofReal_mul hb,
+      ← ENNReal.ofReal_add (by positivity) (by positivity)] at hbm
+    simpa [smul_eq_mul] using (ENNReal.ofReal_le_ofReal_iff (by positivity)).mp hbm
+  have hf_cont : ContinuousOn f (Ioo 0 M) := by
+    have hcont_rpow : ContinuousOn (fun s : ℝ => f s ^ ((1 : ℝ) / (m : ℝ))) (Ioo 0 M) := by
+      simpa using (hf_concave.neg.continuousOn isOpen_Ioo).neg
+    refine (hcont_rpow.pow m).congr fun s _ => ?_
     dsimp only [Pi.pow_apply]
-    rw [← Real.rpow_natCast, ← Real.rpow_mul hfs, one_div_mul_cancel hm_rpos.ne', Real.rpow_one]
-  have hg_cont : ContinuousOn g (Ioo 0 M_g) := by
-    have hg_concave : ConcaveOn ℝ (Ioo 0 M_g) (fun s : ℝ => g s ^ ((1 : ℝ) / (m : ℝ))) := by
-      refine ⟨convex_Ioo 0 M_g, fun s₁ hs₁ s₂ hs₂ a b ha hb hab => ?_⟩
-      rcases ha.eq_or_lt with rfl | ha_pos
-      · have hb1 : b = 1 := by linarith
-        subst hb1; simp
-      rcases hb.eq_or_lt with rfl | hb_pos
-      · have ha1 : a = 1 := by linarith
-        subst ha1; simp
-      have hne1 : (sliceP (-s₁)).Nonempty := by
-        by_contra hemp; rw [Set.not_nonempty_iff_eq_empty] at hemp
-        have : g s₁ = 0 := by simp [g, hemp]
-        linarith [hg_pos s₁ hs₁]
-      have hne2 : (sliceP (-s₂)).Nonempty := by
-        by_contra hemp; rw [Set.not_nonempty_iff_eq_empty] at hemp
-        have : g s₂ = 0 := by simp [g, hemp]
-        linarith [hg_pos s₂ hs₂]
-      have hsub_add : a • sliceP (-s₁) + b • sliceP (-s₂) ⊆ sliceP (-(a * s₁ + b * s₂)) := by
-        rintro _ ⟨_, ⟨y₁, hy₁, rfl⟩, _, ⟨y₂, hy₂, rfl⟩, rfl⟩
-        change (-(a * s₁ + b * s₂), a • y₁ + b • y₂) ∈ P
-        have h1 := hPconv hy₁ hy₂ ha hb hab
-        convert h1 using 1
-        apply Prod.ext
-        · change -(a * s₁ + b * s₂) = a * (-s₁) + b * (-s₂); ring
-        · rfl
-      have hbm := brunn_minkowski_compact (E := H) ((hsliceP_compact (-s₁)).smul a)
-        (hne1.smul_set) ((hsliceP_compact (-s₂)).smul b) (hne2.smul_set)
-      have hbm' := hbm.trans (ENNReal.rpow_le_rpow (measure_mono hsub_add) (by positivity))
-      rw [addHaar_smul_rpow_inv_finrank volume ha (sliceP (-s₁)),
-        addHaar_smul_rpow_inv_finrank volume hb (sliceP (-s₂))] at hbm'
-      have hconv_enn : ∀ s : ℝ, volume (sliceP (-s)) ≠ ⊤ →
-          volume (sliceP (-s)) ^ ((1 : ℝ) / (m : ℝ)) = ENNReal.ofReal (g s ^ ((1 : ℝ) / (m : ℝ))) := fun s hfin => by
-        rw [← ENNReal.ofReal_rpow_of_nonneg measureReal_nonneg (by positivity),
-          Measure.real, ENNReal.ofReal_toReal hfin]
-      rw [hconv_enn s₁ (hsliceP_compact _).measure_lt_top.ne,
-        hconv_enn s₂ (hsliceP_compact _).measure_lt_top.ne,
-        hconv_enn _ (hsliceP_compact _).measure_lt_top.ne,
-        ← ENNReal.ofReal_mul ha, ← ENNReal.ofReal_mul hb,
-        ← ENNReal.ofReal_add (by positivity) (by positivity)] at hbm'
-      simpa [smul_eq_mul] using (ENNReal.ofReal_le_ofReal_iff (by positivity)).mp hbm'
-    have hcont_rpow : ContinuousOn (fun s : ℝ => g s ^ ((1 : ℝ) / (m : ℝ))) (Ioo 0 M_g) := by
-      simpa using (hg_concave.neg.continuousOn isOpen_Ioo).neg
-    refine (hcont_rpow.pow m).congr fun s hs => ?_
-    have hgs : 0 ≤ g s := (hg_bdd s).1
-    dsimp only [Pi.pow_apply]
-    rw [← Real.rpow_natCast, ← Real.rpow_mul hgs, one_div_mul_cancel hm_rpos.ne', Real.rpow_one]
-  -- Compute the positive and negative half-volumes via Fubini and show both equal `V2 := ∫_{Ioo 0 M_f} f`.
-  have hhalf_pos_eq : ∫ t in Ioo 0 M_f, f t =
-      volume.real (polarBody K₀ ∩ {y : E | 0 < ⟪y, u⟫}) := by
-    have hset_eq : polarBody K₀ ∩ {y : E | 0 < ⟪y, u⟫} = Φ ⁻¹' (P ∩ {p : ℝ × H | 0 < p.1}) := by
-      ext y; simp only [mem_inter_iff, mem_preimage, mem_ofPred_eq, P, mem_image]
-      constructor
-      · rintro ⟨hy, hyu⟩; exact ⟨⟨y, hy, rfl⟩, by dsimp only [Φ]; rw [orthoSplitProd_apply]; exact hyu⟩
-      · rintro ⟨⟨z, hz, hzy⟩, hyu⟩
-        refine ⟨Φ.injective hzy ▸ hz, ?_⟩
-        dsimp only [Φ] at hyu; rw [orthoSplitProd_apply] at hyu; exact hyu
+    rw [← Real.rpow_natCast, ← Real.rpow_mul (hf_bdd s).1, one_div_mul_cancel hm_rpos.ne',
+      Real.rpow_one]
+  have hf_int : ∫ t in Ioo 0 M, f t = volume.real (P ∩ {p : ℝ × H | 0 < p.1}) := by
     have hm_set : MeasurableSet (P ∩ {p : ℝ × H | 0 < p.1}) :=
       hPc.isClosed.measurableSet.inter (isOpen_lt continuous_const continuous_fst).measurableSet
-    have hvol_enn : volume (polarBody K₀ ∩ {y : E | 0 < ⟪y, u⟫}) =
-        ∫⁻ t in Ioo 0 M_f, ENNReal.ofReal (f t) := by
-      rw [hset_eq, hmp.measure_preimage hm_set.nullMeasurableSet, Measure.volume_eq_prod,
-        Measure.prod_apply hm_set]
+    have hvol_enn : volume (P ∩ {p : ℝ × H | 0 < p.1}) = ∫⁻ t in Ioo 0 M, ENNReal.ofReal (f t) := by
+      rw [Measure.volume_eq_prod, Measure.prod_apply hm_set]
       have hfib : ∀ t : ℝ, volume (Prod.mk t ⁻¹' (P ∩ {p : ℝ × H | 0 < p.1})) =
           (Ioi (0 : ℝ)).indicator (fun s => ENNReal.ofReal (f s)) t := fun t => by
         by_cases ht : 0 < t
@@ -2806,49 +2479,234 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
           dsimp only [f]
           rw [Measure.real, ENNReal.ofReal_toReal (hsliceP_compact t).measure_lt_top.ne]
         · rw [indicator_of_notMem ht]
-          have hpre : Prod.mk t ⁻¹' (P ∩ {p : ℝ × H | 0 < p.1}) = ∅ := by
-            ext y; simp [ht]
+          have hpre : Prod.mk t ⁻¹' (P ∩ {p : ℝ × H | 0 < p.1}) = ∅ := by ext y; simp [ht]
           rw [hpre, measure_empty]
       simp_rw [hfib]
       rw [lintegral_indicator measurableSet_Ioi]
-      have hzero_gt : ∀ t : ℝ, M_f < t → ENNReal.ofReal (f t) = 0 := fun t ht => by
+      have hzero_gt : ∀ t : ℝ, M < t → ENNReal.ofReal (f t) = 0 := fun t ht => by
         have hemp : sliceP t = ∅ := by
           ext y; simp only [sliceP, mem_ofPred_eq, mem_empty_iff_false, iff_false]
           intro hp
-          have hle : t ≤ M_f := le_csSup (hPc.image continuous_fst).bddAbove ⟨(t, y), hp, rfl⟩
-          linarith
+          linarith [le_csSup (hPc.image continuous_fst).bddAbove ⟨(t, y), hp, rfl⟩]
         simp [f, hemp]
-      have hsplit : Ioi (0 : ℝ) = Ioo 0 M_f ∪ {M_f} ∪ Ioi M_f := by
+      have hsplit : Ioi (0 : ℝ) = Ioo 0 M ∪ {M} ∪ Ioi M := by
         ext t; simp only [mem_union, mem_Ioi, mem_Ioo, mem_singleton_iff]
         constructor
         · intro ht
-          rcases lt_trichotomy t M_f with hlt | rfl | hgt
+          rcases lt_trichotomy t M with hlt | rfl | hgt
           · exact Or.inl (Or.inl ⟨ht, hlt⟩)
           · exact Or.inl (Or.inr rfl)
           · exact Or.inr hgt
         · rintro ((⟨h1, _⟩ | rfl) | hgt)
           · exact h1
-          · exact hM_f_pos
-          · exact hM_f_pos.trans hgt
+          · exact hM_pos
+          · exact hM_pos.trans hgt
       rw [hsplit]
-      have h1 : ∫⁻ t in (Ioo 0 M_f ∪ {M_f}) ∪ Ioi M_f, ENNReal.ofReal (f t) =
-          ∫⁻ t in Ioo 0 M_f ∪ {M_f}, ENNReal.ofReal (f t) := by
+      have h1 : ∫⁻ t in (Ioo 0 M ∪ {M}) ∪ Ioi M, ENNReal.ofReal (f t) =
+          ∫⁻ t in Ioo 0 M ∪ {M}, ENNReal.ofReal (f t) := by
         rw [lintegral_union measurableSet_Ioi (by
           rw [Set.disjoint_left]; rintro t (⟨_, h2⟩ | rfl) hgt <;> linarith [mem_Ioi.mp hgt])]
-        have hz : ∫⁻ t in Ioi M_f, ENNReal.ofReal (f t) = 0 := by
-          rw [setLIntegral_congr_fun measurableSet_Ioi fun t ht => hzero_gt t ht, lintegral_zero]
-        rw [hz, add_zero]
-      rw [h1, lintegral_union (measurableSet_singleton M_f) (by
+        rw [setLIntegral_congr_fun measurableSet_Ioi fun t ht => hzero_gt t ht, lintegral_zero,
+          add_zero]
+      rw [h1, lintegral_union (measurableSet_singleton M) (by
         rw [Set.disjoint_left]; intro t ht htm; simp only [mem_singleton_iff] at htm; linarith [ht.2]),
         lintegral_singleton, Real.volume_singleton, mul_zero, add_zero]
-    have hint_f : IntegrableOn f (Ioo 0 M_f) volume :=
-      (integrableOn_const (C := C_H) (by simp : volume (Ioo 0 M_f) ≠ ⊤)).mono'
+    have hint_f : IntegrableOn f (Ioo 0 M) volume :=
+      (integrableOn_const (C := C_H) (by simp : volume (Ioo 0 M) ≠ ⊤)).mono'
         hf_meas.aestronglyMeasurable (ae_of_all _ fun t => by
           rw [Real.norm_eq_abs, abs_of_nonneg (hf_bdd t).1]; exact (hf_bdd t).2)
-    rw [Measure.real, hvol_enn, ← ofReal_integral_eq_lintegral_ofReal hint_f (ae_of_all _ fun t => (hf_bdd t).1),
+    rw [Measure.real, hvol_enn,
+      ← ofReal_integral_eq_lintegral_ofReal hint_f (ae_of_all _ fun t => (hf_bdd t).1),
       ENNReal.toReal_ofReal (setIntegral_nonneg measurableSet_Ioo fun t _ => (hf_bdd t).1)]
-  have hhalf_neg_eq : ∫ t in Ioo 0 M_g, g t =
+  exact ⟨hM_pos, ⟨C_H, measureReal_nonneg, hf_bdd⟩, hf_meas, hf_pos, hf_cont, hf_int⟩
+
+omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
+/-- **Meyer–Pajor Geometric Slice Inclusion:** for `s₁, s₂ > 0`, `λ = s₂ / (s₁ + s₂)`, and harmonic
+mean `τ = 2 s₁ s₂ / (s₁ + s₂)`, the weighted Minkowski combination of the `s₁`-slice and `(-s₂)`-slice
+of `(K₁ - t₀ • u)°` lies inside the `τ`-slice of `(S_u K₁)°`. -/
+private lemma meyer_pajor_slice_subset {u : E} (hu : ‖u‖ = 1) (K₁ : ConvexBody E) (t₀ : ℝ)
+    {s₁ s₂ : ℝ} (hs₁ : 0 < s₁) (hs₂ : 0 < s₂) :
+    let Φ := orthoSplitProd hu
+    let K₀ : Set E := (fun x : E => x - t₀ • u) '' (K₁ : Set E)
+    let lam : ℝ := s₂ / (s₁ + s₂)
+    let τ : ℝ := 2 * s₁ * s₂ / (s₁ + s₂)
+    lam • {y : orthoHyperplane u | (s₁, y) ∈ Φ '' polarBody K₀} +
+      (1 - lam) • {y : orthoHyperplane u | (-s₂, y) ∈ Φ '' polarBody K₀} ⊆
+        {y : orthoHyperplane u | (τ, y) ∈ Φ '' polarBody (bodySteinerSymmDir hu K₁ : Set E)} := by
+  intro Φ K₀ lam τ
+  have hsum : 0 < s₁ + s₂ := add_pos hs₁ hs₂
+  have hlam0 : 0 < lam := div_pos hs₂ hsum
+  have hlam1 : lam < 1 := (div_lt_one hsum).mpr (by linarith)
+  have h1lam : 1 - lam = s₁ / (s₁ + s₂) := by dsimp only [lam]; field_simp [hsum.ne']; ring
+  have hτ_pos : 0 < τ := by dsimp only [τ]; positivity
+  rintro _ ⟨_, ⟨y₁, hy₁, rfl⟩, _, ⟨y₂, hy₂, rfl⟩, rfl⟩
+  rcases hy₁ with ⟨z₁, hz₁, hz₁_eq⟩
+  rcases hy₂ with ⟨z₂, hz₂, hz₂_eq⟩
+  refine ⟨Φ.symm (τ, lam • y₁ + (1 - lam) • y₂), ?_, Φ.apply_symm_apply _⟩
+  intro x hxKS₁
+  let K₁' : Set (ℝ × orthoHyperplane u) := Φ '' (K₁ : Set E)
+  have hK₁'c : IsCompact K₁' := K₁.isCompact.image (continuous_orthoSplitProd hu)
+  have hxS' : Φ x ∈ steinerSymm K₁' := hxKS₁
+  set t : ℝ := (Φ x).1
+  set w : orthoHyperplane u := (Φ x).2
+  have hne_w : (steinerFiber K₁' w).Nonempty := hxS'.1
+  set a : ℝ := steinerLower K₁' w
+  set b : ℝ := steinerUpper K₁' w
+  rcases (isCompact_steinerFiber hK₁'c w).sInf_mem hne_w with ⟨xa, hxaK₁, hxa_eq⟩
+  rcases (isCompact_steinerFiber hK₁'c w).sSup_mem hne_w with ⟨xb, hxbK₁, hxb_eq⟩
+  have hshift_Φ : ∀ {z : E} {r : ℝ}, Φ z = (r, w) → Φ (z - t₀ • u) = (r - t₀, w) := by
+    intro z r hzeq
+    rw [map_sub, hzeq]
+    apply Prod.ext
+    · dsimp only [Φ]; rw [orthoSplitProd_apply]
+      simp only [Prod.fst_sub, inner_smul_left, RCLike.conj_to_real,
+        real_inner_self_eq_norm_sq, hu, one_pow, mul_one]
+    · apply Subtype.ext
+      dsimp only [Φ]; rw [orthoSplitProd_apply]
+      simp only [Prod.snd_sub, AddSubgroupClass.coe_sub, inner_smul_left, RCLike.conj_to_real,
+        real_inner_self_eq_norm_sq, hu, one_pow, mul_one, sub_self, sub_zero]
+  have h1 : (b - t₀) * s₁ + ⟪w, y₁⟫ ≤ 1 := by
+    have hpol := hz₁ (xb - t₀ • u) ⟨xb, hxbK₁, rfl⟩
+    rw [orthoSplitProd_inner hu (xb - t₀ • u) z₁, hshift_Φ hxb_eq, hz₁_eq] at hpol
+    exact hpol
+  have h2 : (t₀ - a) * s₂ + ⟪w, y₂⟫ ≤ 1 := by
+    have hpol := hz₂ (xa - t₀ • u) ⟨xa, hxaK₁, rfl⟩
+    rw [orthoSplitProd_inner hu (xa - t₀ • u) z₂, hshift_Φ hxa_eq, hz₂_eq] at hpol
+    change (a - t₀) * (-s₂) + ⟪w, y₂⟫ ≤ 1 at hpol
+    linarith
+  have hcomb : ((b - a) / 2) * τ + ⟪w, lam • y₁ + (1 - lam) • y₂⟫ ≤ 1 := by
+    have hm1 : lam * ((b - t₀) * s₁ + ⟪w, y₁⟫) ≤ lam := by nlinarith
+    have hm2 : (1 - lam) * ((t₀ - a) * s₂ + ⟪w, y₂⟫) ≤ 1 - lam := by nlinarith
+    have hlam_s1 : lam * s₁ = τ / 2 := by dsimp only [lam, τ]; field_simp [hsum.ne']
+    have h1lam_s2 : (1 - lam) * s₂ = τ / 2 := by rw [h1lam]; dsimp only [τ]; field_simp [hsum.ne']
+    rw [inner_add_right, inner_smul_right, inner_smul_right]
+    have halg : lam * ((b - t₀) * s₁) + (1 - lam) * ((t₀ - a) * s₂) = ((b - a) / 2) * τ := by
+      calc
+        lam * ((b - t₀) * s₁) + (1 - lam) * ((t₀ - a) * s₂)
+          = (b - t₀) * (lam * s₁) + (t₀ - a) * ((1 - lam) * s₂) := by ring
+        _ = (b - t₀) * (τ / 2) + (t₀ - a) * (τ / 2) := by rw [hlam_s1, h1lam_s2]
+        _ = ((b - a) / 2) * τ := by ring
+    linarith
+  rw [orthoSplitProd_inner hu x (Φ.symm (τ, lam • y₁ + (1 - lam) • y₂)), Φ.apply_symm_apply]
+  have ht_le : t ≤ (b - a) / 2 := (le_abs_self t).trans hxS'.2
+  linarith [mul_le_mul_of_nonneg_right ht_le hτ_pos.le]
+
+/-- **Meyer–Pajor Polar Volume Inequality (Balanced Shift):** given `t₀ • u ∈ interior K₁` whose
+shifted polar `K₀°` has equal positive and negative half-volumes across `u⊥`, and
+`0 ∈ interior (S_u K₁)`, we have `volume (K₀°) ≤ volume ((S_u K₁)°)`. -/
+private lemma meyer_pajor_polar_volume_le
+    {u : E} (hu : ‖u‖ = 1) (hd2 : 2 ≤ Module.finrank ℝ E)
+    (K₁ : ConvexBody E) {t₀ : ℝ}
+    (ht₀_int : t₀ • u ∈ interior (K₁ : Set E))
+    (h0S₁ : (0 : E) ∈ interior (bodySteinerSymmDir hu K₁ : Set E))
+    (hbal : volume.real (polarBody ((fun x : E => x - t₀ • u) '' (K₁ : Set E)) ∩
+        {y : E | 0 < ⟪y, u⟫}) =
+      volume.real (polarBody ((fun x : E => x - t₀ • u) '' (K₁ : Set E)) ∩
+        {y : E | ⟪y, u⟫ < 0})) :
+    volume (polarBody ((fun x : E => x - t₀ • u) '' (K₁ : Set E))) ≤
+      volume (polarBody (bodySteinerSymmDir hu K₁ : Set E)) := by
+  have : Nontrivial E := Module.nontrivial_of_finrank_pos (R := ℝ) (M := E) (by omega)
+  let H := orthoHyperplane u
+  have hH_dim : Module.finrank ℝ H = Module.finrank ℝ E - 1 := by
+    have hsplit := (orthoSplitProd hu).finrank_eq
+    rw [Module.finrank_prod, Module.finrank_self] at hsplit
+    change Module.finrank ℝ E = 1 + Module.finrank ℝ H at hsplit
+    omega
+  have : Nontrivial H := Module.nontrivial_of_finrank_pos (R := ℝ) (M := H) (by omega)
+  let KS₁ : ConvexBody E := bodySteinerSymmDir hu K₁
+  let K₀ : Set E := (fun x : E => x - t₀ • u) '' (K₁ : Set E)
+  have h0K₀ : (0 : E) ∈ interior K₀ := zero_mem_interior_translate_neg ht₀_int
+  let Φ := orthoSplitProd hu
+  have hmp : MeasurePreserving Φ (volume : Measure E) (volume : Measure (ℝ × H)) :=
+    measurePreserving_orthoSplitProd hu
+  let P : Set (ℝ × H) := Φ '' polarBody K₀
+  let Q : Set (ℝ × H) := Φ '' polarBody (KS₁ : Set E)
+  have hPc : IsCompact P :=
+    (isCompact_polarBody_of_zero_mem_interior h0K₀).image (continuous_orthoSplitProd hu)
+  have hPconv : Convex ℝ P := (convex_polarBody K₀).linear_image Φ.toLinearMap
+  have hQc : IsCompact Q :=
+    (isCompact_polarBody_of_zero_mem_interior h0S₁).image (continuous_orthoSplitProd hu)
+  have h0P : ((0 : ℝ), (0 : H)) ∈ interior P := by
+    have hK₀_bdd : Bornology.IsBounded K₀ := by
+      obtain ⟨R, hR⟩ := K₁.isBounded.subset_closedBall (0 : E)
+      rw [Metric.isBounded_iff_subset_closedBall (0 : E)]
+      refine ⟨R + ‖t₀ • u‖, ?_⟩
+      rintro _ ⟨x, hx, rfl⟩
+      rw [mem_closedBall_zero_iff]
+      linarith [norm_sub_le x (t₀ • u), mem_closedBall_zero_iff.mp (hR hx)]
+    have h0pol : (0 : E) ∈ interior (polarBody K₀) := zero_mem_interior_polarBody_of_isBounded hK₀_bdd
+    have h1 : (orthoSplitHomeomorph hu : E → ℝ × H) = Φ := funext (orthoSplitHomeomorph_coe hu)
+    have himg : Φ '' interior (polarBody K₀) = interior P := by
+      rw [← h1]; exact (orthoSplitHomeomorph hu).image_interior (polarBody K₀)
+    rw [← himg]; exact ⟨0, h0pol, map_zero Φ⟩
+  -- Apply `convex_prod_posSlice_properties` once to `P` and once to its reflection `Pneg`.
+  let swapH : ℝ × H ≃ₜ ℝ × H := (Homeomorph.neg ℝ).prodCongr (Homeomorph.refl H)
+  let swapL : ℝ × H →ₗ[ℝ] ℝ × H := LinearMap.prod (-LinearMap.fst ℝ ℝ H) (LinearMap.snd ℝ ℝ H)
+  have hswap_eq : (swapH : ℝ × H → ℝ × H) = swapL := by ext ⟨s, y⟩ <;> rfl
+  let Pneg : Set (ℝ × H) := swapH '' P
+  have hPneg_c : IsCompact Pneg := hPc.image swapH.continuous
+  have hPneg_conv : Convex ℝ Pneg := by rw [show Pneg = swapL '' P by rw [← hswap_eq]]; exact hPconv.linear_image swapL
+  have h0Pneg : ((0 : ℝ), (0 : H)) ∈ interior Pneg := by
+    rw [show Pneg = swapH '' P from rfl, ← swapH.image_interior]
+    exact ⟨(0, 0), h0P, by simp [swapH]⟩
+  have hmp_swap : MeasurePreserving (swapH : ℝ × H → ℝ × H)
+      (volume : Measure (ℝ × H)) (volume : Measure (ℝ × H)) := by
+    rw [Measure.volume_eq_prod]
+    exact (Measure.measurePreserving_neg (volume : Measure ℝ)).prod
+      (MeasurePreserving.id (volume : Measure H))
+  let sliceP : ℝ → Set H := fun s => {y : H | (s, y) ∈ P}
+  let sliceQ : ℝ → Set H := fun s => {y : H | (s, y) ∈ Q}
+  let f : ℝ → ℝ := fun s => volume.real (sliceP s)
+  let g : ℝ → ℝ := fun s => volume.real (sliceP (-s))
+  let h : ℝ → ℝ := fun τ => volume.real (sliceQ τ)
+  have hsliceP_compact : ∀ s : ℝ, IsCompact (sliceP s) := fun s => by
+    obtain ⟨RP, hPR⟩ := hPc.isBounded.subset_closedBall ((0 : ℝ), (0 : H))
+    refine (isCompact_closedBall (0 : H) RP).of_isClosed_subset
+      (hPc.isClosed.preimage (continuous_const.prodMk continuous_id)) fun y hy => ?_
+    have h1 := hPR hy
+    rw [mem_closedBall, dist_eq_norm, Prod.mk_sub_mk, sub_zero, sub_zero, Prod.norm_def] at h1
+    exact mem_closedBall_zero_iff.mpr ((le_max_right _ _).trans h1)
+  have hslice_neg : ∀ s : ℝ, {y : H | (s, y) ∈ Pneg} = sliceP (-s) := fun s => by
+    ext y
+    simp only [mem_ofPred_eq, Pneg, mem_image, sliceP]
+    constructor
+    · rintro ⟨⟨t, z⟩, hp, htz⟩
+      have h1 : -t = s ∧ z = y := Prod.mk.inj htz
+      simpa [← h1.1, ← h1.2] using hp
+    · intro hp; exact ⟨(-s, y), hp, by simp [swapH]⟩
+  obtain ⟨hM_f_pos, ⟨C_f, hCf_nn, hf_bdd⟩, hf_meas, hf_pos, hf_cont, hPos_int⟩ :=
+    convex_prod_posSlice_properties hPc hPconv h0P
+  obtain ⟨hM_g_pos, ⟨C_g, hCg_nn, hg_bdd'⟩, hg_meas', hg_pos', hg_cont', hNeg_int'⟩ :=
+    convex_prod_posSlice_properties hPneg_c hPneg_conv h0Pneg
+  have hg_eq_fn : (fun s : ℝ => volume.real {y : H | (s, y) ∈ Pneg}) = g :=
+    funext fun s => by dsimp only [g]; rw [hslice_neg s]
+  rw [hg_eq_fn] at hg_bdd' hg_meas' hg_pos' hg_cont' hNeg_int'
+  set M_f : ℝ := sSup (Prod.fst '' P)
+  set M_g : ℝ := sSup (Prod.fst '' Pneg)
+  have hP_pos_vol : volume.real (P ∩ {p : ℝ × H | 0 < p.1}) =
+      volume.real (polarBody K₀ ∩ {y : E | 0 < ⟪y, u⟫}) := by
+    have hset_eq : polarBody K₀ ∩ {y : E | 0 < ⟪y, u⟫} = Φ ⁻¹' (P ∩ {p : ℝ × H | 0 < p.1}) := by
+      ext y; simp only [mem_inter_iff, mem_preimage, mem_ofPred_eq, P, mem_image]
+      constructor
+      · rintro ⟨hy, hyu⟩; exact ⟨⟨y, hy, rfl⟩, by dsimp only [Φ]; rw [orthoSplitProd_apply]; exact hyu⟩
+      · rintro ⟨⟨z, hz, hzy⟩, hyu⟩
+        refine ⟨Φ.injective hzy ▸ hz, ?_⟩
+        dsimp only [Φ] at hyu; rw [orthoSplitProd_apply] at hyu; exact hyu
+    have hm_set : MeasurableSet (P ∩ {p : ℝ × H | 0 < p.1}) :=
+      hPc.isClosed.measurableSet.inter (isOpen_lt continuous_const continuous_fst).measurableSet
+    rw [Measure.real, Measure.real, hset_eq, hmp.measure_preimage hm_set.nullMeasurableSet]
+  have hPneg_pos_vol : volume.real (Pneg ∩ {p : ℝ × H | 0 < p.1}) =
       volume.real (polarBody K₀ ∩ {y : E | ⟪y, u⟫ < 0}) := by
+    have hswap_app : ∀ p : ℝ × H, swapH p = (-p.1, p.2) := fun _ => rfl
+    have hpre1 : swapH ⁻¹' (Pneg ∩ {p : ℝ × H | 0 < p.1}) = P ∩ {p : ℝ × H | p.1 < 0} := by
+      ext ⟨s, y⟩
+      simp only [mem_preimage, mem_inter_iff, Pneg, mem_image, mem_ofPred_eq, hswap_app,
+        Left.neg_pos_iff]
+      exact ⟨fun ⟨⟨p, hp, hpeq⟩, hs⟩ => ⟨by
+          have h1 := Prod.mk.inj hpeq
+          have : p = (s, y) := Prod.ext (by linarith [h1.1]) h1.2
+          rwa [← this], hs⟩,
+        fun ⟨hp, hs⟩ => ⟨⟨(s, y), hp, rfl⟩, hs⟩⟩
     have hset_eq : polarBody K₀ ∩ {y : E | ⟪y, u⟫ < 0} = Φ ⁻¹' (P ∩ {p : ℝ × H | p.1 < 0}) := by
       ext y; simp only [mem_inter_iff, mem_preimage, mem_ofPred_eq, P, mem_image]
       constructor
@@ -2856,122 +2714,46 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
       · rintro ⟨⟨z, hz, hzy⟩, hyu⟩
         refine ⟨Φ.injective hzy ▸ hz, ?_⟩
         dsimp only [Φ] at hyu; rw [orthoSplitProd_apply] at hyu; exact hyu
-    have hm_set : MeasurableSet (P ∩ {p : ℝ × H | p.1 < 0}) :=
+    have hm_pneg : MeasurableSet (Pneg ∩ {p : ℝ × H | 0 < p.1}) :=
+      hPneg_c.isClosed.measurableSet.inter (isOpen_lt continuous_const continuous_fst).measurableSet
+    have hm_neg : MeasurableSet (P ∩ {p : ℝ × H | p.1 < 0}) :=
       hPc.isClosed.measurableSet.inter (isOpen_lt continuous_fst continuous_const).measurableSet
-    have hvol_enn : volume (polarBody K₀ ∩ {y : E | ⟪y, u⟫ < 0}) =
-        ∫⁻ t in Ioo 0 M_g, ENNReal.ofReal (g t) := by
-      rw [hset_eq, hmp.measure_preimage hm_set.nullMeasurableSet, Measure.volume_eq_prod,
-        Measure.prod_apply hm_set]
-      have hfib : ∀ t : ℝ, volume (Prod.mk t ⁻¹' (P ∩ {p : ℝ × H | p.1 < 0})) =
-          (Iio (0 : ℝ)).indicator (fun s => ENNReal.ofReal (f s)) t := fun t => by
-        by_cases ht : t < 0
-        · rw [indicator_of_mem ht]
-          have hpre : Prod.mk t ⁻¹' (P ∩ {p : ℝ × H | p.1 < 0}) = sliceP t := by
-            ext y; simp [sliceP, ht]
-          rw [hpre]
-          dsimp only [f]
-          rw [Measure.real, ENNReal.ofReal_toReal (hsliceP_compact t).measure_lt_top.ne]
-        · rw [indicator_of_notMem ht]
-          have hpre : Prod.mk t ⁻¹' (P ∩ {p : ℝ × H | p.1 < 0}) = ∅ := by
-            ext y; simp [ht]
-          rw [hpre, measure_empty]
-      simp_rw [hfib]
-      rw [lintegral_indicator measurableSet_Iio]
-      -- Substitute `t ↦ -t` (`Iio 0` ↔ `Ioi 0`).
-      have hneg_sub : ∫⁻ t in Iio (0 : ℝ), ENNReal.ofReal (f t) =
-          ∫⁻ t in Ioi (0 : ℝ), ENNReal.ofReal (g t) := by
-        have hmp_neg : MeasurePreserving (fun t : ℝ => -t) volume volume :=
-          Measure.measurePreserving_neg volume
-        have hemb_neg : MeasurableEmbedding (fun t : ℝ => -t) :=
-          (Homeomorph.neg ℝ).measurableEmbedding
-        rw [← lintegral_indicator measurableSet_Iio, ← lintegral_indicator measurableSet_Ioi,
-          ← hmp_neg.lintegral_comp_emb hemb_neg]
-        refine lintegral_congr fun t => ?_
-        by_cases ht : t ∈ Ioi (0 : ℝ)
-        · have hnt : -t ∈ Iio (0 : ℝ) := by simp [mem_Iio, mem_Ioi.mp ht]
-          rw [indicator_of_mem ht, indicator_of_mem hnt]
-        · have hnt : -t ∉ Iio (0 : ℝ) := by
-            simp only [mem_Iio, mem_Ioi, Left.neg_neg_iff] at ht ⊢
-            exact ht
-          rw [indicator_of_notMem ht, indicator_of_notMem hnt]
-      rw [hneg_sub]
-      have hzero_gt : ∀ t : ℝ, M_g < t → ENNReal.ofReal (g t) = 0 := fun t ht => by
-        have hemp : sliceP (-t) = ∅ := by
-          ext y; simp only [sliceP, mem_ofPred_eq, mem_empty_iff_false, iff_false]
-          intro hp
-          have hle : t ≤ M_g := le_csSup (hPc.image continuous_fst.neg).bddAbove ⟨(-t, y), hp, by simp⟩
-          linarith
-        simp [g, hemp]
-      have hsplit : Ioi (0 : ℝ) = Ioo 0 M_g ∪ {M_g} ∪ Ioi M_g := by
-        ext t; simp only [mem_union, mem_Ioi, mem_Ioo, mem_singleton_iff]
-        constructor
-        · intro ht
-          rcases lt_trichotomy t M_g with hlt | rfl | hgt
-          · exact Or.inl (Or.inl ⟨ht, hlt⟩)
-          · exact Or.inl (Or.inr rfl)
-          · exact Or.inr hgt
-        · rintro ((⟨h1, _⟩ | rfl) | hgt)
-          · exact h1
-          · exact hM_g_pos
-          · exact hM_g_pos.trans hgt
-      rw [hsplit]
-      have h1 : ∫⁻ t in (Ioo 0 M_g ∪ {M_g}) ∪ Ioi M_g, ENNReal.ofReal (g t) =
-          ∫⁻ t in Ioo 0 M_g ∪ {M_g}, ENNReal.ofReal (g t) := by
-        rw [lintegral_union measurableSet_Ioi (by
-          rw [Set.disjoint_left]; rintro t (⟨_, h2⟩ | rfl) hgt <;> linarith [mem_Ioi.mp hgt])]
-        have hz : ∫⁻ t in Ioi M_g, ENNReal.ofReal (g t) = 0 := by
-          rw [setLIntegral_congr_fun measurableSet_Ioi fun t ht => hzero_gt t ht, lintegral_zero]
-        rw [hz, add_zero]
-      rw [h1, lintegral_union (measurableSet_singleton M_g) (by
-        rw [Set.disjoint_left]; intro t ht htm; simp only [mem_singleton_iff] at htm; linarith [ht.2]),
-        lintegral_singleton, Real.volume_singleton, mul_zero, add_zero]
-    have hint_g : IntegrableOn g (Ioo 0 M_g) volume :=
-      (integrableOn_const (C := C_H) (by simp : volume (Ioo 0 M_g) ≠ ⊤)).mono'
-        hg_meas.aestronglyMeasurable (ae_of_all _ fun t => by
-          rw [Real.norm_eq_abs, abs_of_nonneg (hg_bdd t).1]; exact (hg_bdd t).2)
-    rw [Measure.real, hvol_enn, ← ofReal_integral_eq_lintegral_ofReal hint_g (ae_of_all _ fun t => (hg_bdd t).1),
-      ENNReal.toReal_ofReal (setIntegral_nonneg measurableSet_Ioo fun t _ => (hg_bdd t).1)]
-  -- Both half-integrals equal the SAME positive constant `V2`!
+    rw [Measure.real, Measure.real, ← hmp_swap.measure_preimage hm_pneg.nullMeasurableSet, hpre1,
+      hset_eq, hmp.measure_preimage hm_neg.nullMeasurableSet]
   set V2 : ℝ := ∫ t in Ioo 0 M_f, f t
-  have hVg_eq : ∫ t in Ioo 0 M_g, g t = V2 := by rw [hhalf_neg_eq, ← hbal, ← hhalf_pos_eq]
-  -- Step 6: Extract quantile inverses `s₁` for `f` and `s₂` for `g` on `Ioo 0 V2`.
+  have hVg_eq : ∫ t in Ioo 0 M_g, g t = V2 := by
+    rw [hNeg_int', hPneg_pos_vol, ← hbal, ← hP_pos_vol, ← hPos_int]
+  -- Extract quantile inverses `s₁` (for `f`) and `s₂` (for `g`) on `Ioo 0 V2`.
   obtain ⟨hV2_pos, s₁, hs₁_mem, _, hs₁_deriv⟩ :=
-    exists_cdf_quantile_inverse hM_f_pos hC_H_nn hf_meas hf_bdd hf_cont hf_pos
+    exists_cdf_quantile_inverse hM_f_pos hCf_nn hf_meas hf_bdd hf_cont hf_pos
   obtain ⟨_, s₂, hs₂_mem, _, hs₂_deriv⟩ :=
-    exists_cdf_quantile_inverse hM_g_pos hC_H_nn hg_meas hg_bdd hg_cont hg_pos
+    exists_cdf_quantile_inverse hM_g_pos hCg_nn hg_meas' hg_bdd' hg_cont' hg_pos'
   rw [hVg_eq] at hs₂_mem hs₂_deriv
-  -- Step 7: Define the harmonic-mean transport `τ(r) = 2 * s₁(r) * s₂(r) / (s₁(r) + s₂(r))`.
+  -- Harmonic-mean transport `τ(r) = 2 * s₁(r) * s₂(r) / (s₁(r) + s₂(r))` and its derivative `τ'`.
   let τ : ℝ → ℝ := fun r => 2 * s₁ r * s₂ r / (s₁ r + s₂ r)
   let τ' : ℝ → ℝ := fun r =>
     2 * ((s₂ r / (s₁ r + s₂ r)) ^ 2 * (f (s₁ r))⁻¹ +
       (s₁ r / (s₁ r + s₂ r)) ^ 2 * (g (s₂ r))⁻¹)
   have hτ_deriv : ∀ r ∈ Ioo 0 V2, HasDerivAt τ (τ' r) r := fun r hr => by
-    have hs1 : 0 < s₁ r := (hs₁_mem r hr).1
-    have hs2 : 0 < s₂ r := (hs₂_mem r hr).1
-    have hsum : 0 < s₁ r + s₂ r := add_pos hs1 hs2
+    have hsum : 0 < s₁ r + s₂ r := add_pos (hs₁_mem r hr).1 (hs₂_mem r hr).1
     have hnum : HasDerivAt (fun x => 2 * s₁ x * s₂ x)
         (2 * (f (s₁ r))⁻¹ * s₂ r + 2 * s₁ r * (g (s₂ r))⁻¹) r :=
       ((hs₁_deriv r hr).const_mul 2).mul (hs₂_deriv r hr)
     have hden : HasDerivAt (fun x => s₁ x + s₂ x) ((f (s₁ r))⁻¹ + (g (s₂ r))⁻¹) r :=
       (hs₁_deriv r hr).add (hs₂_deriv r hr)
     convert hnum.div hden hsum.ne' using 1
-    dsimp only [τ']
-    field_simp [hsum.ne']
-    ring
+    dsimp only [τ']; field_simp [hsum.ne']; ring
   have hτ'_pos : ∀ r ∈ Ioo 0 V2, 0 < τ' r := fun r hr => by
     have hs1 : 0 < s₁ r := (hs₁_mem r hr).1
     have hs2 : 0 < s₂ r := (hs₂_mem r hr).1
     have hf1 : 0 < f (s₁ r) := hf_pos _ (hs₁_mem r hr)
-    have hg2 : 0 < g (s₂ r) := hg_pos _ (hs₂_mem r hr)
+    have hg2 : 0 < g (s₂ r) := hg_pos' _ (hs₂_mem r hr)
     dsimp only [τ']; positivity
   have hτ_mono : StrictMonoOn τ (Ioo 0 V2) :=
     strictMonoOn_of_deriv_pos (convex_Ioo 0 V2)
       (fun r hr => (hτ_deriv r hr).continuousAt.continuousWithinAt)
-      (fun r hr => by
-        rw [isOpen_Ioo.interior_eq] at hr
-        rw [(hτ_deriv r hr).deriv]
-        exact hτ'_pos r hr)
-  -- Step 8: Meyer–Pajor slice inclusion + Brunn–Minkowski + weighted AM–GM gives `1 ≤ τ'(r) * h(τ(r))`!
+      (fun r hr => by rw [isOpen_Ioo.interior_eq] at hr; rw [(hτ_deriv r hr).deriv]; exact hτ'_pos r hr)
+  -- Pointwise inequality `1 ≤ τ'(r) * h(τ(r))` via slice inclusion + Brunn–Minkowski + AM–GM.
   have hkey_pt : ∀ r ∈ Ioo 0 V2, 1 ≤ τ' r * h (τ r) := fun r hr => by
     have hs1 : 0 < s₁ r := (hs₁_mem r hr).1
     have hs2 : 0 < s₂ r := (hs₂_mem r hr).1
@@ -2979,89 +2761,18 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
     set lam : ℝ := s₂ r / (s₁ r + s₂ r)
     have hlam0 : 0 < lam := div_pos hs2 hsum
     have hlam1 : lam < 1 := (div_lt_one hsum).mpr (by linarith)
-    have h1lam : 1 - lam = s₁ r / (s₁ r + s₂ r) := by
-      dsimp only [lam]; field_simp [hsum.ne']; ring
-    have hτ_pos : 0 < τ r := by dsimp only [τ]; positivity
-    -- Slice inclusion: `lam • sliceP (s₁ r) + (1 - lam) • sliceP (-s₂ r) ⊆ sliceQ (τ r)`.
-    have hslice_sub : lam • sliceP (s₁ r) + (1 - lam) • sliceP (-s₂ r) ⊆ sliceQ (τ r) := by
-      rintro _ ⟨_, ⟨y₁, hy₁, rfl⟩, _, ⟨y₂, hy₂, rfl⟩, rfl⟩
-      rcases hy₁ with ⟨z₁, hz₁, hz₁_eq⟩
-      rcases hy₂ with ⟨z₂, hz₂, hz₂_eq⟩
-      refine ⟨Φ.symm (τ r, lam • y₁ + (1 - lam) • y₂), ?_, Φ.apply_symm_apply _⟩
-      intro x hxKS₁
-      let K₁' : Set (ℝ × H) := Φ '' (K₁ : Set E)
-      have hK₁'c : IsCompact K₁' := K₁.isCompact.image (continuous_orthoSplitProd hu)
-      have hxS' : Φ x ∈ steinerSymm K₁' := hxKS₁
-      set t : ℝ := (Φ x).1
-      set w : H := (Φ x).2
-      have hne_w : (steinerFiber K₁' w).Nonempty := hxS'.1
-      set a : ℝ := steinerLower K₁' w
-      set b : ℝ := steinerUpper K₁' w
-      have ha_mem : (a, w) ∈ K₁' := (isCompact_steinerFiber hK₁'c w).sInf_mem hne_w
-      have hb_mem : (b, w) ∈ K₁' := (isCompact_steinerFiber hK₁'c w).sSup_mem hne_w
-      rcases ha_mem with ⟨xa, hxaK₁, hxa_eq⟩
-      rcases hb_mem with ⟨xb, hxbK₁, hxb_eq⟩
-      have h1 : (b - t₀) * s₁ r + ⟪w, y₁⟫ ≤ 1 := by
-        have hpol := hz₁ (xb - t₀ • u) ⟨xb, hxbK₁, rfl⟩
-        rw [orthoSplitProd_inner hu (xb - t₀ • u) z₁] at hpol
-        have hsub : Φ (xb - t₀ • u) = (b - t₀, w) := by
-          rw [map_sub, hxb_eq]
-          apply Prod.ext
-          · dsimp only [Φ]; rw [orthoSplitProd_apply]
-            simp only [Prod.fst_sub, inner_smul_left, RCLike.conj_to_real,
-              real_inner_self_eq_norm_sq, hu, one_pow, mul_one]
-          · apply Subtype.ext
-            dsimp only [Φ]; rw [orthoSplitProd_apply]
-            simp only [Prod.snd_sub, AddSubgroupClass.coe_sub, inner_smul_left,
-              RCLike.conj_to_real, real_inner_self_eq_norm_sq, hu, one_pow, mul_one,
-              sub_self, sub_zero]
-        rwa [hsub, hz₁_eq] at hpol
-      have h2 : (t₀ - a) * s₂ r + ⟪w, y₂⟫ ≤ 1 := by
-        have hpol := hz₂ (xa - t₀ • u) ⟨xa, hxaK₁, rfl⟩
-        rw [orthoSplitProd_inner hu (xa - t₀ • u) z₂] at hpol
-        have hsub : Φ (xa - t₀ • u) = (a - t₀, w) := by
-          rw [map_sub, hxa_eq]
-          apply Prod.ext
-          · dsimp only [Φ]; rw [orthoSplitProd_apply]
-            simp only [Prod.fst_sub, inner_smul_left, RCLike.conj_to_real,
-              real_inner_self_eq_norm_sq, hu, one_pow, mul_one]
-          · apply Subtype.ext
-            dsimp only [Φ]; rw [orthoSplitProd_apply]
-            simp only [Prod.snd_sub, AddSubgroupClass.coe_sub, inner_smul_left,
-              RCLike.conj_to_real, real_inner_self_eq_norm_sq, hu, one_pow, mul_one,
-              sub_self, sub_zero]
-        rw [hsub, hz₂_eq] at hpol
-        linarith
-      have hcomb : ((b - a) / 2) * τ r + ⟪w, lam • y₁ + (1 - lam) • y₂⟫ ≤ 1 := by
-        have hm1 : lam * ((b - t₀) * s₁ r + ⟪w, y₁⟫) ≤ lam := by nlinarith
-        have hm2 : (1 - lam) * ((t₀ - a) * s₂ r + ⟪w, y₂⟫) ≤ 1 - lam := by nlinarith
-        have hlam_s1 : lam * s₁ r = τ r / 2 := by
-          dsimp only [lam, τ]; field_simp [hsum.ne']
-        have h1lam_s2 : (1 - lam) * s₂ r = τ r / 2 := by
-          rw [h1lam]; dsimp only [τ]; field_simp [hsum.ne']
-        rw [inner_add_right, inner_smul_right, inner_smul_right]
-        have halg : lam * ((b - t₀) * s₁ r) + (1 - lam) * ((t₀ - a) * s₂ r) =
-            ((b - a) / 2) * τ r := by
-          calc
-            lam * ((b - t₀) * s₁ r) + (1 - lam) * ((t₀ - a) * s₂ r)
-              = (b - t₀) * (lam * s₁ r) + (t₀ - a) * ((1 - lam) * s₂ r) := by ring
-            _ = (b - t₀) * (τ r / 2) + (t₀ - a) * (τ r / 2) := by rw [hlam_s1, h1lam_s2]
-            _ = ((b - a) / 2) * τ r := by ring
-        linarith
-      rw [orthoSplitProd_inner hu x (Φ.symm (τ r, lam • y₁ + (1 - lam) • y₂)), Φ.apply_symm_apply]
-      have ht_le : t ≤ (b - a) / 2 := (le_abs_self t).trans hxS'.2
-      have hmul_le : t * τ r ≤ ((b - a) / 2) * τ r := mul_le_mul_of_nonneg_right ht_le hτ_pos.le
-      linarith
-    -- Apply multiplicative Brunn–Minkowski on `H` to `sliceP (s₁ r)` and `sliceP (-s₂ r)`.
+    have h1lam : 1 - lam = s₁ r / (s₁ r + s₂ r) := by dsimp only [lam]; field_simp [hsum.ne']; ring
+    have hslice_sub : lam • sliceP (s₁ r) + (1 - lam) • sliceP (-s₂ r) ⊆ sliceQ (τ r) :=
+      meyer_pajor_slice_subset hu K₁ t₀ hs1 hs2
     have hf1_pos : 0 < f (s₁ r) := hf_pos _ (hs₁_mem r hr)
-    have hg2_pos : 0 < g (s₂ r) := hg_pos _ (hs₂_mem r hr)
+    have hg2_pos : 0 < g (s₂ r) := hg_pos' _ (hs₂_mem r hr)
     have hbm_real : f (s₁ r) ^ lam * g (s₂ r) ^ (1 - lam) ≤ h (τ r) := by
       have hbm := brunn_minkowski_mul_compact (E := H) (hsliceP_compact (s₁ r))
         (hsliceP_compact (-s₂ r)) (t := 1 - lam) (sub_pos.mpr hlam1) (by linarith)
       rw [show (1 : ℝ) - (1 - lam) = lam by ring] at hbm
       have hbm' := hbm.trans (measure_mono hslice_sub)
-      have hfin1 : volume (sliceP (s₁ r)) ≠ ⊤ := (hsliceP_compact _).measure_lt_top.ne
-      have hfin2 : volume (sliceP (-s₂ r)) ≠ ⊤ := (hsliceP_compact _).measure_lt_top.ne
+      have hfin1 : volume (sliceP (s₁ r)) ≠ ⊤ := (hsliceP_compact (s₁ r)).measure_lt_top.ne
+      have hfin2 : volume (sliceP (-s₂ r)) ≠ ⊤ := (hsliceP_compact (-s₂ r)).measure_lt_top.ne
       have hfinQ : volume (sliceQ (τ r)) ≠ ⊤ := by
         obtain ⟨RQ, hQR⟩ := hQc.isBounded.subset_closedBall ((0 : ℝ), (0 : H))
         have hsubQ : sliceQ (τ r) ⊆ closedBall (0 : H) RQ := fun y hy => by
@@ -3074,7 +2785,6 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
         ENNReal.ofReal_rpow_of_nonneg ENNReal.toReal_nonneg (sub_pos.mpr hlam1).le,
         ← ENNReal.ofReal_mul (Real.rpow_nonneg ENNReal.toReal_nonneg _)] at hbm'
       exact (ENNReal.ofReal_le_ofReal_iff ENNReal.toReal_nonneg).mp hbm'
-    -- Weighted AM–GM + `1 ≤ 2 * lam^lam * (1 - lam)^(1 - lam)`.
     have hderiv_lb : (f (s₁ r) ^ lam * g (s₂ r) ^ (1 - lam))⁻¹ ≤ τ' r := by
       have hgm := Real.geom_mean_le_arith_mean2_weighted hlam0.le (sub_pos.mpr hlam1).le
         (by positivity : (0 : ℝ) ≤ lam * (f (s₁ r))⁻¹)
@@ -3102,40 +2812,36 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
       (1 : ℝ) = (f (s₁ r) ^ lam * g (s₂ r) ^ (1 - lam))⁻¹ * (f (s₁ r) ^ lam * g (s₂ r) ^ (1 - lam)) :=
         (inv_mul_cancel₀ hprod_pos.ne').symm
       _ ≤ τ' r * h (τ r) := mul_le_mul hderiv_lb hbm_real hprod_pos.le (hτ'_pos r hr).le
-  -- Step 9: Integrate `1 ≤ τ'(r) * h(τ(r))` over `Ioo 0 V2` via 1D change of variables!
-  have hhalf_Q : ∫⁻ t in Ioi (0 : ℝ), ENNReal.ofReal (h t) =
-      volume (Q ∩ {p : ℝ × H | 0 < p.1}) := by
-    have hm_set : MeasurableSet (Q ∩ {p : ℝ × H | 0 < p.1}) :=
-      hQc.isClosed.measurableSet.inter (isOpen_lt continuous_const continuous_fst).measurableSet
-    rw [Measure.volume_eq_prod, Measure.prod_apply hm_set]
-    have hfib : ∀ t : ℝ, volume (Prod.mk t ⁻¹' (Q ∩ {p : ℝ × H | 0 < p.1})) =
-        (Ioi (0 : ℝ)).indicator (fun s => ENNReal.ofReal (h s)) t := fun t => by
-      by_cases ht : 0 < t
-      · rw [indicator_of_mem ht]
-        have hpre : Prod.mk t ⁻¹' (Q ∩ {p : ℝ × H | 0 < p.1}) = sliceQ t := by
-          ext y; simp [sliceQ, ht]
-        have hfinQ : volume (sliceQ t) ≠ ⊤ := by
-          obtain ⟨RQ, hQR⟩ := hQc.isBounded.subset_closedBall ((0 : ℝ), (0 : H))
-          have hsubQ : sliceQ t ⊆ closedBall (0 : H) RQ := fun y hy => by
-            have h1 := hQR hy
-            rw [mem_closedBall, dist_eq_norm, Prod.mk_sub_mk, sub_zero, sub_zero, Prod.norm_def] at h1
-            exact mem_closedBall_zero_iff.mpr ((le_max_right _ _).trans h1)
-          exact ((measure_mono hsubQ).trans_lt (isCompact_closedBall _ _).measure_lt_top).ne
-        rw [hpre]
-        dsimp only [h]
-        rw [Measure.real, ENNReal.ofReal_toReal hfinQ]
-      · rw [indicator_of_notMem ht]
-        have hpre : Prod.mk t ⁻¹' (Q ∩ {p : ℝ × H | 0 < p.1}) = ∅ := by ext y; simp [ht]
-        rw [hpre, measure_empty]
-    simp_rw [hfib]
-    rw [lintegral_indicator measurableSet_Ioi]
+  -- 1D change of variables gives `V2 ≤ volume (Q ∩ {p.1 > 0})`, then double both sides.
   have hcov_ineq : ENNReal.ofReal V2 ≤ volume (Q ∩ {p : ℝ × H | 0 < p.1}) := by
+    have hhalf_Q : ∫⁻ t in Ioi (0 : ℝ), ENNReal.ofReal (h t) = volume (Q ∩ {p : ℝ × H | 0 < p.1}) := by
+      have hm_set : MeasurableSet (Q ∩ {p : ℝ × H | 0 < p.1}) :=
+        hQc.isClosed.measurableSet.inter (isOpen_lt continuous_const continuous_fst).measurableSet
+      rw [Measure.volume_eq_prod, Measure.prod_apply hm_set]
+      have hfib : ∀ t : ℝ, volume (Prod.mk t ⁻¹' (Q ∩ {p : ℝ × H | 0 < p.1})) =
+          (Ioi (0 : ℝ)).indicator (fun s => ENNReal.ofReal (h s)) t := fun t => by
+        by_cases ht : 0 < t
+        · rw [indicator_of_mem ht]
+          have hpre : Prod.mk t ⁻¹' (Q ∩ {p : ℝ × H | 0 < p.1}) = sliceQ t := by
+            ext y; simp [sliceQ, ht]
+          have hfinQ : volume (sliceQ t) ≠ ⊤ := by
+            obtain ⟨RQ, hQR⟩ := hQc.isBounded.subset_closedBall ((0 : ℝ), (0 : H))
+            have hsubQ : sliceQ t ⊆ closedBall (0 : H) RQ := fun y hy => by
+              have h1 := hQR hy
+              rw [mem_closedBall, dist_eq_norm, Prod.mk_sub_mk, sub_zero, sub_zero, Prod.norm_def] at h1
+              exact mem_closedBall_zero_iff.mpr ((le_max_right _ _).trans h1)
+            exact ((measure_mono hsubQ).trans_lt (isCompact_closedBall _ _).measure_lt_top).ne
+          rw [hpre]; dsimp only [h]; rw [Measure.real, ENNReal.ofReal_toReal hfinQ]
+        · rw [indicator_of_notMem ht]
+          have hpre : Prod.mk t ⁻¹' (Q ∩ {p : ℝ × H | 0 < p.1}) = ∅ := by ext y; simp [ht]
+          rw [hpre, measure_empty]
+      simp_rw [hfib]
+      rw [lintegral_indicator measurableSet_Ioi]
     have himg_sub : τ '' Ioo 0 V2 ⊆ Ioi (0 : ℝ) := by
       rintro _ ⟨r, hr, rfl⟩
       have hs1 : 0 < s₁ r := (hs₁_mem r hr).1
       have hs2 : 0 < s₂ r := (hs₂_mem r hr).1
-      change 0 < τ r
-      dsimp only [τ]; positivity
+      change 0 < τ r; dsimp only [τ]; positivity
     have hcov := lintegral_image_eq_lintegral_abs_deriv_mul measurableSet_Ioo
       (fun r hr => (hτ_deriv r hr).hasDerivWithinAt) hτ_mono.injOn
       (fun t : ℝ => ENNReal.ofReal (h t))
@@ -3149,22 +2855,19 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
       _ = ∫⁻ t in τ '' Ioo 0 V2, ENNReal.ofReal (h t) := hcov.symm
       _ ≤ ∫⁻ t in Ioi (0 : ℝ), ENNReal.ofReal (h t) := lintegral_mono_set himg_sub
       _ = volume (Q ∩ {p : ℝ × H | 0 < p.1}) := hhalf_Q
-  -- Step 10: Double both sides (`volume P = 2 * V2` and `volume Q = 2 * volume (Q ∩ {p.1 > 0})`).
   have hvol_P_eq : volume (polarBody K₀) = ENNReal.ofReal (2 * V2) := by
     have hhyper_zero : volume ({y : E | ⟪y, u⟫ = 0}) = 0 := by
       have heq : {y : E | ⟪y, u⟫ = 0} = (orthoHyperplane u : Set E) := by
         ext y; exact mem_orthoHyperplane_iff.symm
       have hne_top : orthoHyperplane u ≠ ⊤ := by
         intro htop
-        have hu_mem : u ∈ orthoHyperplane u := htop.symm ▸ Submodule.mem_top
-        have := mem_orthoHyperplane_iff.mp hu_mem
+        have := mem_orthoHyperplane_iff.mp (htop.symm ▸ Submodule.mem_top : u ∈ orthoHyperplane u)
         rw [real_inner_self_eq_norm_sq, hu, one_pow] at this
         exact one_ne_zero this
       rw [heq]; exact Measure.addHaar_submodule volume _ hne_top
     have hpart : polarBody K₀ =
-        (polarBody K₀ ∩ {y : E | 0 < ⟪y, u⟫}) ∪
-        (polarBody K₀ ∩ {y : E | ⟪y, u⟫ < 0}) ∪
-        (polarBody K₀ ∩ {y : E | ⟪y, u⟫ = 0}) := by
+        (polarBody K₀ ∩ {y : E | 0 < ⟪y, u⟫}) ∪ (polarBody K₀ ∩ {y : E | ⟪y, u⟫ < 0}) ∪
+          (polarBody K₀ ∩ {y : E | ⟪y, u⟫ = 0}) := by
       ext y; simp only [mem_union, mem_inter_iff, mem_ofPred_eq]
       constructor
       · intro hy
@@ -3173,21 +2876,21 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
         · exact Or.inr ⟨hy, heq⟩
         · exact Or.inl (Or.inl ⟨hy, hgt⟩)
       · rintro ((⟨hy, _⟩ | ⟨hy, _⟩) | ⟨hy, _⟩) <;> exact hy
-    have hnull0 : volume (polarBody K₀ ∩ {y : E | ⟪y, u⟫ = 0}) = 0 :=
-      measure_mono_null inter_subset_right hhyper_zero
     have hm_neg : MeasurableSet (polarBody K₀ ∩ {y : E | ⟪y, u⟫ < 0}) :=
       (isClosed_polarBody K₀).measurableSet.inter
         (isOpen_lt (continuous_id.inner continuous_const) continuous_const).measurableSet
     have hm_eq0 : MeasurableSet (polarBody K₀ ∩ {y : E | ⟪y, u⟫ = 0}) :=
       (isClosed_polarBody K₀).measurableSet.inter
         (isClosed_eq (continuous_id.inner continuous_const) continuous_const).measurableSet
-    have hdisj1 : Disjoint (polarBody K₀ ∩ {y : E | 0 < ⟪y, u⟫}) (polarBody K₀ ∩ {y : E | ⟪y, u⟫ < 0}) := by
+    have hdisj1 : Disjoint (polarBody K₀ ∩ {y : E | 0 < ⟪y, u⟫})
+        (polarBody K₀ ∩ {y : E | ⟪y, u⟫ < 0}) := by
       rw [Set.disjoint_left]; rintro y ⟨_, h1⟩ ⟨_, h2⟩; simp only [mem_ofPred_eq] at h1 h2; linarith
-    have hdisj2 : Disjoint ((polarBody K₀ ∩ {y : E | 0 < ⟪y, u⟫}) ∪ (polarBody K₀ ∩ {y : E | ⟪y, u⟫ < 0}))
-        (polarBody K₀ ∩ {y : E | ⟪y, u⟫ = 0}) := by
+    have hdisj2 : Disjoint ((polarBody K₀ ∩ {y : E | 0 < ⟪y, u⟫}) ∪
+        (polarBody K₀ ∩ {y : E | ⟪y, u⟫ < 0})) (polarBody K₀ ∩ {y : E | ⟪y, u⟫ = 0}) := by
       rw [Set.disjoint_left]; rintro y (⟨_, h1⟩ | ⟨_, h1⟩) ⟨_, h2⟩ <;>
         (simp only [mem_ofPred_eq] at h1 h2; linarith)
-    rw [hpart, measure_union hdisj2 hm_eq0, hnull0, add_zero, measure_union hdisj1 hm_neg]
+    rw [hpart, measure_union hdisj2 hm_eq0, measure_mono_null inter_subset_right hhyper_zero,
+      add_zero, measure_union hdisj1 hm_neg]
     have hfinP : volume (polarBody K₀) ≠ ⊤ :=
       (isCompact_polarBody_of_zero_mem_interior h0K₀).measure_lt_top.ne
     have hfin1 : volume (polarBody K₀ ∩ {y : E | 0 < ⟪y, u⟫}) ≠ ⊤ :=
@@ -3197,16 +2900,33 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
     rw [← ENNReal.ofReal_toReal hfin1, ← ENNReal.ofReal_toReal hfin2]
     change ENNReal.ofReal (volume.real (polarBody K₀ ∩ {y : E | 0 < ⟪y, u⟫})) +
       ENNReal.ofReal (volume.real (polarBody K₀ ∩ {y : E | ⟪y, u⟫ < 0})) = ENNReal.ofReal (2 * V2)
-    rw [← hbal, ← hhalf_pos_eq, ← ENNReal.ofReal_add hV2_pos.le hV2_pos.le, two_mul]
+    rw [← hbal, ← hP_pos_vol, ← hPos_int, ← ENNReal.ofReal_add hV2_pos.le hV2_pos.le, two_mul]
+  have hQ_sym : ∀ s : ℝ, ∀ y : H, (-s, y) ∈ Q ↔ (s, y) ∈ Q := fun s y => by
+    have hKS₁_refl : (reflectBody hu KS₁ : Set E) = (KS₁ : Set E) :=
+      congrArg SetLike.coe (reflectBody_bodySteinerSymmDir hu K₁)
+    have hpol_refl' : ∀ z : E, z ∈ polarBody (KS₁ : Set E) ↔
+        reflectHyperplane hu z ∈ polarBody (KS₁ : Set E) := fun z => by
+      constructor
+      · intro hz x hx
+        have hrx : reflectHyperplane hu x ∈ (KS₁ : Set E) := by
+          rw [← hKS₁_refl, coe_reflectBody]; exact ⟨x, hx, rfl⟩
+        rw [← inner_reflectHyperplane]; exact hz _ hrx
+      · intro hrz x hx
+        have hrx : reflectHyperplane hu x ∈ (KS₁ : Set E) := by
+          rw [← hKS₁_refl, coe_reflectBody]; exact ⟨x, hx, rfl⟩
+        have := hrz (reflectHyperplane hu x) hrx
+        rwa [inner_reflectHyperplane, reflectHyperplane_involutive] at this
+    constructor
+    · rintro ⟨z, hz, hzp⟩
+      refine ⟨reflectHyperplane hu z, (hpol_refl' z).mp hz, ?_⟩
+      rw [orthoSplitProd_reflectHyperplane, hzp]; simp
+    · rintro ⟨z, hz, hzp⟩
+      refine ⟨reflectHyperplane hu z, (hpol_refl' z).mp hz, ?_⟩
+      rw [orthoSplitProd_reflectHyperplane, hzp]
   have hvol_Q_ge : 2 * volume (Q ∩ {p : ℝ × H | 0 < p.1}) ≤ volume (polarBody (KS₁ : Set E)) := by
     have hQ_neg_eq : volume (Q ∩ {p : ℝ × H | p.1 < 0}) = volume (Q ∩ {p : ℝ × H | 0 < p.1}) := by
-      let swap : ℝ × H → ℝ × H := fun p => (-p.1, p.2)
-      have hmp_swap : MeasurePreserving swap (volume : Measure (ℝ × H)) (volume : Measure (ℝ × H)) := by
-        rw [Measure.volume_eq_prod]
-        exact (Measure.measurePreserving_neg (volume : Measure ℝ)).prod
-          (MeasurePreserving.id (volume : Measure H))
-      have hpre : swap ⁻¹' (Q ∩ {p : ℝ × H | 0 < p.1}) = Q ∩ {p : ℝ × H | p.1 < 0} := by
-        ext ⟨s, y⟩; simp [swap, hQ_sym]
+      have hpre : swapH ⁻¹' (Q ∩ {p : ℝ × H | 0 < p.1}) = Q ∩ {p : ℝ × H | p.1 < 0} := by
+        ext ⟨s, y⟩; simp [swapH, hQ_sym]
       have hm_pos : MeasurableSet (Q ∩ {p : ℝ × H | 0 < p.1}) :=
         hQc.isClosed.measurableSet.inter (isOpen_lt continuous_const continuous_fst).measurableSet
       rw [← hpre, hmp_swap.measure_preimage hm_pos.nullMeasurableSet]
@@ -3230,6 +2950,67 @@ theorem santaloMahlerVolume_le_bodySteinerSymmDir
         rw [ENNReal.ofReal_mul (by norm_num : (0 : ℝ) ≤ 2), ENNReal.ofReal_ofNat]
     _ ≤ 2 * volume (Q ∩ {p : ℝ × H | 0 < p.1}) := by gcongr
     _ ≤ volume (polarBody (KS₁ : Set E)) := hvol_Q_ge
+
+/-- **Meyer–Pajor (1990) Steiner Symmetrization Inequality:**
+in dimension `d ≥ 2`, Steiner symmetrization in any unit direction `u` does not decrease the
+Santaló Mahler volume:
+$$\mathcal{P}^*(K) \le \mathcal{P}^*(S_u K).$$ -/
+theorem santaloMahlerVolume_le_bodySteinerSymmDir
+    {u : E} (hu : ‖u‖ = 1) (hd2 : 2 ≤ Module.finrank ℝ E)
+    (K : ConvexBody E) (hne : (interior (K : Set E)).Nonempty) :
+    santaloMahlerVolume (volume : Measure E) (K : Set E) ≤
+      santaloMahlerVolume (volume : Measure E) (bodySteinerSymmDir hu K : Set E) := by
+  have : Nontrivial E := Module.nontrivial_of_finrank_pos (R := ℝ) (M := E) (by omega)
+  let KS : ConvexBody E := bodySteinerSymmDir hu K
+  have hKS_ne : (interior (KS : Set E)).Nonempty := by
+    by_contra hemp
+    rw [Set.not_nonempty_iff_eq_empty] at hemp
+    have hvol0 : volume (KS : Set E) = 0 := by
+      have hfr : (KS : Set E) = frontier (KS : Set E) := by
+        rw [frontier, KS.isClosed.closure_eq, hemp, sdiff_empty]
+      rw [hfr]; exact KS.convex.addHaar_frontier volume
+    have hvol_pos : 0 < volume (K : Set E) :=
+      (isOpen_interior.measure_pos volume hne).trans_le (measure_mono interior_subset)
+    rw [show KS = bodySteinerSymmDir hu K from rfl, volume_bodySteinerSymmDir] at hvol0
+    exact hvol_pos.ne' hvol0
+  obtain ⟨z₀, hz₀_int, hz₀_orth, hz₀_mahler_eq⟩ :=
+    exists_santaloPoint_orth hu KS hKS_ne (reflectBody_bodySteinerSymmDir hu K)
+  let K₁ : ConvexBody E := K + bodySingleton (-z₀)
+  let KS₁ : ConvexBody E := bodySteinerSymmDir hu K₁
+  have hKS₁_eq : KS₁ = KS + bodySingleton (-z₀) :=
+    bodySteinerSymmDir_translate_orth hu K (by rw [inner_neg_left, hz₀_orth, neg_zero])
+  have h0S₁ : (0 : E) ∈ interior (KS₁ : Set E) := by
+    rw [hKS₁_eq, coe_translate_neg]; exact zero_mem_interior_translate_neg hz₀_int
+  have hK₁_sant : santaloMahlerVolume (volume : Measure E) (K₁ : Set E) =
+      santaloMahlerVolume (volume : Measure E) (K : Set E) := by
+    have hcoe : (K₁ : Set E) = (fun x : E => x + (-z₀)) '' (K : Set E) := by
+      rw [coe_translate_neg]; ext y; simp [sub_eq_add_neg]
+    rw [hcoe, santaloMahlerVolume_translate]
+  have hKS₁_mahler : mahlerVolume (volume : Measure E) (KS₁ : Set E) =
+      santaloMahlerVolume (volume : Measure E) (KS : Set E) := by
+    rw [← hz₀_mahler_eq, mahlerVolumeAt, ← coe_translate_neg, ← hKS₁_eq]
+  rw [← hK₁_sant, ← hKS₁_mahler]
+  obtain ⟨t₀, ht₀_lo, ht₀_hi, hbal⟩ := exists_balanced_polar_slice_shift hu hd2 K₁ h0S₁
+  have hfib₁ := mem_interior_along_fiber_of_zero_mem_interior_steinerSymmDir hu K₁ h0S₁
+  have ht₀_int : t₀ • u ∈ interior (K₁ : Set E) := hfib₁.2 t₀ ht₀_lo ht₀_hi
+  let K₀ : Set E := (fun x : E => x - t₀ • u) '' (K₁ : Set E)
+  have hpol_le : volume (polarBody K₀) ≤ volume (polarBody (KS₁ : Set E)) :=
+    meyer_pajor_polar_volume_le hu hd2 K₁ ht₀_int h0S₁ hbal
+  have hvol_K₀ : volume K₀ = volume (KS₁ : Set E) := by
+    have h1 : volume K₀ = volume (K₁ : Set E) := by
+      have hpre : K₀ = (fun x : E => t₀ • u + x) ⁻¹' (K₁ : Set E) := by
+        ext y; simp only [K₀, mem_image, mem_preimage]
+        exact ⟨fun ⟨x, hx, hxy⟩ => by rw [← hxy]; simpa [add_sub_cancel] using hx,
+          fun hy => ⟨t₀ • u + y, hy, by abel⟩⟩
+      rw [hpre, measure_preimage_add]
+    rw [h1, show KS₁ = bodySteinerSymmDir hu K₁ from rfl, volume_bodySteinerSymmDir]
+  calc
+    santaloMahlerVolume (volume : Measure E) (K₁ : Set E)
+      ≤ mahlerVolumeAt (volume : Measure E) (K₁ : Set E) (t₀ • u) :=
+          santaloMahlerVolume_le_mahlerVolumeAt volume ht₀_int
+    _ = volume K₀ * volume (polarBody K₀) := rfl
+    _ ≤ volume (KS₁ : Set E) * volume (polarBody (KS₁ : Set E)) := by
+          rw [hvol_K₀]; exact mul_le_mul' le_rfl hpol_le
 
 end MeyerPajor
 
