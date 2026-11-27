@@ -18,27 +18,31 @@ import Mathlib.MeasureTheory.Measure.Continuity
 # Continuity, Stability, and Symmetric-Difference Metric of Volume
 
 Metric-measure foundations for `ConvexBody E` in a finite-dimensional real inner product space `E`
-equipped with an additive Haar measure `μ` (Schneider, *Convex Bodies*, §1.8):
+equipped with an additive Haar measure `μ`.
 
-1. **Volume-Root Scaling & Half-Ball Identities (`addHaar_smul_rpow_inv_finrank`,
-   `addHaar_halfBall`, `addHaar_le_half_ball`,
-   `addHaar_le_half_closedBall_of_zero_not_mem_interior`):**
-   `μ (c • A) ^ (1 / d) = c * μ A ^ (1 / d)` and the half-ball origin-in-interior criterion.
-2. **Hausdorff Continuity of Volume (`continuous_addHaar_convexBody`,
-   `continuous_addHaarReal_convexBody`):**
-   `K ↦ μ (K : Set E)` and `K ↦ μ.real (K : Set E)` are continuous on `ConvexBody E`.
-3. **Polytope Hull Volume Continuity & Supremum Reductions (`continuous_addHaar_convexHull_range`,
-   `exists_max_addHaar_convexHull_of_isCompact`, `iSup_addHaar_convexHull_closedBall_eq_sphere`,
-   `mem_sphere_of_max_addHaar_convexHull_closedBall`,
-   `iSup_addHaar_convexHull_sphere_eq_generalPosition`):**
-   Continuity, compactness attainment, closed-ball-to-sphere reduction, and general-position
-   density for polytope volume.
-4. **Symmetric-Difference Volume Metric (`symmDiffVol`, `symmDiffVolReal`,
-   `symmDiffVol_triangle`, `abs_measureReal_sub_le_symmDiffVolReal`,
-   `tendsto_symmDiffVol_self`, `continuous_symmDiffVolReal_convexBody`,
-   `continuous_symmDiffVol_convexBody`):**
-   Algebraic/metric properties of `μ (A Δ B)`, Haar equivariance, and joint continuity on
-   `ConvexBody E × ConvexBody E` with respect to the Hausdorff metric.
+## Main definitions
+
+* `ConvexGeom.symmDiffVol`, `ConvexGeom.symmDiffVolReal`: `ℝ≥0∞`- and `ℝ`-valued symmetric
+  difference volume `μ (A ∆ B)`.
+
+## Main statements
+
+* `ConvexGeom.addHaar_smul_rpow_inv_finrank`, `ConvexGeom.addHaar_halfBall`,
+  `ConvexGeom.addHaar_le_half_closedBall_of_zero_not_mem_interior`: volume-root scaling and the
+  half-ball origin-in-interior criterion.
+* `ConvexGeom.continuous_addHaar_convexBody`, `ConvexGeom.continuous_addHaarReal_convexBody`:
+  Hausdorff continuity of volume on `ConvexBody E`.
+* `ConvexGeom.continuous_addHaar_convexHull_range`,
+  `ConvexGeom.exists_max_addHaar_convexHull_of_isCompact`,
+  `ConvexGeom.iSup_addHaar_convexHull_closedBall_eq_sphere`,
+  `ConvexGeom.iSup_addHaar_convexHull_sphere_eq_generalPosition`: polytope volume continuity,
+  attainment, sphere reduction, and general-position density.
+* `ConvexGeom.continuous_symmDiffVolReal_convexBody`, `ConvexGeom.continuous_symmDiffVol_convexBody`:
+  joint continuity of symmetric-difference volume in the Hausdorff metric.
+
+## References
+
+* [R. Schneider, *Convex Bodies: The Brunn–Minkowski Theory*][schneider2014], §1.8.
 -/
 
 open MeasureTheory Set Filter
@@ -491,7 +495,7 @@ theorem zero_mem_interior_of_addHaar_gt_half_closedBall (μ : Measure E) [μ.IsA
   exact hgt.not_ge (addHaar_le_half_closedBall_of_zero_not_mem_interior μ hKconv hKsub h0)
 
 omit [FiniteDimensional ℝ E] in
-/-- Adding an exterior point `w ∉ P` to a compact convex set `P` with nonempty interior strictly
+/-- Adding an exterior point `w ∉ P` to a compact set `P` with nonempty interior strictly
 increases its additive Haar measure. -/
 theorem strict_addHaar_convexHull_insert_of_notMem (μ : Measure E) [μ.IsAddHaarMeasure]
     {P : Set E} (hPc : IsCompact P) (hPint : (interior P).Nonempty)

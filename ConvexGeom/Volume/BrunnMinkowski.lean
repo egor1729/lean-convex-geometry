@@ -21,29 +21,29 @@ import Mathlib.MeasureTheory.Measure.Regular
 /-!
 # Prékopa–Leindler, Brunn–Minkowski, and Bieberbach's Isodiametric Inequality
 
-This file proves the **Prékopa–Leindler inequality** in arbitrary dimension via the layer-cake
-and Tonelli induction (Ball, *An Elementary Introduction to Modern Convex Geometry*, Lectures 1 & 5;
-Gardner, *The Brunn–Minkowski Inequality*, Bull. AMS 39 (2002), §7), and derives its foundational
-convex-geometric corollaries:
+This file proves the **Prékopa–Leindler inequality** in arbitrary finite dimension via the
+layer-cake representation and Tonelli induction, and derives its foundational convex-geometric
+corollaries.
 
-1. **1D Brunn–Minkowski** (`brunn_minkowski_one_dim_compact`, `brunn_minkowski_one_dim`):
-   for any nonempty measurable `A, B ⊆ ℝ`, `volume A + volume B ≤ volume (A + B)`.
-2. **Prékopa–Leindler Inequality** (`prekopa_leindler_one_dim`, `prekopa_leindler_pi`,
-   `prekopa_leindler`):
-   for measurable `f, g, h : E → ℝ≥0∞` on any finite-dimensional real inner product space `E`
-   and `t ∈ (0, 1)`, if `f x ^ (1 - t) * g y ^ t ≤ h ((1 - t) • x + t • y)` for all `x, y`,
-   then `(∫⁻ f) ^ (1 - t) * (∫⁻ g) ^ t ≤ ∫⁻ h`.
-3. **Multiplicative Brunn–Minkowski** (`brunn_minkowski_mul`, `brunn_minkowski_mul_compact`):
-   for compact nonempty `A, B ⊆ E` and `t ∈ (0, 1)`,
-   `volume A ^ (1 - t) * volume B ^ t ≤ volume ((1 - t) • A + t • B)`.
-4. **Additive Brunn–Minkowski** (`brunn_minkowski_compact`, `brunn_minkowski_convexBody`):
-   in dimension `d = finrank ℝ E ≥ 1`, for compact nonempty `A, B ⊆ E`,
-   `volume A ^ (1 / d : ℝ) + volume B ^ (1 / d : ℝ) ≤ volume (A + B) ^ (1 / d : ℝ)`.
-5. **Bieberbach's Isodiametric Inequality (`isodiametric_inequality`):**
-   for any compact nonempty `K ⊆ E`,
-   `volume K ≤ volume (Metric.closedBall (0 : E) (Metric.diam K / 2))`.
-6. **Log-Concavity of Marginals (`logConcave_marginal_prod`):**
-   integrating out a Euclidean factor preserves log-concavity of measurable densities.
+## Main statements
+
+* `ConvexGeom.brunn_minkowski_one_dim_compact`, `ConvexGeom.brunn_minkowski_one_dim`:
+  1D Brunn–Minkowski `volume A + volume B ≤ volume (A + B)` for nonempty measurable `A, B ⊆ ℝ`.
+* `ConvexGeom.prekopa_leindler_one_dim`, `ConvexGeom.prekopa_leindler_pi`,
+  `ConvexGeom.prekopa_leindler`: Prékopa–Leindler inequality for measurable `ℝ≥0∞`-valued
+  functions without integrability hypotheses.
+* `ConvexGeom.brunn_minkowski_mul`, `ConvexGeom.brunn_minkowski_mul_compact`:
+  multiplicative Brunn–Minkowski `volume A ^ (1 - t) * volume B ^ t ≤ volume ((1 - t) • A + t • B)`.
+* `ConvexGeom.brunn_minkowski_compact`, `ConvexGeom.brunn_minkowski_convexBody`:
+  additive Brunn–Minkowski `volume A ^ (1 / d) + volume B ^ (1 / d) ≤ volume (A + B) ^ (1 / d)`.
+* `ConvexGeom.isodiametric_inequality`: Bieberbach's isodiametric inequality
+  `volume K ≤ volume (closedBall 0 (diam K / 2))`.
+* `ConvexGeom.logConcave_marginal_prod`: Prékopa's theorem on log-concavity of marginals.
+
+## References
+
+* [K. Ball, *An Elementary Introduction to Modern Convex Geometry*][ball1997], Lectures 1 and 5
+* [R. J. Gardner, *The Brunn–Minkowski inequality*][gardner2002], §7
 -/
 
 open MeasureTheory Set
@@ -625,18 +625,6 @@ theorem prekopa_leindler {E : Type*} [NormedAddCommGroup E] [InnerProductSpace �
 
 /-! ### 4. Brunn–Minkowski Inequality (Multiplicative and Additive Forms) -/
 
-/-- Pointwise scalar multiplication distributes over Minkowski sum of sets:
-`c • (A + B) = c • A + c • B`. -/
-theorem smul_set_add {M α : Type*} [AddZeroClass α] [DistribSMul M α]
-    (c : M) (A B : Set α) :
-    c • (A + B) = c • A + c • B := by
-  ext z
-  constructor
-  · rintro ⟨_, ⟨x, hx, y, hy, rfl⟩, rfl⟩
-    exact ⟨c • x, Set.smul_mem_smul_set hx, c • y, Set.smul_mem_smul_set hy, (smul_add c x y).symm⟩
-  · rintro ⟨_, ⟨x, hx, rfl⟩, _, ⟨y, hy, rfl⟩, rfl⟩
-    exact ⟨x + y, Set.add_mem_add hx hy, smul_add c x y⟩
-
 /-- **Multiplicative Brunn–Minkowski Inequality (for measurable sets):**
 for measurable `A, B ⊆ E`, `t ∈ (0, 1)`, if `(1 - t) • A + t • B` is measurable, then
 `volume A ^ (1 - t) * volume B ^ t ≤ volume ((1 - t) • A + t • B)`. -/
@@ -750,7 +738,7 @@ theorem brunn_minkowski_compact {E : Type*} [NormedAddCommGroup E] [InnerProduct
     have h2 : t • B' = (a + b)⁻¹ • B := by
       dsimp only [B', t]
       rw [smul_smul, div_mul_eq_mul_div, mul_inv_cancel₀ hb_pos.ne', one_div]
-    rw [h1, h2, ← smul_set_add]
+    rw [h1, h2, ← smul_add]
   have hbm := brunn_minkowski_mul_compact (hAc.smul a⁻¹) (hBc.smul b⁻¹) ht0 ht1
   rw [hA'_vol, hB'_vol, ENNReal.one_rpow, ENNReal.one_rpow, mul_one, hcomb,
     Measure.addHaar_smul, abs_of_nonneg (pow_nonneg (inv_nonneg.mpr (add_pos ha_pos hb_pos).le) _)]

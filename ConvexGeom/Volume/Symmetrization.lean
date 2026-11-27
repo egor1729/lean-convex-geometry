@@ -7,6 +7,7 @@ module
 
 public import ConvexGeom.Volume.BrunnMinkowski
 public import ConvexGeom.Metric.SupportFunction
+public import Mathlib.Analysis.InnerProductSpace.Projection.Reflection
 
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.MeasureTheory.Measure.Prod
@@ -14,20 +15,40 @@ import Mathlib.MeasureTheory.Measure.Prod
 /-!
 # Minkowski and Steiner Symmetrization
 
-Hyperplane reflection, Minkowski and central symmetrization, and Steiner symmetrization on `ℝ × E`
-(Klartag, Lecture 2; Schneider, *Convex Bodies*, §10.3):
+Hyperplane reflection, Minkowski and central symmetrization, and Steiner symmetrization on `ℝ × E`.
 
-1. **Hyperplane reflection & Minkowski / central symmetrization** (finite-dimensional inner product space `E`):
-   - `reflectHyperplane`, `reflectBody`, `minkowskiSymm`, `centralSymm`.
-   - Support formulas, reflection invariance, volume non-decrease (`volume_le_volume_minkowskiSymm`,
-     `volume_le_volume_centralSymm`), and diameter non-increase (`diam_minkowskiSymm_le`).
-2. **Steiner symmetrization** (along the first coordinate on `ℝ × E`):
-   - `steinerSymm`: interval-hull symmetrization, replacing each nonempty line fiber `steinerFiber K y`
-     by `[-(b - a)/2, (b - a)/2] × {y}` (`a = sInf`, `b = sSup`). Agrees with measure-theoretic
-     Steiner symmetrization on compact convex sets; `bodySteinerSymm` packages it on `ConvexBody (ℝ × E)`.
-   - `steinerSymm_symm`, `steinerSymm_mono`, `convex_steinerSymm`, `isCompact_steinerSymm`,
-     `volume_steinerSymm`, `volume_bodySteinerSymm`, `steinerSymm_dist_le_diam` (Euclidean squared distance;
-     `ℝ × E` itself carries Mathlib's product max-norm).
+## Main definitions
+
+* `ConvexGeom.reflectHyperplane`: orthogonal reflection across the hyperplane `u⊥` for a unit
+  vector `u`, bridged to Mathlib's `(ℝ ∙ u)ᗮ.reflection` via `reflectHyperplane_eq_reflection`.
+* `ConvexGeom.reflectBody`: image of a convex body under hyperplane reflection.
+* `ConvexGeom.minkowskiSymm`: Minkowski symmetrization `(1 / 2) • (K + reflectBody hu K)`.
+* `ConvexGeom.centralSymm`: central symmetrization `(1 / 2) • (K + (-1) • K)`.
+* `ConvexGeom.steinerFiber`, `ConvexGeom.steinerUpper`, `ConvexGeom.steinerLower`,
+  `ConvexGeom.steinerSymm`, `ConvexGeom.bodySteinerSymm`: interval-hull Steiner symmetrization
+  along the first coordinate of `ℝ × E`.
+
+## Main statements
+
+* `ConvexGeom.reflectHyperplane_eq_reflection`: `reflectHyperplane hu = (ℝ ∙ u)ᗮ.reflection`.
+* `ConvexGeom.volume_le_volume_minkowskiSymm`, `ConvexGeom.volume_le_volume_centralSymm`,
+  `ConvexGeom.diam_minkowskiSymm_le`: volume non-decrease and diameter non-increase under
+  Minkowski and central symmetrization.
+* `ConvexGeom.steinerSymm_symm`, `ConvexGeom.steinerSymm_mono`, `ConvexGeom.convex_steinerSymm`,
+  `ConvexGeom.isCompact_steinerSymm`, `ConvexGeom.volume_steinerSymm`,
+  `ConvexGeom.volume_bodySteinerSymm`, `ConvexGeom.steinerSymm_dist_le_diam`:
+  preservation of convexity, compactness, and Lebesgue volume, and Euclidean-diameter contraction.
+
+## Implementation notes
+
+`steinerSymm` uses interval-hull semantics, replacing each nonempty fiber `steinerFiber K y` by
+`[-(b - a) / 2, (b - a) / 2] × {y}` (`a = sInf`, `b = sSup`), which agrees with measure-theoretic
+Steiner symmetrization on compact convex sets. In `steinerSymm_dist_le_diam`, Euclidean squared
+distance is written explicitly because `ℝ × E` carries Mathlib's product max-norm.
+
+## References
+
+* [R. Schneider, *Convex Bodies: The Brunn–Minkowski Theory*][schneider2014], §10.3
 -/
 
 open MeasureTheory Set
@@ -80,6 +101,14 @@ lemma reflectHyperplane_apply {u : E} (hu : ‖u‖ = 1) (x : E) :
     reflectHyperplane hu x = x - (2 * ⟪x, u⟫) • u := by
   simp [reflectHyperplane]
 
+/-- `reflectHyperplane hu` coincides with Mathlib's `Submodule.reflection` across `(ℝ ∙ u)ᗮ`. -/
+theorem reflectHyperplane_eq_reflection {u : E} (hu : ‖u‖ = 1) :
+    reflectHyperplane hu = (ℝ ∙ u)ᗮ.reflection := by
+  ext x
+  rw [reflectHyperplane_apply, Submodule.reflection_orthogonal_apply,
+    Submodule.reflection_singleton_apply, hu]
+  simp [real_inner_comm u x, two_smul, ← add_smul, ← two_mul]
+
 lemma reflectHyperplane_involutive {u : E} (hu : ‖u‖ = 1) (x : E) :
     reflectHyperplane hu (reflectHyperplane hu x) = x :=
   (reflectHyperplane hu).left_inv x
@@ -118,8 +147,25 @@ theorem supportFn_reflectBody {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) (v :
 
 /-- **Minkowski symmetrization** of `K : ConvexBody E` across the hyperplane `u⊥`:
 `minkowskiSymm hu K = (1 / 2) • (K + reflectBody hu K)`. -/
+@[expose]
 noncomputable def minkowskiSymm {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) : ConvexBody E :=
   (1 / 2 : ℝ) • (K + reflectBody hu K)
+
+@[simp]
+lemma coe_minkowskiSymm {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) :
+    (minkowskiSymm hu K : Set E) =
+      (1 / 2 : ℝ) • ((K : Set E) + reflectHyperplane hu '' (K : Set E)) := by
+  rw [minkowskiSymm, ConvexBody.coe_smul, ConvexBody.coe_add, coe_reflectBody]
+
+lemma mem_minkowskiSymm {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) {z : E} :
+    z ∈ (minkowskiSymm hu K : Set E) ↔
+      ∃ x ∈ (K : Set E), ∃ y ∈ (K : Set E), z = (1 / 2 : ℝ) • (x + reflectHyperplane hu y) := by
+  rw [coe_minkowskiSymm]
+  constructor
+  · rintro ⟨_, ⟨x, hx, _, ⟨y, hy, rfl⟩, rfl⟩, rfl⟩
+    exact ⟨x, hx, y, hy, rfl⟩
+  · rintro ⟨x, hx, y, hy, rfl⟩
+    exact ⟨x + reflectHyperplane hu y, Set.add_mem_add hx ⟨y, hy, rfl⟩, rfl⟩
 
 theorem supportFn_minkowskiSymm {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) (v : E) :
     supportFn (minkowskiSymm hu K) v =
@@ -156,7 +202,7 @@ theorem volume_le_volume_minkowskiSymm [FiniteDimensional ℝ E] [MeasurableSpac
     show (1 / 2 : ℝ) + 1 / 2 = 1 by norm_num, ENNReal.rpow_one] at hbm
   have hset : ((minkowskiSymm hu K : ConvexBody E) : Set E) =
       (1 / 2 : ℝ) • (K : Set E) + (1 / 2 : ℝ) • (reflectBody hu K : Set E) := by
-    rw [minkowskiSymm, ConvexBody.coe_smul, ConvexBody.coe_add, smul_set_add]
+    rw [minkowskiSymm, ConvexBody.coe_smul, ConvexBody.coe_add, smul_add]
   rwa [hset]
 
 /-- **Minkowski symmetrization does not increase diameter:**
@@ -164,7 +210,7 @@ theorem volume_le_volume_minkowskiSymm [FiniteDimensional ℝ E] [MeasurableSpac
 theorem diam_minkowskiSymm_le {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) :
     Metric.diam (minkowskiSymm hu K : Set E) ≤ Metric.diam (K : Set E) := by
   refine Metric.diam_le_of_forall_dist_le Metric.diam_nonneg fun x hx y hy => ?_
-  rw [minkowskiSymm, ConvexBody.coe_smul, ConvexBody.coe_add, smul_set_add] at hx hy
+  rw [minkowskiSymm, ConvexBody.coe_smul, ConvexBody.coe_add, smul_add] at hx hy
   rcases Set.mem_add.mp hx with ⟨_, ⟨x₁, hx₁, rfl⟩, _, ⟨rx₂, hrx₂, rfl⟩, rfl⟩
   rcases Set.mem_add.mp hy with ⟨_, ⟨y₁, hy₁, rfl⟩, _, ⟨ry₂, hry₂, rfl⟩, rfl⟩
   rw [coe_reflectBody] at hrx₂ hry₂
@@ -193,8 +239,26 @@ theorem diam_minkowskiSymm_le {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) :
     _ = Metric.diam (K : Set E) := by ring
 
 /-- **Central symmetrization** of a convex body `K`: `(K - K) / 2 = (1/2) • (K + (-1) • K)`. -/
+@[expose]
 noncomputable def centralSymm (K : ConvexBody E) : ConvexBody E :=
   (1 / 2 : ℝ) • (K + (-1 : ℝ) • K)
+
+@[simp]
+lemma coe_centralSymm (K : ConvexBody E) :
+    (centralSymm K : Set E) = (1 / 2 : ℝ) • ((K : Set E) + (-1 : ℝ) • (K : Set E)) := by
+  rw [centralSymm, ConvexBody.coe_smul, ConvexBody.coe_add, ConvexBody.coe_smul]
+
+lemma mem_centralSymm (K : ConvexBody E) {z : E} :
+    z ∈ (centralSymm K : Set E) ↔
+      ∃ x ∈ (K : Set E), ∃ y ∈ (K : Set E), z = (1 / 2 : ℝ) • (x - y) := by
+  rw [coe_centralSymm]
+  constructor
+  · rintro ⟨_, ⟨x, hx, _, ⟨y, hy, rfl⟩, rfl⟩, rfl⟩
+    exact ⟨x, hx, y, hy, by dsimp only; rw [neg_one_smul, sub_eq_add_neg]⟩
+  · rintro ⟨x, hx, y, hy, rfl⟩
+    refine ⟨x + (-1 : ℝ) • y, Set.add_mem_add hx ⟨y, hy, rfl⟩, ?_⟩
+    dsimp only
+    rw [neg_one_smul, sub_eq_add_neg]
 
 theorem supportFn_centralSymm (K : ConvexBody E) (v : E) :
     supportFn (centralSymm K) v = width K v / 2 := by
@@ -214,7 +278,7 @@ theorem volume_le_volume_centralSymm [FiniteDimensional ℝ E] [MeasurableSpace 
     show (1 / 2 : ℝ) + 1 / 2 = 1 by norm_num, ENNReal.rpow_one] at hbm
   have hset : ((centralSymm K : ConvexBody E) : Set E) =
       (1 / 2 : ℝ) • (K : Set E) + (1 / 2 : ℝ) • (((-1 : ℝ) • K : ConvexBody E) : Set E) := by
-    rw [centralSymm, ConvexBody.coe_smul, ConvexBody.coe_add, smul_set_add]
+    rw [centralSymm, ConvexBody.coe_smul, ConvexBody.coe_add, smul_add]
   rwa [hset]
 
 end MinkowskiSymm

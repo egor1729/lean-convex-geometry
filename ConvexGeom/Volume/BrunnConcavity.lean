@@ -20,28 +20,37 @@ import Mathlib.MeasureTheory.Measure.Prod
 /-!
 # Brunn's Concavity Principle, Log-Concave Convolutions, and Rogers–Shephard
 
-Volumetric consequences of Brunn–Minkowski and Prékopa–Leindler
-(Rogers–Shephard (1957); Ball, Lecture 5; Klartag, Lectures 1–2;
-Artstein-Avidan–Giannopoulos–Milman, *Asymptotic Geometric Analysis I*, Ch. 1–2 & §4.1;
-Schneider, *Convex Bodies*, §7.1 & §10.1):
+Volumetric consequences of Brunn–Minkowski and Prékopa–Leindler: Brunn's concavity principle for
+parallel hyperplane sections, log-concavity of convolutions, covariograms, the Rogers–Shephard
+inequality, the central intersection lemma, and asymmetric covering bounds.
 
-1. **Brunn's Concavity Principle (`logConcave_sections`, `brunn_concavity_sections`,
-   `concaveOn_volume_slice_rpow`):**
-   Parallel slice volumes of a compact convex set `K ⊆ ℝ × E` are log-concave, and their
-   `1 / d`-th roots are concave.
-2. **Log-Concavity of Convolutions (`logConcave_convolution`):**
-   The convolution of measurable log-concave functions `E → ℝ≥0∞` is log-concave.
-3. **Covariogram (`covariogram`, `covariogram_lintegral`, `covariogram_rpow_concave`):**
-   `g(x) = μ(K ∩ (x + K))` integrates to `μ(K)²`, is even, supported on `K - K`, and has a
-   concave `1 / d`-th root on `K - K`.
-4. **Rogers–Shephard Inequality (`rogers_shephard`, `two_pow_mul_volume_le_volume_diff`):**
-   `2^d * vol(K) ≤ vol(K - K) ≤ C(2d, d) * vol(K)` for compact convex `K`.
-5. **Central Intersection Lemma & Asymmetric Covering Bounds (`reflectedCovariogram`,
-   `exists_reflectedCovariogram_ge`, `translativeCoveringNumber_mul_volume_le_four_pow`,
-   `translativeCoveringNumber_convex_smul_le`):**
-   Every measurable finite-volume convex set `K` has a center `z` with
-   `vol(K) ≤ 2^d * vol(K ∩ (z - K))`, yielding Milman / Rogers–Zong's asymmetric covering bound
-   `N(A, T) * vol(T) ≤ 4^d * vol(A + (1 / 2) • T)` and `N(K, t • K) ≤ (4 / t + 2)^d`.
+## Main definitions
+
+* `ConvexGeom.slice`: parallel slice `{y : E | (t, y) ∈ K}` of `K ⊆ ℝ × E`.
+* `ConvexGeom.covariogram`: `μ (K ∩ (x +ᵥ K))`.
+* `ConvexGeom.reflectedCovariogram`: `μ (K ∩ (z - K))`.
+
+## Main statements
+
+* `ConvexGeom.logConcave_sections`, `ConvexGeom.brunn_concavity_sections`,
+  `ConvexGeom.concaveOn_volume_slice_rpow`: **Brunn's Concavity Principle**.
+* `ConvexGeom.logConcave_convolution`: convolution preserves log-concavity.
+* `ConvexGeom.covariogram_lintegral`, `ConvexGeom.covariogram_rpow_concave`: covariogram integral
+  and `1 / d`-concavity.
+* `ConvexGeom.rogers_shephard`, `ConvexGeom.two_pow_mul_volume_le_volume_diff`: **Rogers–Shephard
+  Inequality** `2^d * vol(K) ≤ vol(K - K) ≤ C(2d, d) * vol(K)`.
+* `ConvexGeom.exists_reflectedCovariogram_ge`,
+  `ConvexGeom.translativeCoveringNumber_mul_volume_le_four_pow`,
+  `ConvexGeom.translativeCoveringNumber_convex_smul_le`: central intersection lemma and asymmetric
+  translative covering bounds.
+
+## References
+
+* [C. A. Rogers and G. C. Shephard, *The difference body of a convex body*][rogersshephard1957].
+* [K. Ball, *An Elementary Introduction to Modern Convex Geometry*][ball1997], Lecture 5.
+* [S. Artstein-Avidan, A. Giannopoulos, and V. D. Milman, *Asymptotic Geometric Analysis,
+  Part I*][agm2015], Ch. 1–2 & §4.1.
+* [R. Schneider, *Convex Bodies: The Brunn–Minkowski Theory*][schneider2014], §7.1 & §10.1.
 -/
 
 open MeasureTheory Set
@@ -443,7 +452,7 @@ theorem two_pow_mul_volume_le_volume_diff {K : Set E} (hKc : IsCompact K) :
     ← ENNReal.rpow_add_of_nonneg (1 / 2 : ℝ) (1 / 2 : ℝ) (by norm_num) (by norm_num),
     show (1 / 2 : ℝ) + 1 / 2 = 1 by norm_num, ENNReal.rpow_one] at hbm
   have hset : (1 / 2 : ℝ) • K + (1 / 2 : ℝ) • ((-1 : ℝ) • K) = (1 / 2 : ℝ) • (K - K) := by
-    rw [← smul_set_add]
+    rw [← smul_add]
     congr 1
     ext z
     simp only [Set.mem_add, Set.mem_sub, Set.mem_smul_set]

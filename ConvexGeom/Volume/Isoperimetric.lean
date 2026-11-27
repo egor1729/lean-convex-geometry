@@ -16,28 +16,39 @@ import Mathlib.Topology.Order.LiminfLimsup
 /-!
 # Minkowski's First Inequality and the Euclidean Isoperimetric Inequality
 
-This file derives **Minkowski's First Inequality** and the **Euclidean Isoperimetric Inequality**
-in lower outer Minkowski content form (`liminf_{t → 0⁺}`) in arbitrary dimension
-`d = finrank ℝ E ≥ 1` directly from additive Brunn–Minkowski (Ball, *An Elementary Introduction
-to Modern Convex Geometry*, Lecture 5; Klartag, Lecture 1; Schneider, *Convex Bodies*, §7.1):
+This file derives Minkowski's First Inequality and the Euclidean Isoperimetric Inequality in
+lower outer Minkowski content form (`liminf_{t → 0⁺}`) in arbitrary dimension `d = finrank ℝ E ≥ 1`
+directly from additive Brunn–Minkowski.
 
-1. **Finite-`t` Minkowski First Inequality (`volume_add_smul_ge`, `minkowski_first_diff_ge`):**
-   For any compact nonempty `K, L ⊆ E` and `t > 0`,
-   $$\frac{\mathrm{vol}(K + t L) - \mathrm{vol}(K)}{t} \ge d\,\mathrm{vol}(K)^{(d-1)/d}\,\mathrm{vol}(L)^{1/d}.$$
-2. **Minkowski's First Inequality (`minkowski_first_inequality`):**
-   $$\liminf_{t \to 0^+} \frac{\mathrm{vol}(K + t L) - \mathrm{vol}(K)}{t} \ge d\,\mathrm{vol}(K)^{(d-1)/d}\,\mathrm{vol}(L)^{1/d}.$$
-3. **Exact Outer Minkowski Content of Euclidean Balls (`minkowskiSurfaceArea_closedBall`):**
-   For `r > 0`, the limit exists and equals
-   $$S(\overline{B}(c, r)) = d\,r^{d-1}\,\mathrm{vol}(\overline{B}(0, 1)).$$
-4. **Euclidean Isoperimetric Inequality (`isoperimetric_inequality`, `isoperimetric_inequality_ball`):**
-   Among all compact nonempty sets `K ⊆ E` of a given volume, the Euclidean ball minimizes
-   lower outer Minkowski content:
-   $$S(K) \ge d\,\mathrm{vol}(K)^{(d-1)/d}\,\mathrm{vol}(\overline{B}(0, 1))^{1/d} = S(\overline{B}(c, r_K)).$$
+## Main definitions
 
-**Convention:** `minkowskiSurfaceArea` is the *lower outer Minkowski content* (`liminf` as `t → 0⁺`
-of `(volume (K + t • closedBall 0 1) - volume K) / t`). For convex bodies (and in particular balls),
-the limit exists and agrees with classical surface area (`(d - 1)`-dimensional Hausdorff measure of
-the boundary); on general compact sets `liminf` is the standard lower Minkowski content.
+* `ConvexGeom.minkowskiFirstDiff`: lower first variation
+  `liminf_{t → 0⁺} (volume (K + t • L) - volume K) / t`.
+* `ConvexGeom.minkowskiSurfaceArea`: lower outer Minkowski content
+  `minkowskiFirstDiff K (Metric.closedBall 0 1)`.
+
+## Main statements
+
+* `ConvexGeom.volume_add_smul_ge`, `ConvexGeom.minkowski_first_diff_ge`,
+  `ConvexGeom.minkowski_first_inequality`: **Minkowski's First Inequality**.
+* `ConvexGeom.minkowskiSurfaceArea_closedBall`: exact outer Minkowski content
+  `d * r^(d - 1) * volume (closedBall 0 1)` on Euclidean balls.
+* `ConvexGeom.isoperimetric_inequality`, `ConvexGeom.isoperimetric_inequality_ball`: **Euclidean
+  Isoperimetric Inequality** in lower outer Minkowski content form.
+
+## Implementation notes
+
+`minkowskiSurfaceArea` is defined as the lower outer Minkowski content (`liminf` as `t → 0⁺`).
+Classically this coincides with `(d - 1)`-dimensional Hausdorff measure of `frontier K` for
+full-dimensional convex bodies, though that identification is not formalized here (and note that
+for degenerate `(d - 1)`-dimensional convex bodies, which `ConvexBody` includes, lower outer
+Minkowski content is twice the `(d - 1)`-dimensional Hausdorff measure). Equality characterization
+(balls) is not yet formalized.
+
+## References
+
+* [K. Ball, *An Elementary Introduction to Modern Convex Geometry*][ball1997], Lecture 5.
+* [R. Schneider, *Convex Bodies: The Brunn–Minkowski Theory*][schneider2014], §7.1.
 -/
 
 open MeasureTheory Set Filter

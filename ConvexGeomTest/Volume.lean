@@ -87,4 +87,17 @@ example (K : Set ℝ) (x : ℝ) :
     covariogram volume K 0 = volume K ∧ covariogram volume K (-x) = covariogram volume K x :=
   ⟨covariogram_zero volume K, covariogram_neg volume K x⟩
 
+/-- Downstream `module` exposure test for `minkowskiSymm`, `centralSymm`, and
+`reflectHyperplane_eq_reflection`. -/
+example {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    {u : E} (hu : ‖u‖ = 1) (K : ConvexBody E) :
+    minkowskiSymm hu K = (1 / 2 : ℝ) • (K + reflectBody hu K) ∧
+      centralSymm K = (1 / 2 : ℝ) • (K + (-1 : ℝ) • K) ∧
+      reflectHyperplane hu = (ℝ ∙ u)ᗮ.reflection :=
+  ⟨rfl, rfl, reflectHyperplane_eq_reflection hu⟩
+
+example (K : ConvexBody ℝ) (z : ℝ) :
+    z ∈ (centralSymm K : Set ℝ) ↔ ∃ x ∈ (K : Set ℝ), ∃ y ∈ (K : Set ℝ), z = (1 / 2 : ℝ) • (x - y) :=
+  mem_centralSymm K
+
 end ConvexGeomChecks

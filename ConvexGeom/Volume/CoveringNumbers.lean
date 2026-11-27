@@ -13,25 +13,38 @@ import Mathlib.Order.Zorn
 /-!
 # Volumetric Bounds for Covering and Packing Numbers
 
-Volumetric bounds for metric and translative covering/packing numbers in a finite-dimensional
-real normed space `E` with an additive Haar measure `μ`
-(Vershynin, *High-Dimensional Probability*, §4.2; Ball, Lecture 2;
-Artstein-Avidan–Giannopoulos–Milman, *Asymptotic Geometric Analysis I*, §4.1):
+Volumetric bounds for metric and translative covering and packing numbers in a finite-dimensional
+real normed space `E` equipped with an additive Haar measure `μ`.
 
-1. **General Volumetric Lower Bound (`measure_le_externalCoveringNumber_mul_closedBall`):**
-   For `0 < ε`, `μ(A) ≤ N_ext(A, ε) * μ(closedBall 0 ε)`.
-2. **General Volumetric Upper Bound (`packingNumber_mul_ball_le_measure_add_ball`):**
-   `P(A, ε) * μ(ball 0 (ε / 2)) ≤ μ(A + ball 0 (ε / 2))`, and likewise for `coveringNumber`.
-3. **Unit-Ball Bounds for Any Norm (`inv_pow_le_externalCoveringNumber_closedBall`,
-   `packingNumber_closedBall_le`, `coveringNumber_closedBall_le`,
-   `coveringNumber_closedBall_le_three_div`):**
-   `(1 / ε)^d ≤ N_ext(B, ε)` and `N(B, ε) ≤ P(B, ε) ≤ (2 / ε + 1)^d`.
-4. **Translative Covering Numbers (`IsTranslativeCover`, `translativeCoveringNumber`,
-   `translativeCoveringNumber_mul_le`, `measure_le_translativeCoveringNumber_mul`,
-   `translativeCoveringNumber_sub_mul_le`, `translativeCoveringNumber_symm_smul_le`):**
-   General `N(A, T) = inf { |C| : A ⊆ C + T }`, submultiplicativity, volumetric lower bound,
-   Zorn packing bound `N(A, B - B) * μ(B) ≤ μ(A + B)`, and origin-symmetric homothet bound
-   `N(K, t • K) ≤ (2 / t + 1)^d`.
+## Main definitions
+
+* `ConvexGeom.IsTranslativeCover`: `A ⊆ C + T`.
+* `ConvexGeom.translativeCoveringNumber`: `N(A, T) = inf { |C| : A ⊆ C + T }`.
+
+## Main statements
+
+* `ConvexGeom.measure_le_externalCoveringNumber_mul_closedBall`:
+  `μ A ≤ N_ext(A, ε) * μ (closedBall 0 ε)`.
+* `ConvexGeom.packingNumber_mul_ball_le_measure_add_ball`,
+  `ConvexGeom.coveringNumber_mul_ball_le_measure_add_ball`:
+  `P(A, ε) * μ (ball 0 (ε / 2)) ≤ μ (A + ball 0 (ε / 2))` and likewise for `coveringNumber`.
+* `ConvexGeom.inv_pow_le_externalCoveringNumber_closedBall`,
+  `ConvexGeom.packingNumber_closedBall_le`, `ConvexGeom.coveringNumber_closedBall_le`,
+  `ConvexGeom.coveringNumber_closedBall_le_three_div`:
+  `(1 / ε)^d ≤ N_ext(B, ε)` and `N(B, ε) ≤ P(B, ε) ≤ (2 / ε + 1)^d` for any norm on `E`.
+* `ConvexGeom.translativeCoveringNumber_mul_le`,
+  `ConvexGeom.measure_le_translativeCoveringNumber_mul`,
+  `ConvexGeom.translativeCoveringNumber_sub_mul_le`,
+  `ConvexGeom.translativeCoveringNumber_symm_smul_le`:
+  submultiplicativity, volumetric lower bound, Zorn packing bound
+  `N(A, B - B) * μ B ≤ μ (A + B)`, and `N(K, t • K) ≤ (2 / t + 1)^d` for origin-symmetric `K`.
+
+## References
+
+* [R. Vershynin, *High-Dimensional Probability*][vershynin2018], §4.2
+* [K. Ball, *An Elementary Introduction to Modern Convex Geometry*][ball1997], Lecture 2
+* [S. Artstein-Avidan, A. Giannopoulos, V. D. Milman, *Asymptotic Geometric Analysis,
+  Part I*][agm2015], §4.1
 -/
 
 open MeasureTheory Set Metric
@@ -52,12 +65,6 @@ private lemma ennreal_le_of_mul_le_mul_right {a b c : ℝ≥0∞} (hb0 : b ≠ 0
     _ = (a * b) * b⁻¹ := (mul_assoc a b b⁻¹).symm
     _ ≤ (c * b) * b⁻¹ := by gcongr
     _ = c := by rw [mul_assoc, ENNReal.mul_inv_cancel hb0 hbtop, mul_one]
-
-omit [NormedSpace ℝ E] [FiniteDimensional ℝ E] [BorelSpace E] in
-/-- Helper: an open ball of positive radius has strictly positive Haar measure. -/
-private lemma addHaar_ball_pos (μ : Measure E) [μ.IsAddHaarMeasure] {r : ℝ} (hr : 0 < r) :
-    0 < μ (Metric.ball (0 : E) r) :=
-  Metric.isOpen_ball.measure_pos μ (Metric.nonempty_ball.mpr hr)
 
 /-! ### 1. General Volumetric Lower Bound -/
 
@@ -86,7 +93,8 @@ lemma measure_le_encard_mul_closedBall_of_isCover (μ : Measure E) [μ.IsAddHaar
             rw [hfin.encard_eq_coe_toFinset_card]; simp
   · have htop : C.encard = ⊤ := Set.Infinite.encard_eq hfin
     have hball_ne : μ (Metric.closedBall (0 : E) ε) ≠ 0 :=
-      ne_of_gt ((addHaar_ball_pos μ hε).trans_le (measure_mono Metric.ball_subset_closedBall))
+      ne_of_gt ((Metric.measure_ball_pos μ (0 : E) hε).trans_le
+        (measure_mono Metric.ball_subset_closedBall))
     rw [htop, ENat.toENNReal_top, ENNReal.top_mul hball_ne]
     exact le_top
 
@@ -96,7 +104,8 @@ theorem measure_le_externalCoveringNumber_mul_closedBall
     (μ : Measure E) [μ.IsAddHaarMeasure] {ε : ℝ≥0} (hε : 0 < ε) (A : Set E) :
     μ A ≤ (Metric.externalCoveringNumber ε A : ℝ≥0∞) * μ (Metric.closedBall (0 : E) ε) := by
   have hball_ne : μ (Metric.closedBall (0 : E) ε) ≠ 0 :=
-    ne_of_gt ((addHaar_ball_pos μ hε).trans_le (measure_mono Metric.ball_subset_closedBall))
+    ne_of_gt ((Metric.measure_ball_pos μ (0 : E) hε).trans_le
+      (measure_mono Metric.ball_subset_closedBall))
   have hball_top : μ (Metric.closedBall (0 : E) ε) ≠ ⊤ :=
     (isCompact_closedBall (0 : E) ε).measure_lt_top.ne
   by_cases htop : Metric.externalCoveringNumber ε A = ⊤
@@ -279,7 +288,8 @@ theorem inv_pow_le_externalCoveringNumber_closedBall
     simpa [mul_one, abs_of_nonneg hε_pos.le] using this
   rw [hball_ε] at h1
   have hB_pos : 0 < μ (Metric.closedBall (0 : E) 1) :=
-    (addHaar_ball_pos μ zero_lt_one).trans_le (measure_mono Metric.ball_subset_closedBall)
+    (Metric.measure_ball_pos μ (0 : E) zero_lt_one).trans_le
+      (measure_mono Metric.ball_subset_closedBall)
   have hB_top : μ (Metric.closedBall (0 : E) 1) ≠ ⊤ :=
     (isCompact_closedBall (0 : E) 1).measure_lt_top.ne
   have hcancel : (1 : ℝ≥0∞) ≤
@@ -335,7 +345,8 @@ theorem packingNumber_closedBall_le
     simpa [abs_of_nonneg hpos_f.le] using
       Measure.addHaar_ball_mul_of_pos μ (0 : E) hpos_f ((ε : ℝ) / 2)
   rw [hscale] at h2
-  have hball_pos : 0 < μ (Metric.ball (0 : E) ((ε : ℝ) / 2)) := addHaar_ball_pos μ hhalf_pos
+  have hball_pos : 0 < μ (Metric.ball (0 : E) ((ε : ℝ) / 2)) :=
+    Metric.measure_ball_pos μ (0 : E) hhalf_pos
   have hball_top : μ (Metric.ball (0 : E) ((ε : ℝ) / 2)) ≠ ⊤ :=
     ne_of_lt ((measure_mono Metric.ball_subset_closedBall).trans_lt
       (isCompact_closedBall (0 : E) ((ε : ℝ) / 2)).measure_lt_top)
@@ -534,16 +545,6 @@ end TranslativeScaling
 /-! ### 5. Volumetric Bounds for Translative Covering Numbers -/
 
 omit [NormedSpace ℝ E] [FiniteDimensional ℝ E] in
-private lemma addHaar_vadd (μ : Measure E) [μ.IsAddHaarMeasure] (x : E) (S : Set E) :
-    μ (x +ᵥ S) = μ S := by
-  have hpre : x +ᵥ S = (fun y : E => -x + y) ⁻¹' S := by
-    ext y
-    simp only [Set.mem_vadd_set, mem_preimage, vadd_eq_add]
-    exact ⟨fun ⟨s, hs, h⟩ => by rwa [← h, neg_add_cancel_left],
-      fun hy => ⟨-x + y, hy, add_neg_cancel_left x y⟩⟩
-  rw [hpre, measure_preimage_add]
-
-omit [NormedSpace ℝ E] [FiniteDimensional ℝ E] in
 /-- **Volumetric Lower Bound for Translative Covering Number:**
 whenever `μ T ≠ 0`, `μ A ≤ N(A, T) * μ T`. -/
 theorem measure_le_translativeCoveringNumber_mul (μ : Measure E) [μ.IsAddHaarMeasure]
@@ -560,7 +561,7 @@ theorem measure_le_translativeCoveringNumber_mul (μ : Measure E) [μ.IsAddHaarM
   calc
     μ A ≤ μ (⋃ x ∈ hfin.toFinset, x +ᵥ T) := measure_mono hsub
     _ ≤ ∑ x ∈ hfin.toFinset, μ (x +ᵥ T) := measure_biUnion_finset_le _ _
-    _ = ∑ _x ∈ hfin.toFinset, μ T := Finset.sum_congr rfl fun x _ => addHaar_vadd μ x T
+    _ = ∑ _x ∈ hfin.toFinset, μ T := Finset.sum_congr rfl fun x _ => measure_vadd μ x T
     _ = (hfin.toFinset.card : ℝ≥0∞) * μ T := by simp
     _ = (translativeCoveringNumber A T : ℝ≥0∞) * μ T := by
           rw [← hcard, hfin.encard_eq_coe_toFinset_card]; simp
@@ -628,7 +629,7 @@ theorem translativeCoveringNumber_sub_mul_le (μ : Measure E) [μ.IsAddHaarMeasu
       exact Set.add_mem_add (hCmem.1 (hFC hxF)) hb
     calc
       (F.card : ℝ≥0∞) * μ B = ∑ _x ∈ F, μ B := by simp
-      _ = ∑ x ∈ F, μ (x +ᵥ B) := Finset.sum_congr rfl fun x _ => (addHaar_vadd μ x B).symm
+      _ = ∑ x ∈ F, μ (x +ᵥ B) := Finset.sum_congr rfl fun x _ => (measure_vadd μ x B).symm
       _ = μ (⋃ x ∈ F, x +ᵥ B) := (measure_biUnion_finset hdisj hmeas).symm
       _ ≤ μ (A + B) := measure_mono hsub
   have hC_bound : (C.encard : ℝ≥0∞) * μ B ≤ μ (A + B) := by
@@ -643,7 +644,7 @@ theorem translativeCoveringNumber_sub_mul_le (μ : Measure E) [μ.IsAddHaarMeasu
         have hsub : x +ᵥ B ⊆ A + B := by
           rintro _ ⟨b, hb, rfl⟩; exact Set.add_mem_add (hCmem.1 hxC) hb
         have htop : μ (A + B) = ⊤ :=
-          top_unique (by rw [← hBtop, ← addHaar_vadd μ x B]; exact measure_mono hsub)
+          top_unique (by rw [← hBtop, ← measure_vadd μ x B]; exact measure_mono hsub)
         rw [htop]; exact le_top
       rw [ENNReal.top_mul hB0, top_le_iff]
       by_contra hne_top
