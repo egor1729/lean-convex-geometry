@@ -173,4 +173,49 @@ example :
   rw [integral_width_eq_two_mul_meanWidth, meanWidth_bodyClosedBall]
   norm_num
 
+/-- Concrete 1D Fritz John decomposition: `u 0 = 1`, `c 0 = 1` satisfies `sum_weights` (`= 1`)
+and `banachMazurDist_closedBall_le_sqrt_finrank` on `bodyClosedBall 0 1`. -/
+example :
+    IsJohnDecomposition (fun _ : Fin 1 => (1 : ℝ)) (fun _ : Fin 1 => (1 : ℝ)) ∧
+      banachMazurDist (bodyClosedBall (0 : ℝ) zero_le_one : Set ℝ) (closedBall (0 : ℝ) 1) ≤
+        Real.sqrt (Module.finrank ℝ ℝ : ℝ) := by
+  refine ⟨⟨fun _ => by simp, fun _ => zero_lt_one, ?_⟩, ?_⟩
+  · ext
+    simp [rankOne_apply]
+  · refine banachMazurDist_closedBall_le_sqrt_finrank (bodyClosedBall (0 : ℝ) zero_le_one) ?_ ?_
+    · intro x hx
+      simpa [coe_bodyClosedBall, mem_closedBall_zero_iff] using hx
+    · rw [coe_bodyClosedBall]
+      exact mem_interior_iff_mem_nhds.mpr (closedBall_mem_nhds 0 zero_lt_one)
+
+/-- Ball's symmetric volume-ratio bound is tight in 1D (`volume [-1, 1] = 2 = 2^1`). -/
+example :
+    ∃ T : ℝ ≃ₗ[ℝ] ℝ,
+      closedBall (0 : ℝ) 1 ⊆ T '' (bodyClosedBall (0 : ℝ) zero_le_one : Set ℝ) ∧
+      volume (T '' (bodyClosedBall (0 : ℝ) zero_le_one : Set ℝ)) ≤
+        (2 : ℝ≥0∞) ^ Module.finrank ℝ ℝ :=
+  ball_volume_ratio_symmetric (bodyClosedBall (0 : ℝ) zero_le_one)
+    (fun x hx => by simpa [coe_bodyClosedBall, mem_closedBall_zero_iff] using hx)
+    (by rw [coe_bodyClosedBall]; exact mem_interior_iff_mem_nhds.mpr (closedBall_mem_nhds 0 zero_lt_one))
+
+/-- Standard Gaussian second moment and Gaussian-width proportionality on `bodyClosedBall 0 3`. -/
+example :
+    (∫ x : ℝ, ‖x‖ ^ 2 ∂stdGaussian ℝ) = 1 ∧
+      gaussianWidth (bodyClosedBall (0 : ℝ) (by norm_num : (0 : ℝ) ≤ 3)) =
+        3 * ∫ x : ℝ, ‖x‖ ∂stdGaussian ℝ := by
+  refine ⟨by simpa using integral_norm_sq_stdGaussian (E := ℝ), ?_⟩
+  rw [gaussianWidth_eq_integral_norm_mul_meanWidth, meanWidth_bodyClosedBall, mul_comm]
+
+/-- Blaschke–Santaló and Urysohn's inequality on `bodyClosedBall 0 3` in `ℝ` (where both are tight). -/
+example :
+    santaloMahlerVolume (volume : Measure ℝ)
+        (bodyClosedBall (0 : ℝ) (by norm_num : (0 : ℝ) ≤ 3) : Set ℝ) ≤
+      volume (closedBall (0 : ℝ) 1) ^ 2 ∧
+    (volume.real (bodyClosedBall (0 : ℝ) (by norm_num : (0 : ℝ) ≤ 3) : Set ℝ) /
+        volume.real (closedBall (0 : ℝ) 1)) ^ (1 / (Module.finrank ℝ ℝ : ℝ)) ≤
+      meanWidth (bodyClosedBall (0 : ℝ) (by norm_num : (0 : ℝ) ≤ 3)) := by
+  refine ⟨blaschke_santalo _ ⟨0, ?_⟩, urysohn_inequality _⟩
+  rw [coe_bodyClosedBall]
+  exact mem_interior_iff_mem_nhds.mpr (closedBall_mem_nhds 0 (by norm_num))
+
 end ConvexGeomChecks

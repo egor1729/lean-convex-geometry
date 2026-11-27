@@ -277,3 +277,84 @@ audit, run `lake exe convexgeom-audit`.
 #print axioms ConvexGeom.steinerPoint_mem
 #print axioms ConvexGeom.dist_steinerPoint_le
 #print axioms ConvexGeom.lipschitzWith_steinerPoint
+
+-- 22. Fritz John's Theorem, Dvoretzky–Rogers Lemma, and the Banach–Mazur Compactum
+#print axioms ConvexGeom.IsJohnDecomposition.sum_weights
+#print axioms ConvexGeom.IsJohnDecomposition.det_sum_rankOne_ge_prod
+#print axioms ConvexGeom.exists_affineEquiv_isJohnPosition
+#print axioms ConvexGeom.exists_linearEquiv_isJohnPosition_of_isOriginSymmetric
+#print axioms ConvexGeom.john_decomposition_of_john_position
+#print axioms ConvexGeom.subset_finrank_smul_of_john_position
+#print axioms ConvexGeom.subset_sqrt_finrank_smul_of_john_position
+#print axioms ConvexGeom.dvoretzky_rogers_lemma
+#print axioms ConvexGeom.john_theorem
+#print axioms ConvexGeom.john_theorem_symmetric
+#print axioms ConvexGeom.loewner_theorem_symmetric
+#print axioms ConvexGeom.banachMazurDist_closedBall_le_sqrt_finrank
+#print axioms ConvexGeom.banachMazurDist_le_finrank
+#print axioms ConvexGeom.affineBanachMazurDist_closedBall_le_finrank
+#print axioms ConvexGeom.affineBanachMazurDist_le_finrank_sq
+#print axioms ConvexGeom.banachMazurDist_attained
+#print axioms ConvexGeom.affineBanachMazurDist_attained
+#print axioms ConvexGeom.exists_subseq_banachMazurDist_tendsto_one
+#print axioms ConvexGeom.exists_subseq_affineBanachMazurDist_tendsto_one
+
+-- 23. Loomis–Whitney, Brascamp–Lieb, Barthe's Reverse Form, and Ball's Reverse Isoperimetry
+#print axioms ConvexGeom.loomis_whitney_lintegral
+#print axioms ConvexGeom.loomis_whitney_pi
+#print axioms ConvexGeom.loomis_whitney
+#print axioms ConvexGeom.exists_gaussian_transport
+#print axioms ConvexGeom.brascamp_lieb_rankOne
+#print axioms ConvexGeom.reverse_brascamp_lieb_rankOne
+#print axioms ConvexGeom.volume_le_two_pow_of_john_position_symmetric
+#print axioms ConvexGeom.ball_volume_ratio_symmetric
+#print axioms ConvexGeom.volume_le_simplex_bound_of_john_position
+#print axioms ConvexGeom.ball_volume_ratio
+#print axioms ConvexGeom.minkowskiSurfaceArea_le_finrank_mul_volume_of_closedBall_subset
+#print axioms ConvexGeom.ball_reverse_isoperimetric_symmetric
+#print axioms ConvexGeom.ball_reverse_isoperimetric
+#print axioms ConvexGeom.barthe_polar_volume_of_john_position_symmetric
+#print axioms ConvexGeom.barthe_outer_volume_ratio_symmetric
+#print axioms ConvexGeom.john_position_gaussian_measure_le
+
+-- 24. Gaussian & Spherical Concentration, Gaussian Width, Johnson–Lindenstrauss, and Dvoretzky
+#print axioms ConvexGeom.measurePreserving_linearIsometryEquiv_stdGaussian
+#print axioms ConvexGeom.measurePreserving_orthonormalBasis_stdGaussian
+#print axioms ConvexGeom.measurePreserving_inner_stdGaussian
+#print axioms ConvexGeom.measurePreserving_linearComb_stdGaussian
+#print axioms ConvexGeom.measurePreserving_homeomorphUnitSphereProd_stdGaussian
+#print axioms ConvexGeom.integral_norm_sq_stdGaussian
+#print axioms ConvexGeom.integral_norm_pow_four_stdGaussian
+#print axioms ConvexGeom.div_sqrt_le_integral_norm_stdGaussian
+#print axioms ConvexGeom.gaussianWidth_eq_integral_norm_mul_meanWidth
+#print axioms ConvexGeom.gaussian_enlargement_two_sets
+#print axioms ConvexGeom.gaussian_enlargement_thickening
+#print axioms ConvexGeom.gaussian_lipschitz_mgf_le
+#print axioms ConvexGeom.gaussian_lipschitz_upper_tail
+#print axioms ConvexGeom.gaussian_lipschitz_concentration_mean
+#print axioms ConvexGeom.gaussian_lipschitz_concentration_median
+#print axioms ConvexGeom.spherical_enlargement_two_sets
+#print axioms ConvexGeom.spherical_enlargement_thickening
+#print axioms ConvexGeom.spherical_lipschitz_concentration_median
+#print axioms ConvexGeom.chi_sq_upper_tail
+#print axioms ConvexGeom.chi_sq_lower_tail
+#print axioms ConvexGeom.johnson_lindenstrauss
+#print axioms ConvexGeom.john_position_gaussian_gauge_lower_bound
+#print axioms ConvexGeom.milman_gaussian_dvoretzky
+#print axioms ConvexGeom.dvoretzky_theorem
+
+-- 25. Directional Steiner Symmetrization, Santaló Point, Blaschke–Santaló, and Urysohn
+#print axioms ConvexGeom.reflectBody_bodySteinerSymmDir
+#print axioms ConvexGeom.volume_bodySteinerSymmDir
+#print axioms ConvexGeom.continuous_secondMoment
+#print axioms ConvexGeom.secondMoment_bodySteinerSymmDir_lt
+#print axioms ConvexGeom.convexOn_polarVolAt
+#print axioms ConvexGeom.exists_santaloPoint
+#print axioms ConvexGeom.mahlerVolume_eq_santaloMahlerVolume_of_isOriginSymmetric
+#print axioms ConvexGeom.upperSemicontinuousOn_santaloMahlerVolume
+#print axioms ConvexGeom.santaloMahlerVolume_le_bodySteinerSymmDir
+#print axioms ConvexGeom.blaschke_santalo
+#print axioms ConvexGeom.blaschke_santalo_symmetric
+#print axioms ConvexGeom.blaschke_santalo_real
+#print axioms ConvexGeom.blaschke_santalo_symmetric_real
+#print axioms ConvexGeom.urysohn_inequality

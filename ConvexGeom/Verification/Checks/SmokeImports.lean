@@ -54,4 +54,32 @@ example (K : ConvexBody ℝ) :
     convexHull ℝ ((K : Set ℝ).extremePoints ℝ) = (K : Set ℝ) :=
   convexHull_extremePoints_eq K.isCompact K.convex
 
+example (K : ConvexBody ℝ) (hsym : IsOriginSymmetric (K : Set ℝ))
+    (h0 : (0 : ℝ) ∈ interior (K : Set ℝ)) :
+    banachMazurDist (K : Set ℝ) (Metric.closedBall (0 : ℝ) 1) ≤
+      Real.sqrt (Module.finrank ℝ ℝ : ℝ) :=
+  banachMazurDist_closedBall_le_sqrt_finrank K hsym h0
+
+example (K : ConvexBody ℝ) (hsym : IsOriginSymmetric (K : Set ℝ))
+    (h0 : (0 : ℝ) ∈ interior (K : Set ℝ)) :
+    ∃ T : ℝ ≃ₗ[ℝ] ℝ,
+      Metric.closedBall (0 : ℝ) 1 ⊆ T '' (K : Set ℝ) ∧
+      MeasureTheory.volume (T '' (K : Set ℝ)) ≤ (2 : ENNReal) ^ Module.finrank ℝ ℝ :=
+  ball_volume_ratio_symmetric K hsym h0
+
+example (K : ConvexBody ℝ) :
+    gaussianWidth K = (∫ x : ℝ, ‖x‖ ∂stdGaussian ℝ) * meanWidth K :=
+  gaussianWidth_eq_integral_norm_mul_meanWidth K
+
+example (K : ConvexBody ℝ) (hne : (interior (K : Set ℝ)).Nonempty) :
+    santaloMahlerVolume MeasureTheory.volume (K : Set ℝ) ≤
+      MeasureTheory.volume (Metric.closedBall (0 : ℝ) 1) ^ 2 :=
+  blaschke_santalo K hne
+
+example (K : ConvexBody ℝ) :
+    (MeasureTheory.volume.real (K : Set ℝ) /
+        MeasureTheory.volume.real (Metric.closedBall (0 : ℝ) 1)) ^
+      (1 / (Module.finrank ℝ ℝ : ℝ)) ≤ meanWidth K :=
+  urysohn_inequality K
+
 end ConvexGeomChecks
