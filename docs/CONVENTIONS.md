@@ -1,6 +1,6 @@
-# Conventions & Verification
+# Conventions, Proof Routes & Verification
 
-Notes on definitions, normalizations, edge cases, and verification scope in `lean-convex-geometry`.
+Notes on definitions, normalizations, proof routes, scope decisions, textbook divergences, and verification tiers in `lean-convex-geometry`.
 
 ## Mathematical Conventions
 
@@ -10,17 +10,42 @@ Notes on definitions, normalizations, edge cases, and verification scope in `lea
 - **Outer normal cones:** `normalCone S y = {u | ∀ z ∈ S, ⟪z - y, u⟫ ≤ 0}` does not guard on `y ∈ S` (so `0 ∈ normalCone S y` even when `y ∉ S`). `strictNormalCone S y` equals `normalCone S y` for `y ∈ S` and `∅` for `y ∉ S`.
 - **Mahler volume:** `mahlerVolume μ S = μ S * μ (polarBody S)` is centered at the origin and `GL`-invariant. `mahlerVolumeAt μ S z` translates `S` by `-z` before taking the polar, and `santaloMahlerVolume μ S` infimizes over `z ∈ interior S`, giving full affine invariance.
 - **Banach–Mazur distance:** `banachMazurDist` and `banachMazurEDist` are origin-fixed linear multiplicative distances. `affineBanachMazurDist` and `affineBanachMazurEDist` allow translations (recentering). The `ℝ≥0∞`-valued `*EDist` variants return `⊤` on infeasible pairs, while the real-valued infima inherit Mathlib's `sInf ∅ = 0`.
-- **Steiner symmetrization and product norms:** `steinerSymm` replaces each nonempty line fiber by the centered interval of length `sSup - sInf`. On compact convex sets this agrees with measure-theoretic Steiner symmetrization (`bodySteinerSymm` packages this on `ConvexBody (ℝ × E)`), while on disconnected sets it fills gaps between the endpoints. `ℝ × E` carries Mathlib's product max-norm; Euclidean distance bounds (`steinerSymm_dist_le_diam`) are written explicitly.
-- **Minkowski surface area:** `minkowskiSurfaceArea` is the lower outer Minkowski content (`liminf` as `t → 0⁺`).
+- **Steiner symmetrization and product norms:** `steinerSymm` replaces each nonempty line fiber by the centered interval of length `sSup - sInf`. On compact convex sets this agrees with measure-theoretic Steiner symmetrization (`bodySteinerSymm` packages this on `ConvexBody (ℝ × E)`), while on disconnected sets it fills gaps between the endpoints. `ℝ × E` carries Mathlib's product max-norm; Euclidean distance bounds (`steinerSymm_dist_le_diam`) are written explicitly. Arbitrary-direction Steiner symmetrization `bodySteinerSymmDir hu K` splits `E ≃ₗ[ℝ] ℝ × orthoHyperplane u`.
+- **Minkowski surface area:** `minkowskiSurfaceArea` is the lower outer Minkowski content (`liminf` as `t → 0⁺` of `(volume (K + t • B₁) - volume K) / t`).
 
-## Verification Scope
+---
 
-`bash scripts/verify.sh` (run locally and in CI) executes:
+## Proof Routes, Scope Decisions & Textbook Divergences
 
-1. `lake build ConvexGeom --wfail`
-2. `lake build ConvexGeom.Verification.Checks --wfail`
-3. `lake exe convexgeom-audit` — walks the compiled environment (at `.private` level, without executing module initializers) across all library modules, checks that every `.lean` file outside `ConvexGeom/Verification/` is imported by `ConvexGeom`, rejects any project-defined `axiom`, and rejects any transitive dependency outside `{propext, Classical.choice, Quot.sound}`.
-4. `bash scripts/test_audit.sh` — runs positive and negative control fixtures against `convexgeom-audit`.
-5. `lake env lean -DwarningAsError=true ConvexGeom/Verification/AxiomAudit.lean` — verifies the headline `#print axioms` list with exact name matching.
+Several classical theorems admit multiple proof routes in the literature. Below we record the exact routes chosen here, along with scope decisions and deliberate divergences from standard textbook presentations (also summarized in [`formalization.yaml`](../formalization.yaml)):
 
-Verification trusts the Lean 4 (`v4.36.0`) kernel and the pinned Mathlib build artifacts in `lake-manifest.json`; `convexgeom-audit` certifies kernel dependency closure rather than acting as an independent external kernel checker.
+- **Prékopa–Leindler & Brunn–Minkowski (`Volume/BrunnMinkowski.lean`):** Proved via 1D Brunn–Minkowski on compacts → layer-cake + Tonelli induction on `Fin d → ℝ` (`prekopa_leindler_pi`) → orthonormal-basis transport to any finite-dimensional real inner product space `E`, avoiding separate brick/box decomposition machinery. Brunn–Minkowski is derived directly from Prékopa–Leindler.
+- **Rogers–Shephard (`Volume/BrunnConcavity.lean`):** Follows the covariogram route: $g(x) = \mathrm{vol}(K \cap (K + x))$ has $g^{1/d}$ concave (via Brunn concavity of slices), giving $g(x) \ge (1 - \mu_{K - K}(x))^d \mathrm{vol}(K)$ and integrating over $K - K$ in polar coordinates.
+- **Euclidean Isoperimetric Inequality (`Volume/Isoperimetric.lean`):** Stated and proved for the lower outer Minkowski content `minkowskiSurfaceArea` via the first variation of Brunn–Minkowski (`minkowski_first_inequality`), rather than geometric measure theory perimeter. This agrees with classical surface area on convex bodies and attains equality on Euclidean balls (`minkowskiSurfaceArea_closedBall`).
+- **Weyl–Minkowski $V \to H$ Duality (`Polytope/Faces.lean`):** Proved via polarity: for a full-dimensional polytope with `0 ∈ interior (convexHull ℝ S)`, `polarBody S` is compact with finitely many extreme points (`finite_extremePoints_polarBody`), and the Bipolar Theorem yields the irredundant halfspace representation `weyl_minkowski_halfspaces`.
+- **Fritz John's Theorem & Banach–Mazur Compactum (`Asymptotic/JohnEllipsoid.lean`):** Existence of the maximal-volume inscribed ellipsoid is proved via compactness of inscribed positive semidefinite linear maps (`PosSemidef`) and spectral perturbation `det(I + εS)`. John's decomposition of the identity is proved via Hahn–Banach separation in the space of symmetric operators on arbitrary `E` (without fixing coordinates `ℝⁿ`), yielding both the general (`d`) and origin-symmetric (`√d`) inclusions, Dvoretzky–Rogers, attainment, and compactness via Blaschke Selection.
+- **Loomis–Whitney, Brascamp–Lieb & Ball's Reverse Isoperimetry (`Asymptotic/BrascampLieb.lean`):**
+  - `loomis_whitney` is proved via inductive generalized Hölder (`lintegral_prod_rpow_le`).
+  - **Scope decision:** Brascamp–Lieb (`brascamp_lieb_rankOne`) and Barthe's reverse form (`reverse_brascamp_lieb_rankOne`) are formalized in the **rank-1 geometric (John decomposition) form** rather than the general higher-rank subspace form. This is proved via Barthe's (1998) 1D monotone Gaussian CDF transport (`exists_gaussian_transport`) + Jacobian change of variables + `IsJohnDecomposition.det_sum_rankOne_ge_prod`, avoiding heat-flow PDE machinery while providing the full engine for Ball's volume-ratio theorems (`ball_volume_ratio`, `ball_volume_ratio_symmetric`), Ball's reverse isoperimetric inequalities (`ball_reverse_isoperimetric`, `ball_reverse_isoperimetric_symmetric`), and Barthe's outer volume-ratio bound (`barthe_outer_volume_ratio_symmetric`).
+- **Gaussian & Spherical Concentration, JL & Dvoretzky (`Asymptotic/GaussianConcentration.lean`):**
+  - **Proof route:** Gaussian enlargement (`gaussian_enlargement_two_sets`) and Lipschitz MGF / tail bounds (`gaussian_lipschitz_concentration_mean`, `gaussian_lipschitz_concentration_median`) are proved directly from `prekopa_leindler` and Pisier's interpolation / Maurey–Pisier argument rather than Gaussian isoperimetry (Borell–Sudakov–Tsirelson).
+  - **Proof route:** Spherical concentration (`spherical_lipschitz_concentration_median`) is deduced from Gaussian concentration via radial polar factorization (`measurePreserving_homeomorphUnitSphereProd_stdGaussian` and `stdGaussian_polar_cone`) rather than Lévy's spherical isoperimetric inequality.
+  - **Explicit constants:** Because these routes prioritize short, self-contained proofs without sharp isoperimetric constants, the formalized statements carry explicit, fully verified (non-optimal) constants: `576` in `spherical_lipschitz_concentration_median`, `16 * log N / ε² ≤ k` in `johnson_lindenstrauss`, and `8192 * k * log(48 / ε) ≤ ε² * log d` in `dvoretzky_theorem` (following Ball's Lecture 9 / Milman's Gaussian proof).
+- **Blaschke–Santaló & Urysohn (`Asymptotic/BlaschkeSantalo.lean`):**
+  - **Proof route:** Proved via the **Meyer–Pajor (1990)** slice-volume + Brunn–Minkowski proof that arbitrary-direction Steiner symmetrization does not decrease the Santaló Mahler volume (`santaloMahlerVolume_le_bodySteinerSymmDir`), paired with strict decrease of the second moment $\int_K \|x\|^2\,dx$ (`secondMoment_bodySteinerSymmDir_lt`) and John-position compactness (`𝒞 = {L | B₁ ⊆ L ⊆ d B₁}`) to force any maximizer–moment-minimizer to be a Euclidean ball.
+  - **Urysohn's inequality:** Derived directly from `blaschke_santalo_real` + `urysohn_of_santalo_at` on bodies with nonempty interior, with empty-interior convex bodies handled directly via `addHaar_frontier`.
+
+---
+
+## Verification Scope & Tiered Workflow
+
+To keep development fast and economical while maintaining rigorous, trustless end-to-end certification, verification is organized into four tiers:
+
+| Tier | Command | Typical Cost | What It Checks |
+| --- | --- | --- | --- |
+| **Tier 0 (Static)** | `bash scripts/verify-fast.sh --static` | ~1–2 s | `scripts/check-lean-sources.py` (`module` headers, ≤ 10,000 lines/file, `Challenge.lean` ≤ 1,000 lines / ≤ 100 KiB & Mathlib-only imports, no `sorry`/`admit`/`native_decide` outside `Challenge.lean`) + `scripts/validate-formalization.py` (`formalization.yaml` v0.4 & `comparator.json`). |
+| **Tier 1 (Agent / Dev Loop)** | `bash scripts/verify-fast.sh [Module ...]` | seconds | Tier 0 + incremental `lake build <Mod> --wfail` and targeted private-level `convexgeom-audit --module <Mod> --no-check-dir` on only changed (or named) modules. |
+| **Tier 2 (Full Library Audit)** | `bash scripts/verify.sh [report.json]` | ~15–30 s incremental | Tier 0 + `lake build ConvexGeom Solution --wfail` + `ConvexGeom.Verification.Checks --wfail` + environment-wide `convexgeom-audit` (all 28 modules, module completeness, 0 custom axioms, 0 `sorry`) + 9 control tests (`scripts/test_audit.sh`) + `AxiomAudit.lean` fail-closed exact match (300 headline theorems). |
+| **Tier 3 (Trustless Multi-Kernel Comparator)** | `bash scripts/verify-comparator.sh [--paranoid]` | several minutes | Sandboxed (`bwrap`) `lake comparator` over [`comparator.json`](../comparator.json) comparing Mathlib-only [`Challenge.lean`](../Challenge.lean) against [`Solution.lean`](../Solution.lean) (30 landmark theorems), exporting via `leanexport` and replaying through Lean's kernel plus bundled independent kernels (`nanoda_bin` and `con-ron` by default; all 5 bundled external checkers with `--paranoid`: `leanchecker-paranoid`, `lean4lean`, `nanoda_bin`, `con-leche`, `con-ron`). |
+
+Pass `--with-comparator` (or `--paranoid`) to `scripts/verify.sh` to chain Tier 2 and Tier 3 in one invocation. In GitHub Actions ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)), `metadata` (including official JSON Schema validation of `formalization.yaml`), `lean-verify` (Tier 2), and `comparator` (Tier 3 inside `bwrap`) run in parallel.

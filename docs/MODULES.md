@@ -6,6 +6,10 @@ Directory layout, internal dependencies, and main declarations in `lean-convex-g
 
 ```text
 .
+├── Challenge.lean                          # Mathlib-only Comparator statement surface (30 landmark theorems)
+├── Solution.lean                           # Comparator proofs bridging Challenge.lean to ConvexGeom
+├── comparator.json                         # lake comparator configuration (standard axioms only)
+├── formalization.yaml                      # mathlib-initiative v0.4 metadata, provenance & alignment
 ├── ConvexGeom.lean                         # Root module re-exporting all 4 layers
 ├── ConvexGeom/
 │   ├── Metric.lean                         # Layer barrel for ConvexGeom.Metric.*
@@ -42,9 +46,9 @@ Directory layout, internal dependencies, and main declarations in `lean-convex-g
 │   └── Verification/                       # Axiom audit tool, headline snapshot, internal checks
 ├── docs/
 │   ├── MODULES.md                          # This file
-│   ├── CONVENTIONS.md                      # Conventions and verification scope
+│   ├── CONVENTIONS.md                      # Conventions, proof routes, divergences, and verification tiers
 │   └── ROADMAP.md                          # Planned targets and contribution guide
-├── scripts/                                # Verification and audit-control scripts
+├── scripts/                                # Tiered verification, Comparator, source hygiene & metadata validators
 ├── LICENSE                                 # Apache License 2.0
 ├── CITATION.cff                            # Citation metadata
 └── README.md                               # Project overview
