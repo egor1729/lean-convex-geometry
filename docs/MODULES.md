@@ -34,7 +34,11 @@ Directory layout, internal dependencies, and main declarations in `lean-convex-g
 │   ├── Asymptotic/
 │   │   ├── SphericalIntegration.lean       # sphereProb, polar volume, mean width, Dual Urysohn
 │   │   ├── BanachMazur.lean                # Symmetric bodies, ellipsoids, Mahler/Santaló volume, BM distances
-│   │   └── SteinerPoint.lean               # Spherical isotropic identity and Steiner point
+│   │   ├── SteinerPoint.lean               # Spherical isotropic identity and Steiner point
+│   │   ├── JohnEllipsoid.lean              # Fritz John's theorem, Dvoretzky–Rogers, Banach–Mazur compactum
+│   │   ├── BrascampLieb.lean               # Loomis–Whitney, Brascamp–Lieb, Barthe, Ball's reverse isoperimetry
+│   │   ├── GaussianConcentration.lean      # Gaussian width, Gaussian/spherical concentration, JL, Dvoretzky
+│   │   └── BlaschkeSantalo.lean            # Directional Steiner symmetrization, Santaló point, Blaschke–Santaló, Urysohn
 │   └── Verification/                       # Axiom audit tool, headline snapshot, internal checks
 ├── docs/
 │   ├── MODULES.md                          # This file
@@ -93,7 +97,18 @@ flowchart LR
         SI["SphericalIntegration"]
         BMA["BanachMazur"]
         SP["SteinerPoint"]
+        JE["JohnEllipsoid"]
+        BLI["BrascampLieb"]
+        GC["GaussianConcentration"]
+        BS["BlaschkeSantalo"]
         SI --> SP
+        BMA --> JE
+        JE --> BLI
+        BLI --> GC
+        SI --> GC
+        GC --> BS
+        JE --> BS
+        SI --> BS
     end
 
     SF --> PY
@@ -106,6 +121,19 @@ flowchart LR
     SY --> SI
     PO --> BMA
     SY --> BMA
+    BL --> JE
+    PR --> JE
+    CB --> JE
+    PO --> BLI
+    ISO --> BLI
+    BM --> GC
+    CN --> GC
+    SY --> GC
+    BL --> BS
+    PR --> BS
+    BC --> BS
+    VC --> BS
+    SY --> BS
 ```
 
 All four layer barrels and their leaf modules are re-exported by [`ConvexGeom.lean`](../ConvexGeom.lean).
@@ -252,6 +280,35 @@ Spherical second-moment isotropy and the Steiner point of a convex body.
 
 - **Spherical isotropy:** `integral_sphereProb_id`, `integral_inner_sq_sphereProb`, `integral_inner_mul_inner_sphereProb`, `finrank_smul_integral_inner_smul_sphereProb`
 - **Steiner point:** `steinerPoint`, `steinerPoint_bodySingleton`, `steinerPoint_add`, `steinerPoint_smul`, `steinerPoint_translate`, `steinerPoint_neg_one_smul`, `steinerPoint_mapLinearIsometry`, `steinerPoint_bodyClosedBall`, `steinerPoint_mem`, `dist_steinerPoint_le`, `lipschitzWith_steinerPoint`, `continuous_steinerPoint`
+
+### [`ConvexGeom/Asymptotic/JohnEllipsoid.lean`](../ConvexGeom/Asymptotic/JohnEllipsoid.lean)
+Maximal-volume inscribed ellipsoids, John's decomposition of the identity, Dvoretzky–Rogers, Fritz John's / Löwner's theorems, and the Banach–Mazur compactum.
+
+- **Rank-one operators & John decompositions:** `rankOne`, `IsJohnDecomposition`, `IsJohnDecomposition.sum_weights`, `IsJohnDecomposition.det_sum_rankOne_ge_prod`
+- **John's position & decomposition:** `IsJohnPosition`, `exists_affineEquiv_isJohnPosition`, `exists_linearEquiv_isJohnPosition_of_isOriginSymmetric`, `john_decomposition_of_john_position`, `subset_finrank_smul_of_john_position`, `subset_sqrt_finrank_smul_of_john_position`, `dvoretzky_rogers_lemma`
+- **Fritz John, Löwner & Banach–Mazur compactum:** `john_theorem`, `john_theorem_symmetric`, `loewner_theorem_symmetric`, `banachMazurDist_closedBall_le_sqrt_finrank`, `banachMazurDist_le_finrank`, `affineBanachMazurDist_closedBall_le_finrank`, `affineBanachMazurDist_le_finrank_sq`, `banachMazurDist_attained`, `affineBanachMazurDist_attained`, `exists_subseq_banachMazurDist_tendsto_one`, `exists_subseq_affineBanachMazurDist_tendsto_one`
+
+### [`ConvexGeom/Asymptotic/BrascampLieb.lean`](../ConvexGeom/Asymptotic/BrascampLieb.lean)
+Loomis–Whitney, Barthe's optimal-transport proofs of the geometric rank-one Brascamp–Lieb and reverse Brascamp–Lieb inequalities, and Ball's volume-ratio / reverse isoperimetric inequalities.
+
+- **Loomis–Whitney:** `loomis_whitney_lintegral`, `loomis_whitney_pi`, `loomis_whitney`
+- **Monotone transport & Brascamp–Lieb:** `stdGaussianDensity`, `exists_gaussian_transport`, `brascamp_lieb_rankOne`, `reverse_brascamp_lieb_rankOne`
+- **Volume ratio & reverse isoperimetry:** `volume_le_two_pow_of_john_position_symmetric`, `ball_volume_ratio_symmetric`, `volume_le_simplex_bound_of_john_position`, `ball_volume_ratio`, `minkowskiSurfaceArea_le_finrank_mul_volume_of_closedBall_subset`, `ball_reverse_isoperimetric_symmetric`, `ball_reverse_isoperimetric`, `barthe_polar_volume_of_john_position_symmetric`, `barthe_outer_volume_ratio_symmetric`, `john_position_gaussian_measure_le`
+
+### [`ConvexGeom/Asymptotic/GaussianConcentration.lean`](../ConvexGeom/Asymptotic/GaussianConcentration.lean)
+Standard Gaussian measure on finite-dimensional inner product spaces, Gaussian width, Gaussian and spherical concentration of measure, Johnson–Lindenstrauss, and Dvoretzky's theorem.
+
+- **Standard Gaussian & moments:** `stdGaussian`, `measurePreserving_linearIsometryEquiv_stdGaussian`, `measurePreserving_orthonormalBasis_stdGaussian`, `measurePreserving_inner_stdGaussian`, `measurePreserving_linearComb_stdGaussian`, `measurePreserving_homeomorphUnitSphereProd_stdGaussian`, `integral_norm_sq_stdGaussian`, `integral_norm_pow_four_stdGaussian`, `div_sqrt_le_integral_norm_stdGaussian`
+- **Gaussian width:** `gaussianWidth`, `gaussianWidth_eq_integral_norm_mul_meanWidth`
+- **Gaussian & spherical concentration:** `gaussian_enlargement_two_sets`, `gaussian_enlargement_thickening`, `gaussian_lipschitz_mgf_le`, `gaussian_lipschitz_upper_tail`, `gaussian_lipschitz_concentration_mean`, `gaussian_lipschitz_concentration_median`, `spherical_enlargement_two_sets`, `spherical_enlargement_thickening`, `spherical_lipschitz_concentration_median`
+- **Johnson–Lindenstrauss & Dvoretzky:** `chi_sq_upper_tail`, `chi_sq_lower_tail`, `johnson_lindenstrauss`, `john_position_gaussian_gauge_lower_bound`, `milman_gaussian_dvoretzky`, `dvoretzky_theorem`
+
+### [`ConvexGeom/Asymptotic/BlaschkeSantalo.lean`](../ConvexGeom/Asymptotic/BlaschkeSantalo.lean)
+Arbitrary-direction Steiner symmetrization, second-moment strict decrease, existence of the Santaló point, Meyer–Pajor's symmetrization inequality, the Blaschke–Santaló inequality, and Urysohn's inequality.
+
+- **Directional Steiner symmetrization & second moment:** `orthoHyperplane`, `orthoSplitProd`, `steinerSymmDir`, `bodySteinerSymmDir`, `reflectBody_bodySteinerSymmDir`, `volume_bodySteinerSymmDir`, `secondMoment`, `continuous_secondMoment`, `secondMoment_bodySteinerSymmDir_lt`
+- **Santaló point & Meyer–Pajor:** `polarVolAt`, `convexOn_polarVolAt`, `exists_santaloPoint`, `mahlerVolume_eq_santaloMahlerVolume_of_isOriginSymmetric`, `upperSemicontinuousOn_santaloMahlerVolume`, `santaloMahlerVolume_le_bodySteinerSymmDir`
+- **Blaschke–Santaló & Urysohn:** `blaschke_santalo`, `blaschke_santalo_symmetric`, `blaschke_santalo_real`, `blaschke_santalo_symmetric_real`, `urysohn_inequality`
 
 ---
 

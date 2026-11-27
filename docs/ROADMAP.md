@@ -17,17 +17,17 @@ Planned directions and contribution guidelines for `lean-convex-geometry`.
 - **Polytope Face Lattice & Triangulation** *(Gruber; Ziegler; `Polytope.Faces`)*
   - Ridge / diamond adjacency (every $(d-2)$-ridge lies in exactly two facets), $H \to V$ duality, and pulling / fan triangulation of non-simplicial facets.
 - **Spherical Volume, Wedges & Solid Angles** *(`Metric.SphericalTrig`, `Asymptotic.SphericalIntegration`)*
-  - Surface measure of spherical caps and wedges, solid angles of polyhedral cones, and spherical cap concentration bounds.
+  - Surface measure of spherical caps and wedges, and solid angles of polyhedral cones.
 - **Centroid, Isotropic Position & Grünbaum's Inequality** *(Brazitikos et al., Ch. 1–2; Klartag & Lehec; `Volume.BrunnConcavity`, `Asymptotic.BanachMazur`)*
   - Barycenter, covariance operator, isotropic position, isotropic constant $L_K$, and Grünbaum's halfspace inequality $\mathrm{vol}(K \cap H^+) \ge \left(\frac{d}{d+1}\right)^d \mathrm{vol}(K)$.
-- **Gaussian Width & Covering–Width Bridges** *(Vershynin, Ch. 7; Artstein-Avidan–Giannopoulos–Milman, Ch. 4 & 7; `Asymptotic.SphericalIntegration`, `Volume.CoveringNumbers`)*
-  - Gaussian mean width $w_G(K)$, proportionality to `meanWidth`, and Sudakov / dual Sudakov minoration.
+- **Covering–Width Bridges** *(Vershynin, Ch. 7; Artstein-Avidan–Giannopoulos–Milman, Ch. 4 & 7; `Asymptotic.GaussianConcentration`, `Volume.CoveringNumbers`)*
+  - Sudakov and dual Sudakov minoration connecting covering numbers to `gaussianWidth`.
 - **Functional Polarity & Legendre–Fenchel Duality** *(Artstein-Avidan–Giannopoulos–Milman, Ch. 1–2; `Metric.Polarity`, `Volume.BrunnMinkowski`)*
   - Legendre transform, infimal convolution, and polarity of log-concave functions.
 - **Combinatorial Convexity Extensions** *(Gruber; Schneider, Ch. 1; `Polytope.Combinatorial`)*
   - Kirchberger's theorem, colorful Carathéodory, and Tverberg-type refinements.
-- **Loomis–Whitney & Coordinate Section/Projection Bounds** *(Ball, Lec. 6; Schneider, §9.3; `Volume.BrunnConcavity`, `Volume.BrunnMinkowski`)*
-  - General $d$-dimensional Loomis–Whitney inequality and Meyer's dual section inequality.
+- **Dual Section & Coordinate Projection Bounds** *(Ball, Lec. 6; Schneider, §9.3; `Volume.BrunnConcavity`, `Asymptotic.BrascampLieb`)*
+  - Meyer's dual section inequality and general $k$-dimensional section/projection inequalities beyond `loomis_whitney`.
 - **Borell's Lemma & Reverse Hölder Inequalities** *(Brazitikos et al., Ch. 2; Artstein-Avidan–Giannopoulos–Milman, Ch. 2)*
   - Exponential tail decay for log-concave measures, Kahane–Khintchine estimates, and $\psi_1$ bounds.
 - **Mixed Volumes, Quermassintegrals & Steiner's Formula** *(Schneider, Ch. 4–5; Gruber)*
@@ -37,10 +37,8 @@ Planned directions and contribution guidelines for `lean-convex-geometry`.
 
 ## Deeper $n$-Dimensional Classical Theorems
 
-- **Fritz John's Theorem & Banach–Mazur Compactum** *(Ball, Lec. 3–4; Artstein-Avidan–Giannopoulos–Milman, Ch. 2)* — Maximal-volume inscribed ellipsoid, John's decomposition of the identity, linear bound `banachMazurDist K B₂ ≤ √d` (symmetric), recentered affine bound `affineBanachMazurDist K B₂ ≤ d` (general), attainment, and compactness.
-- **Blaschke–Santaló, Urysohn & Bourgain–Milman** *(Klartag, Lec. 5; Artstein-Avidan–Giannopoulos–Milman, Ch. 1 & 8)* — `santaloMahlerVolume volume K ≤ volume(B₂^d)²` (and `mahlerVolume` for origin-symmetric bodies) via Steiner symmetrization and the Santaló point, Urysohn's inequality (via `urysohn_of_santalo_at` or direct rotational averaging + Brunn–Minkowski), and Bourgain–Milman's reverse Santaló bound.
-- **Brascamp–Lieb & Ball's Reverse Isoperimetric Inequality** *(Ball, Lec. 6)* — Geometric Brascamp–Lieb, Barthe's reverse form, and volume-ratio / minimal-surface-area positions.
-- **Concentration, Johnson–Lindenstrauss & Dvoretzky** *(Ball, Lec. 7–9; Vershynin, Ch. 5–9; Aubrun–Szarek, Ch. 3–5; Ledoux)* — Spherical and Gaussian concentration, JL projections, Milman's $M$-ellipsoid / QS theorem, and Dvoretzky's theorem.
+- **Bourgain–Milman Reverse Santaló Inequality** *(Klartag, Lec. 5; Artstein-Avidan–Giannopoulos–Milman, Ch. 8)* — Reverse Mahler volume bound $\mathcal{P}^*(K) \ge c^d\,\mathrm{vol}(B_2^d)^2$ complementing `Asymptotic.BlaschkeSantalo`.
+- **Milman's $M$-Ellipsoid & Quotient-of-Subspace (QS) Theorem** *(Artstein-Avidan–Giannopoulos–Milman, Ch. 7–8; Pisier)* — Covering-number ellipsoids, $M$-position, and Milman's reverse Brunn–Minkowski inequality.
 - **Aleksandrov–Fenchel & Surface Area Measures** *(Schneider, Ch. 7–8; Gruber)* — Aleksandrov–Fenchel inequalities, Minkowski's existence theorem, and Busemann–Petty / Shephard problems.
 - **Log-Concave Isoperimetry, Localization & Thin-Shell** *(Klartag & Lehec; Brazitikos et al.)* — Needle decomposition, Cheeger / KLS bounds, thin-shell concentration, and slicing-problem interfaces.
 
