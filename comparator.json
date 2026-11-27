@@ -1,0 +1,42 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "ConvexGeomChallenge.blaschke_selection",
+    "ConvexGeomChallenge.bipolar_theorem",
+    "ConvexGeomChallenge.supporting_hyperplane",
+    "ConvexGeomChallenge.simplex_volume",
+    "ConvexGeomChallenge.helly_theorem",
+    "ConvexGeomChallenge.krein_milman_finDim",
+    "ConvexGeomChallenge.jung_theorem",
+    "ConvexGeomChallenge.weyl_minkowski_halfspaces",
+    "ConvexGeomChallenge.prekopa_leindler",
+    "ConvexGeomChallenge.brunn_minkowski",
+    "ConvexGeomChallenge.isodiametric_inequality",
+    "ConvexGeomChallenge.rogers_shephard",
+    "ConvexGeomChallenge.isoperimetric_inequality",
+    "ConvexGeomChallenge.john_theorem",
+    "ConvexGeomChallenge.john_theorem_symmetric",
+    "ConvexGeomChallenge.loomis_whitney",
+    "ConvexGeomChallenge.brascamp_lieb_rankOne",
+    "ConvexGeomChallenge.reverse_brascamp_lieb_rankOne",
+    "ConvexGeomChallenge.ball_volume_ratio_symmetric",
+    "ConvexGeomChallenge.ball_volume_ratio",
+    "ConvexGeomChallenge.ball_reverse_isoperimetric_symmetric",
+    "ConvexGeomChallenge.ball_reverse_isoperimetric",
+    "ConvexGeomChallenge.gaussian_lipschitz_concentration",
+    "ConvexGeomChallenge.spherical_lipschitz_concentration",
+    "ConvexGeomChallenge.johnson_lindenstrauss",
+    "ConvexGeomChallenge.dvoretzky_theorem",
+    "ConvexGeomChallenge.blaschke_santalo",
+    "ConvexGeomChallenge.blaschke_santalo_symmetric",
+    "ConvexGeomChallenge.dual_urysohn_inequality",
+    "ConvexGeomChallenge.urysohn_inequality"
+  ],
+  "definition_names": [],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}
