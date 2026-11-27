@@ -13,32 +13,34 @@ public import Mathlib.Analysis.Convex.Radon
 
 import Mathlib.Analysis.Convex.Caratheodory
 import Mathlib.Analysis.Convex.KreinMilman
+import Mathlib.Geometry.Convex.ConvexSpace.CompactSpaceStdSimplex
 import Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional
 
 /-!
 # Combinatorial and Extremal Convex Geometry
 
 Finite-dimensional combinatorial and extremal results built on `ConvexGeom.Metric.Projection`,
-`ConvexGeom.Polytope.Basic`, and Mathlib's `Radon`, `Caratheodory`, `Exposed`, and `KreinMilman`:
+`ConvexGeom.Polytope.Basic`, and Mathlib's `Radon`, `Caratheodory`, `Exposed`, and `KreinMilman`.
 
-1. **Radon's Theorem (`radon_partition_card_ge`, `radon_partition_fin`):**
-   Any `≥ finrank ℝ E + 2` points in `E` partition into two nonempty disjoint subsets whose
-   convex hulls intersect.
-2. **Helly's Theorem (`helly_convexBody`, `helly_convexBody_finset`):**
-   Specialized wrappers of `Convex.helly_theorem_compact'` / `Convex.helly_theorem` for
-   `ConvexBody E`.
-3. **Carathéodory Compactness & Minkowski–Carathéodory (`isCompact_convexHull_of_isCompact`,
-   `convexHull_extremePoints_eq`):**
-   In finite dimensions, the convex hull of a compact set is compact, and every compact convex set
-   equals the convex hull (without closure) of its extreme points.
-4. **Straszewicz's Theorem (`mem_exposedPoints_of_isMaxOn_norm_sub`,
-   `extremePoints_subset_closure_exposedPoints`, `closure_convexHull_exposedPoints`):**
-   In a finite-dimensional real inner product space, every extreme point of a compact convex set
-   lies in the closure of its exposed points.
-5. **Jung's Circumradius Theorem (`jung_circumradius_finset`, `jung_circumradius`,
-   `jung_circumradius_convexBody`):**
-   Every bounded set `S` in a `d`-dimensional inner product space is contained in a closed ball of
-   radius `√(d / (2 * (d + 1))) * diam S`.
+## Main statements
+
+* `ConvexGeom.radon_partition_card_ge`, `ConvexGeom.radon_partition_fin`: **Radon's Theorem**
+  (wrapping Mathlib's `Convex.radon_partition`).
+* `ConvexGeom.helly_convexBody`, `ConvexGeom.helly_convexBody_finset`: **Helly's Theorem** for
+  `ConvexBody E` (wrapping Mathlib's `Convex.helly_theorem_compact'` / `Convex.helly_theorem`).
+* `ConvexGeom.isCompact_convexHull_of_isCompact`, `ConvexGeom.convexHull_extremePoints_eq`:
+  **Carathéodory compactness** and **Minkowski–Carathéodory Theorem** (finite-dimensional
+  Krein–Milman without closure).
+* `ConvexGeom.extremePoints_subset_closure_exposedPoints`,
+  `ConvexGeom.closure_convexHull_exposedPoints`: **Straszewicz's Theorem**.
+* `ConvexGeom.jung_circumradius_finset`, `ConvexGeom.jung_circumradius`,
+  `ConvexGeom.jung_circumradius_convexBody`: **Jung's Circumradius Theorem** with sharp constant
+  `√(d / (2 * (d + 1)))`.
+
+## References
+
+* [P. M. Gruber, *Convex and Discrete Geometry*][gruber2007], Ch. 3, 5, 11.
+* [R. Schneider, *Convex Bodies: The Brunn–Minkowski Theory*][schneider2014], §1.1, §1.4.
 -/
 
 open Set Finset
@@ -137,19 +139,19 @@ theorem isCompact_convexHull_of_isCompact {E : Type*} [NormedAddCommGroup E] [No
   · simp
   set N : ℕ := Module.finrank ℝ E + 1
   let Δ : Set (Fin N → ℝ) := {w | (∀ i, 0 ≤ w i) ∧ ∑ i, w i = 1}
-  have hΔ_closed : IsClosed Δ := by
-    have heq : Δ = (⋂ i : Fin N, {w : Fin N → ℝ | 0 ≤ w i}) ∩ {w : Fin N → ℝ | ∑ i, w i = 1} := by
-      ext w; simp [Δ]
-    rw [heq]
-    exact (isClosed_iInter fun i => isClosed_le continuous_const (continuous_apply i)).inter
-      (isClosed_eq (by fun_prop) continuous_const)
-  have hΔ_sub : Δ ⊆ Set.Icc (0 : Fin N → ℝ) 1 := by
-    intro w hw
-    refine ⟨fun i => hw.1 i, fun i => ?_⟩
-    have hle : w i ≤ ∑ j : Fin N, w j :=
-      Finset.single_le_sum (fun j _ => hw.1 j) (Finset.mem_univ i)
-    simpa [hw.2] using hle
-  have hΔ_compact : IsCompact Δ := isCompact_Icc.of_isClosed_subset hΔ_closed hΔ_sub
+  have hΔ_compact : IsCompact Δ := by
+    have hΔ_eq :
+        Δ = Set.range (fun t : Convexity.StdSimplex ℝ (Fin N) => (t.weights : Fin N → ℝ)) := by
+      ext w
+      constructor
+      · rintro ⟨hnn, hsum⟩
+        refine ⟨⟨Finsupp.equivFunOnFinite.symm w, fun i => hnn i, ?_⟩, rfl⟩
+        simpa [Finsupp.sum_fintype] using hsum
+      · rintro ⟨t, rfl⟩
+        exact ⟨t.weights_nonneg, by simp⟩
+    rw [hΔ_eq]
+    exact isCompact_range
+      (Convexity.StdSimplex.isEmbedding_toFun_comp_weights ℝ (Fin N)).continuous
   have hSn_compact : IsCompact (Set.univ.pi fun _ : Fin N => S) :=
     isCompact_univ_pi fun _ => hSc
   let Φ : (Fin N → ℝ) × (Fin N → E) → E := fun p => ∑ i : Fin N, p.1 i • p.2 i

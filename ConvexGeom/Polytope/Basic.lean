@@ -15,16 +15,27 @@ import Mathlib.Topology.Order.IntermediateValue
 # Polytopes and Polytope Approximation of Convex Bodies
 
 This file provides foundational bridges between finite point sets, their convex hulls
-(polytopes as `ConvexBody E`), support functions, and Hausdorff approximation:
+(polytopes as `ConvexBody E`), support functions, Hausdorff approximation, and vertex push-out.
 
-- `bodyConvexHull`: packages `convexHull ℝ (S : Set E)` of a nonempty `Finset E` as a `ConvexBody E`.
-- `supportFn_bodyConvexHull`: the support function of a polytope is the maximum over its vertices:
-  `supportFn (bodyConvexHull S hS) u = S.sup' hS (fun x => ⟪x, u⟫)`.
-- `hausdorffDist_convexHull_range_le`: **1-Lipschitz continuity of convex hulls** in the Hausdorff
-  metric: if `∀ i, dist (v i) (w i) ≤ r`, then `dist (conv v) (conv w) ≤ r`.
-- `exists_polytope_dist_lt`: **Polytope Approximation Theorem** — every convex body `K` can be
-  approximated arbitrarily closely in Hausdorff distance by an inscribed polytope `P ⊆ K`
-  (vertices in `K`).
+## Main definitions
+
+* `ConvexGeom.bodyConvexHull`: packages `convexHull ℝ (S : Set E)` of a nonempty `Finset E` as a
+  `ConvexBody E`.
+
+## Main statements
+
+* `ConvexGeom.supportFn_bodyConvexHull`: the support function of a polytope is the maximum over
+  its vertices (`S.sup' hS (fun x => ⟪x, u⟫)`).
+* `ConvexGeom.hausdorffDist_convexHull_range_le`: 1-Lipschitz continuity of convex hulls in the
+  Hausdorff metric.
+* `ConvexGeom.exists_polytope_dist_lt`: every convex body `K` can be approximated arbitrarily
+  closely in Hausdorff distance by an inscribed polytope `P ⊆ K`.
+* `ConvexGeom.exists_ray_mem_sphere`, `ConvexGeom.exists_pushOut_vertex_sphere`: pushing vertices
+  out to a bounding sphere without shrinking the convex hull.
+
+## References
+
+* [R. Schneider, *Convex Bodies: The Brunn–Minkowski Theory*][schneider2014], §1.8.
 -/
 
 open scoped RealInnerProductSpace
@@ -156,7 +167,7 @@ theorem exists_polytope_dist_lt (K : ConvexBody E) {ε : ℝ} (hε : 0 < ε) :
 
 /-! ### Vertex Push-Out to a Bounding Sphere -/
 
-/-- Extending the ray from `c ∈ closedBall 0 R` through `v ∈ closedBall 0 R` (`v ≠ c`)
+/-- Extending the ray from `c` through `v ∈ closedBall 0 R` (`v ≠ c`)
 hits `sphere 0 R` at some parameter `t ≥ 1`. -/
 theorem exists_ray_mem_sphere {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {R : ℝ} {c v : E} (hv : v ∈ Metric.closedBall (0 : E) R) (hvc : v ≠ c) :
@@ -189,7 +200,7 @@ theorem exists_ray_mem_sphere {E : Type*} [NormedAddCommGroup E] [NormedSpace �
   simpa [Metric.mem_sphere, f] using hft
 
 /-- Any vertex `v ∈ closedBall 0 R` can be pushed out to `w ∈ sphere 0 R` without shrinking
-`convexHull ℝ (insert v S)` whenever `S ⊆ closedBall 0 R` is nonempty. -/
+`convexHull ℝ (insert v S)` whenever `S` is nonempty (in a nontrivial normed space). -/
 theorem exists_pushOut_vertex_sphere {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [Nontrivial E] {R : ℝ} {S : Set E} {v : E}
     (hSne : S.Nonempty) (hv : v ∈ Metric.closedBall (0 : E) R) :

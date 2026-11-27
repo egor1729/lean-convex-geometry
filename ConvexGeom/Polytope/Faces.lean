@@ -18,27 +18,30 @@ import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 
 For a finite point set `S : Finset E` in a finite-dimensional real inner product space `E`,
 this file develops the `V → H` facet structure of `P = convexHull ℝ (S : Set E)` via geometric
-polarity (`ConvexGeom.Metric.Polarity`) and Krein–Milman:
+polarity (`ConvexGeom.Metric.Polarity`) and Krein–Milman.
 
-1. **Finitely Many Facet Normals (`tightVertices`, `finite_extremePoints_polarBody`,
-   `facetNormals`):**
-   Every extreme point `u` of `polarBody S` has `span (tightVertices S u) = ⊤`, hence is uniquely
-   determined by its tight subset `tightVertices S u ⊆ S`. Thus `(polarBody S).extremePoints ℝ`
-   is finite.
-2. **Weyl–Minkowski `V → H` Representation (`polarBody_eq_convexHull_facetNormals`,
-   `weyl_minkowski_halfspaces`, `facetNormals_irredundant`):**
-   When `0 ∈ interior P`, `P = {x | ∀ u ∈ facetNormals S, ⟪x, u⟫ ≤ 1}`, and no half-space
-   inequality `⟪x, u⟫ ≤ 1` (`u ∈ facetNormals S`) is redundant.
-3. **Facet Characterization & Simpliciality (`polytopeFacet`,
-   `polytopeFacet_eq_convexHull_tightVertices`, `affineSpan_polytopeFacet`,
-   `card_tightVertices_eq_finrank_of_inGeneralPosition`):**
-   Each facet `polytopeFacet S u = convexHull ℝ (tightVertices S u)` spans the full supporting
-   hyperplane `{x | ⟪x, u⟫ = 1}`. If the vertices of `S` are in affine general position, every
-   facet has exactly `finrank ℝ E` affinely independent vertices (a `(d - 1)`-simplex).
-4. **Radial Facet-Cone Tiling (`facetCone`, `iUnion_facetCone_eq`,
-   `pairwise_aedisjoint_facetCone`, `addHaar_convexHull_eq_sum_facetCone`):**
-   When `0 ∈ interior P` (`Nontrivial E`), the origin-apex cones `facetCone S u` cover `P` with
-   pairwise Haar-null overlaps, yielding `μ P = ∑ u ∈ facetNormals S, μ (facetCone S u)`.
+## Main definitions
+
+* `ConvexGeom.tightVertices`: vertices `s ∈ S` attaining `⟪s, u⟫ = 1`.
+* `ConvexGeom.facetNormals`: finite set of extreme points of `polarBody S`.
+* `ConvexGeom.polytopeFacet`: exposed face `{x ∈ conv S | ⟪x, u⟫ = 1}`.
+* `ConvexGeom.facetCone`: origin-apex cone `convexHull ℝ (insert 0 (polytopeFacet S u))`.
+
+## Main statements
+
+* `ConvexGeom.finite_extremePoints_polarBody`: `(polarBody S).extremePoints ℝ` is finite.
+* `ConvexGeom.weyl_minkowski_halfspaces`, `ConvexGeom.facetNormals_irredundant`: **Weyl–Minkowski
+  `V → H` representation** — when `0 ∈ interior P`, `P = {x | ∀ u ∈ facetNormals S, ⟪x, u⟫ ≤ 1}`
+  with no redundant inequality.
+* `ConvexGeom.card_tightVertices_eq_finrank_of_inGeneralPosition`: every facet of a
+  general-position polytope is simplicial (a `(d - 1)`-simplex).
+* `ConvexGeom.iUnion_facetCone_eq`, `ConvexGeom.pairwise_aedisjoint_facetCone`,
+  `ConvexGeom.addHaar_convexHull_eq_sum_facetCone`: radial facet-cone volume sum formula.
+
+## References
+
+* [P. M. Gruber, *Convex and Discrete Geometry*][gruber2007], Ch. 15.
+* [G. M. Ziegler, *Lectures on Polytopes*][ziegler1995], Lecture 1.
 -/
 
 open MeasureTheory Set Finset

@@ -18,32 +18,27 @@ import Mathlib.LinearAlgebra.Matrix.Block
 /-!
 # Volume of a $d$-Simplex via Permutation Tiling
 
-This file proves the $d$-dimensional Lebesgue volume of a simplex in `Fin d → ℝ`:
+This file proves the $d$-dimensional Lebesgue volume of a simplex in `Fin d → ℝ` and
+`EuclideanSpace ℝ (Fin d)`:
 $$
   \mathrm{vol}(\mathrm{conv}\{v_0, v_1, \dots, v_d\})
   = \frac{|\det(v_1 - v_0, \dots, v_d - v_0)|}{d!}.
 $$
 
-## Proof Overview (Permutation Tiling)
-1. **Standard solid simplex & order simplex:**
-   - `solidSimplex d`: `{y | (∀ i, 0 ≤ y i) ∧ ∑ i, y i ≤ 1}`.
-   - `orderSimplex d`: `{x | x ∈ [0, 1]^d ∧ Monotone x}`.
-   - `permSimplex d σ`: `{x | x ∈ [0, 1]^d ∧ Monotone (x ∘ σ)}`.
-2. **Hyperplanes have measure zero (`volume_coord_eq_zero`):**
-   For `i ≠ j`, `{x | x i = x j}` is a proper submodule of `Fin d → ℝ`, hence has volume `0`
-   by `Measure.addHaar_submodule`.
-3. **Tiling of the unit cube (`iUnion_permSimplex_eq_unitCube` & `pairwise_aedisjoint_permSimplex`):**
-   Every point in `[0, 1]^d` lies in `permSimplex d (Tuple.sort x)`. Two distinct permutations
-   `σ ≠ τ` can only overlap on `{x | ∃ i ≠ j, x i = x j}`, which has measure `0`.
-4. **Volume of `orderSimplex d` (`volume_orderSimplex`):**
-   Each `permSimplex d σ` is a coordinate-permutation image of `orderSimplex d` (with `|det| = 1`),
-   so all `d!` pieces have equal volume summing to `volume [0, 1]^d = 1`.
-5. **Partial-sum linear map (`volume_solidSimplex`):**
-   The lower-triangular map `(T y)_k = ∑ j ≤ k, y j` has `det = 1` and maps `solidSimplex d`
-   onto `orderSimplex d`, giving `volume (solidSimplex d) = 1 / d!`.
-6. **General $d$-simplex (`volume_convexHull_simplex`):**
-   `convexHull ℝ (Set.range v)` is the translate by `v 0` of the linear image of `solidSimplex d`
-   under the edge-matrix `j ↦ v j.succ - v 0`, so `Measure.addHaar_image_linearMap` finishes it.
+## Main definitions
+
+* `ConvexGeom.solidSimplex`: `{y : Fin d → ℝ | (∀ i, 0 ≤ y i) ∧ ∑ i, y i ≤ 1}`.
+* `ConvexGeom.orderSimplex`: `{x ∈ [0, 1]^d | Monotone x}`.
+* `ConvexGeom.permSimplex`: `{x ∈ [0, 1]^d | Monotone (x ∘ σ)}`.
+* `ConvexGeom.simplexEdgeMap`, `ConvexGeom.simplexEdgeMatrix`: edge linear map and edge matrix
+  `j ↦ v j.succ - v 0`.
+
+## Main statements
+
+* `ConvexGeom.volume_orderSimplex`, `ConvexGeom.volume_solidSimplex`: both have volume `1 / d!`.
+* `ConvexGeom.volume_convexHull_simplex`, `ConvexGeom.volume_convexHull_simplex_matrix`,
+  `ConvexGeom.volume_convexHull_simplex_euclideanSpace_matrix`: general $d$-simplex volume
+  formulas `|det| / d!`.
 -/
 
 open MeasureTheory Set
@@ -181,13 +176,13 @@ lemma pairwise_aedisjoint_permSimplex (d : ℕ) :
 /-! ### 4. Symmetry & Volume of `orderSimplex d` -/
 
 /-- The coordinate-permutation linear map `(P_σ x)_i = x (σ i)`. -/
-def permLinMap (d : ℕ) (σ : Equiv.Perm (Fin d)) : (Fin d → ℝ) →ₗ[ℝ] (Fin d → ℝ) where
+private def permLinMap (d : ℕ) (σ : Equiv.Perm (Fin d)) : (Fin d → ℝ) →ₗ[ℝ] (Fin d → ℝ) where
   toFun x i := x (σ i)
   map_add' _ _ := rfl
   map_smul' _ _ := rfl
 
 /-- The coordinate-permutation map has determinant `±1`, hence `|det| = 1`. -/
-lemma abs_det_permLinMap (d : ℕ) (σ : Equiv.Perm (Fin d)) :
+private lemma abs_det_permLinMap (d : ℕ) (σ : Equiv.Perm (Fin d)) :
     |(permLinMap d σ).det| = 1 := by
   have hmat : LinearMap.toMatrix' (permLinMap d σ) =
       (1 : Matrix (Fin d) (Fin d) ℝ).submatrix σ id := by
@@ -249,7 +244,7 @@ theorem volume_orderSimplex (d : ℕ) :
 /-! ### 5. Partial-Sum Map & Volume of `solidSimplex d` -/
 
 /-- The partial-sum linear map `(T y)_k = ∑ j ≤ k, y j`. -/
-def partialSumMap (d : ℕ) : (Fin d → ℝ) →ₗ[ℝ] (Fin d → ℝ) where
+private def partialSumMap (d : ℕ) : (Fin d → ℝ) →ₗ[ℝ] (Fin d → ℝ) where
   toFun y k := ∑ j : Fin d, if j ≤ k then y j else 0
   map_add' y z := by
     ext k
@@ -261,7 +256,7 @@ def partialSumMap (d : ℕ) : (Fin d → ℝ) →ₗ[ℝ] (Fin d → ℝ) where
     simp [Finset.mul_sum, apply_ite]
 
 /-- `partialSumMap d` has a lower-triangular matrix with `1`s on the diagonal, so `det = 1`. -/
-lemma det_partialSumMap (d : ℕ) : (partialSumMap d).det = 1 := by
+private lemma det_partialSumMap (d : ℕ) : (partialSumMap d).det = 1 := by
   rw [← LinearMap.det_toMatrix']
   have hentry : ∀ i j : Fin d,
       LinearMap.toMatrix' (partialSumMap d) i j = if j ≤ i then 1 else 0 := by
@@ -281,7 +276,7 @@ lemma det_partialSumMap (d : ℕ) : (partialSumMap d).det = 1 := by
   simp [hentry i i]
 
 /-- `partialSumMap d` maps `solidSimplex d` onto `orderSimplex d`. -/
-lemma image_solidSimplex_eq_orderSimplex (d : ℕ) :
+private lemma image_solidSimplex_eq_orderSimplex (d : ℕ) :
     partialSumMap d '' solidSimplex d = orderSimplex d := by
   ext x
   constructor
