@@ -1,0 +1,379 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+# formalization.yaml (v0.4): repo-root metadata for lean-convex-geometry.
+
+version: "v0.4"
+
+project:
+  name: "lean-convex-geometry"
+  description: >-
+    A Lean 4 and Mathlib library for metric, polyhedral, volumetric, spherical,
+    and asymptotic convex geometry in finite-dimensional real inner product
+    spaces. Across four layers (Metric, Polytope, Volume, Asymptotic), it
+    formalizes 30 landmark theorems verified against a Mathlib-only
+    Challenge.lean via lake comparator: Blaschke Selection, Bipolar, Supporting
+    Hyperplane, d-simplex volume, Helly, Minkowski-Caratheodory, Jung,
+    Weyl-Minkowski V->H duality, Prekopa-Leindler, Brunn-Minkowski,
+    Isodiametric, Rogers-Shephard, Euclidean Isoperimetric, Fritz John (general
+    and symmetric) and the Banach-Mazur compactum, Loomis-Whitney, rank-1
+    geometric Brascamp-Lieb and Barthe's reverse Brascamp-Lieb, Ball's volume
+    ratio and reverse isoperimetric inequalities, Gaussian and spherical
+    Lipschitz concentration, Johnson-Lindenstrauss, Dvoretzky's theorem,
+    Blaschke-Santalo (general and symmetric), Dual Urysohn, and Urysohn's
+    inequality.
+  authors:
+    - "Yegor Gorodzha"
+  responsible_maintainers:
+    - "Yegor Gorodzha"
+  license: "Apache-2.0"
+
+classification:
+  arxiv:
+    - "math.MG"
+    - "math.FA"
+  msc2020:
+    - "52A20"
+    - "52A21"
+    - "52A23"
+    - "52A40"
+    - "52B11"
+    - "46B07"
+
+sources:
+  - title: "An Elementary Introduction to Modern Convex Geometry"
+    authors:
+      - "Keith Ball"
+    id: "https://library.slmath.org/books/Book31/files/ball.pdf"
+    type: "book"
+    location: "Flavors of Geometry, MSRI Publications Vol. 31 (1997), Lectures 1-9"
+    relationship: "formalizes"
+    author_endorsement: "not-contacted"
+    note: >-
+      Primary blueprint for the Asymptotic layer: Fritz John's theorem and
+      decomposition, Dvoretzky-Rogers, Loomis-Whitney, geometric Brascamp-Lieb,
+      Ball's volume ratio and reverse isoperimetric inequalities, Gaussian and
+      spherical concentration, Johnson-Lindenstrauss, and Dvoretzky's theorem.
+  - title: "Convex Bodies: The Brunn-Minkowski Theory (2nd ed.)"
+    authors:
+      - "Rolf Schneider"
+    id: "https://doi.org/10.1017/CBO9781139003858"
+    type: "book"
+    location: "Chapters 1-3, 7, 9-10"
+    relationship: "adapts"
+    author_endorsement: "not-contacted"
+    note: >-
+      Reference for support functions, Hormander embedding, Blaschke selection,
+      polarity, Steiner point, symmetrization, Brunn-Minkowski, Rogers-Shephard,
+      and isoperimetric inequalities.
+  - title: "Convex and Discrete Geometry"
+    authors:
+      - "Peter M. Gruber"
+    id: "https://doi.org/10.1007/978-3-540-71133-9"
+    type: "book"
+    location: "Chapters 1-15"
+    relationship: "adapts"
+    author_endorsement: "n/a"
+    note: >-
+      Reference for combinatorial convexity (Radon, Helly, Caratheodory,
+      Straszewicz, Jung), polytope faces, and Weyl-Minkowski duality.
+  - title: "Asymptotic Geometric Analysis, Part I"
+    authors:
+      - "Shiri Artstein-Avidan"
+      - "Apostolos Giannopoulos"
+      - "Vitali D. Milman"
+    id: "https://doi.org/10.1090/surv/202"
+    type: "book"
+    location: "Chapters 1-5"
+    relationship: "adapts"
+    author_endorsement: "not-contacted"
+    note: >-
+      Reference for Banach-Mazur distances and compactum, ellipsoids, Mahler
+      and Santalo volume, mean/Gaussian width, and Urysohn / Dual Urysohn
+      inequalities.
+  - title: "On a reverse form of the Brascamp-Lieb inequality"
+    authors:
+      - "Franck Barthe"
+    id: "https://doi.org/10.1007/s002220050267"
+    type: "article"
+    location: "Inventiones Mathematicae 134 (1998), 335-361"
+    relationship: "formalizes"
+    author_endorsement: "not-contacted"
+    note: >-
+      Monotone 1D Gaussian optimal-transport proofs of the rank-1 geometric
+      Brascamp-Lieb inequality, Barthe's reverse Brascamp-Lieb inequality, and
+      the outer volume-ratio polar bound.
+  - title: "On the Blaschke-Santalo inequality"
+    authors:
+      - "Mathieu Meyer"
+      - "Alain Pajor"
+    id: "https://doi.org/10.1007/BF01190262"
+    type: "article"
+    location: "Archiv der Mathematik 55 (1990), 82-93"
+    relationship: "formalizes"
+    author_endorsement: "not-contacted"
+    note: >-
+      Slice-volume and Brunn-Minkowski proof that directional Steiner
+      symmetrization does not decrease Santalo Mahler volume, combined with
+      second-moment strict decrease and John-position compactness to prove the
+      Blaschke-Santalo inequality.
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4"
+    relationship: "builds-on"
+    note: >-
+      Built directly on Mathlib4 v4.36.0 (ConvexBody, gauge, Hahn-Banach,
+      Haar measure, HaarToSphere, InnerProductSpace, Helly/Caratheodory
+      primitives).
+
+status:
+  scope: >-
+    Complete formalization of four foundational layers (Metric, Polytope,
+    Volume, Asymptotic; 28 library modules) with zero sorry and zero custom
+    axioms. All 30 headline classical theorems are independently stated in
+    Mathlib-only terms in Challenge.lean (whose 30 sorry placeholders are
+    deliberate Comparator holes) and verified in Solution.lean via lake
+    comparator. Open directions not yet formalized (e.g. Bourgain-Milman
+    reverse Santalo, Milman's M-ellipsoid / QS theorem, mixed volumes /
+    Aleksandrov-Fenchel, Sudakov minoration, Grunbaum's inequality) are
+    tracked in docs/ROADMAP.md.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms:
+    - "propext"
+    - "Classical.choice"
+    - "Quot.sound"
+  main_results:
+    - declaration: "ConvexGeomChallenge.brunn_minkowski"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator.json"
+    - declaration: "ConvexGeomChallenge.isoperimetric_inequality"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator.json"
+    - declaration: "ConvexGeomChallenge.john_theorem"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator.json"
+    - declaration: "ConvexGeomChallenge.brascamp_lieb_rankOne"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator.json"
+    - declaration: "ConvexGeomChallenge.reverse_brascamp_lieb_rankOne"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator.json"
+    - declaration: "ConvexGeomChallenge.ball_reverse_isoperimetric"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator.json"
+    - declaration: "ConvexGeomChallenge.gaussian_lipschitz_concentration"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator.json"
+    - declaration: "ConvexGeomChallenge.johnson_lindenstrauss"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator.json"
+    - declaration: "ConvexGeomChallenge.dvoretzky_theorem"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator.json"
+    - declaration: "ConvexGeomChallenge.blaschke_santalo"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator.json"
+    - declaration: "ConvexGeomChallenge.urysohn_inequality"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator.json"
+
+automation:
+  methods:
+    - method: "agent"
+      models:
+        - "Gemini 4 Neon"
+      framework: "Antigravity"
+      tool_setup: >-
+        Interactive coding agent running across several sessions in Antigravity
+        with direct Lean 4 compiler (--wfail), convexgeom-audit, and lake
+        comparator feedback under human maintainer direction.
+      cost:
+        wall_time: "~1 week across several runs"
+        spend_usd: "Pro subscription"
+        hardware: "Cloud VM (Antigravity)"
+    - method: "agent"
+      models:
+        - "Claude Opus 5.5"
+      framework: "Claude Code"
+      tool_setup: >-
+        Used for independent code, mathematical statement, and verification
+        review only (not proof generation).
+  spend_usd: "Pro subscription"
+  notes: >-
+    Formalization and proof engineering are carried out with Gemini 4 Neon in
+    Antigravity under the responsible maintainer's direction across several
+    sessions (~1 week of work so far), with Claude Opus 5.5 in Claude Code used
+    exclusively for independent review. All claims are machine-checked by Lean
+    4.36.0, convexgeom-audit, and sandboxed lake comparator with bundled
+    independent external kernels.
+
+fidelity:
+  divergences: >-
+    Deliberate conventions, scope decisions, and proof-route adaptations are
+    recorded in detail in docs/CONVENTIONS.md. Key points:
+    (1) ConvexBody E follows Mathlib and includes empty-interior compact convex
+    sets, so theorems requiring nonempty interior or 0 in interior K state that
+    hypothesis explicitly.
+    (2) minkowskiSurfaceArea is defined as the lower outer Minkowski content
+    liminf_{t -> 0+} (vol(K + t B_1) - vol(K)) / t rather than geometric
+    measure theory perimeter.
+    (3) meanWidth K = integral_{S^{d-1}} h_K(u) d sigma(u) is half the
+    classical mean breadth (so meanWidth(B(c, r)) = r).
+    (4) Brascamp-Lieb and reverse Brascamp-Lieb are formalized in the rank-1
+    geometric (John decomposition) form via Barthe's 1D monotone Gaussian
+    transport, which suffices for all Ball volume-ratio and reverse
+    isoperimetric applications.
+    (5) Gaussian and spherical Lipschitz concentration are derived from
+    Prekopa-Leindler and radial Gaussian-to-sphere projection rather than
+    Gaussian/Levy isoperimetry, yielding explicit non-optimal constants
+    (e.g. 576 in spherical concentration, 16 in Johnson-Lindenstrauss, and
+    8192 * k * log(48/eps) <= eps^2 * log d in Dvoretzky's theorem).
+    (6) Blaschke-Santalo is proved via Meyer-Pajor (1990) slice symmetrization
+    and strict decrease of the second moment under directional Steiner
+    symmetrization, with Urysohn's inequality derived as a corollary.
+
+review:
+  status: "agent-reviewed"
+  reviewers:
+    - "Claude Opus 5.5 (Claude Code, review only)"
+  notes: >-
+    Automated verification enforces zero sorry, zero warnings (--wfail),
+    module completeness via convexgeom-audit, exact AxiomAudit.lean matching
+    (300 headline declarations), concrete regression checks in
+    ConvexGeom/Verification/Checks/, and sandboxed lake comparator statement
+    matching against Mathlib-only Challenge.lean with bundled independent
+    kernels (nanoda_bin, con-ron, and optional --paranoid all-5-kernel replay).
+    Independent statement and code review is performed using Claude Opus 5.5 in
+    Claude Code under maintainer Yegor Gorodzha.
+
+alignment:
+  namespace: "ConvexGeom"
+  statements:
+    - source: "Blaschke Selection Theorem (Schneider §1.8)"
+      lean: "ConvexGeom.blaschke_selection"
+      module: "ConvexGeom.Metric.Blaschke"
+      status: "proved"
+    - source: "Bipolar Theorem (Schneider §1.6)"
+      lean: "ConvexGeom.polarBody_polarBody"
+      module: "ConvexGeom.Metric.Polarity"
+      status: "proved"
+    - source: "Supporting Hyperplane Theorem (Schneider §1.3)"
+      lean: "ConvexGeom.exists_supporting_normal_of_mem_frontier"
+      module: "ConvexGeom.Metric.Projection"
+      status: "proved"
+    - source: "d-Simplex Volume Formula"
+      lean: "ConvexGeom.volume_convexHull_simplex_matrix"
+      module: "ConvexGeom.Polytope.SimplexVolume"
+      status: "proved"
+    - source: "Helly's Theorem (Gruber Ch. 3)"
+      lean: "ConvexGeom.helly_convexBody_finset"
+      module: "ConvexGeom.Polytope.Combinatorial"
+      status: "proved"
+    - source: "Minkowski-Caratheodory Theorem (Gruber Ch. 5)"
+      lean: "ConvexGeom.convexHull_extremePoints_eq"
+      module: "ConvexGeom.Polytope.Combinatorial"
+      status: "proved"
+    - source: "Jung's Circumradius Theorem (Gruber Ch. 11)"
+      lean: "ConvexGeom.jung_circumradius_convexBody"
+      module: "ConvexGeom.Polytope.Combinatorial"
+      status: "proved"
+    - source: "Weyl-Minkowski V->H Duality (Gruber Ch. 15)"
+      lean: "ConvexGeom.weyl_minkowski_halfspaces"
+      module: "ConvexGeom.Polytope.Faces"
+      status: "proved"
+    - source: "Prekopa-Leindler Inequality (Ball Lec. 1)"
+      lean: "ConvexGeom.prekopa_leindler"
+      module: "ConvexGeom.Volume.BrunnMinkowski"
+      status: "proved"
+    - source: "Brunn-Minkowski Inequality (Ball Lec. 1)"
+      lean: "ConvexGeom.brunn_minkowski_compact"
+      module: "ConvexGeom.Volume.BrunnMinkowski"
+      status: "proved"
+    - source: "Isodiametric Inequality (Ball Lec. 1)"
+      lean: "ConvexGeom.isodiametric_inequality"
+      module: "ConvexGeom.Volume.BrunnMinkowski"
+      status: "proved"
+    - source: "Rogers-Shephard Inequality (Schneider §10.1)"
+      lean: "ConvexGeom.rogers_shephard"
+      module: "ConvexGeom.Volume.BrunnConcavity"
+      status: "proved"
+    - source: "Euclidean Isoperimetric Inequality (Ball Lec. 1)"
+      lean: "ConvexGeom.isoperimetric_inequality"
+      module: "ConvexGeom.Volume.Isoperimetric"
+      status: "proved"
+    - source: "Fritz John's Theorem, general & symmetric (Ball Lec. 3)"
+      lean: "ConvexGeom.john_theorem"
+      module: "ConvexGeom.Asymptotic.JohnEllipsoid"
+      status: "proved"
+    - source: "Dvoretzky-Rogers Lemma & Banach-Mazur Compactum (Ball Lec. 4)"
+      lean: "ConvexGeom.dvoretzky_rogers_lemma"
+      module: "ConvexGeom.Asymptotic.JohnEllipsoid"
+      status: "proved"
+    - source: "Loomis-Whitney Inequality (Ball Lec. 6)"
+      lean: "ConvexGeom.loomis_whitney"
+      module: "ConvexGeom.Asymptotic.BrascampLieb"
+      status: "proved"
+    - source: "Rank-1 Geometric Brascamp-Lieb Inequality (Ball Lec. 6; Barthe 1998)"
+      lean: "ConvexGeom.brascamp_lieb_rankOne"
+      module: "ConvexGeom.Asymptotic.BrascampLieb"
+      status: "proved"
+    - source: "Reverse Brascamp-Lieb Inequality (Barthe 1998)"
+      lean: "ConvexGeom.reverse_brascamp_lieb_rankOne"
+      module: "ConvexGeom.Asymptotic.BrascampLieb"
+      status: "proved"
+    - source: "Ball's Volume Ratio & Reverse Isoperimetric Inequalities (Ball Lec. 6)"
+      lean: "ConvexGeom.ball_reverse_isoperimetric"
+      module: "ConvexGeom.Asymptotic.BrascampLieb"
+      status: "proved"
+    - source: "Gaussian Width Proportionality & Concentration (Ball Lec. 7-8)"
+      lean: "ConvexGeom.gaussian_lipschitz_concentration_mean"
+      module: "ConvexGeom.Asymptotic.GaussianConcentration"
+      status: "proved"
+    - source: "Spherical Concentration for Lipschitz Functions (Ball Lec. 7-8)"
+      lean: "ConvexGeom.spherical_lipschitz_concentration_median"
+      module: "ConvexGeom.Asymptotic.GaussianConcentration"
+      status: "proved"
+    - source: "Johnson-Lindenstrauss Lemma (Ball Lec. 8)"
+      lean: "ConvexGeom.johnson_lindenstrauss"
+      module: "ConvexGeom.Asymptotic.GaussianConcentration"
+      status: "proved"
+    - source: "Dvoretzky's Theorem (Ball Lec. 9)"
+      lean: "ConvexGeom.dvoretzky_theorem"
+      module: "ConvexGeom.Asymptotic.GaussianConcentration"
+      status: "proved"
+    - source: "Blaschke-Santalo Inequality (Meyer-Pajor 1990; AGM Ch. 1)"
+      lean: "ConvexGeom.blaschke_santalo"
+      module: "ConvexGeom.Asymptotic.BlaschkeSantalo"
+      status: "proved"
+    - source: "Dual Urysohn & Urysohn Inequalities (AGM Ch. 1)"
+      lean: "ConvexGeom.urysohn_inequality"
+      module: "ConvexGeom.Asymptotic.BlaschkeSantalo"
+      status: "proved"
+
+acknowledgements: >-
+  Built on Lean 4 and Mathlib4 (v4.36.0). Gratefully acknowledges the Mathlib
+  community for convex analysis, inner product spaces, Haar/spherical measure,
+  and Bochner integration infrastructure, and the Lean FRO and Mathlib
+  Initiative for lake comparator, bundled independent kernels, and the
+  formalization.yaml standard.
