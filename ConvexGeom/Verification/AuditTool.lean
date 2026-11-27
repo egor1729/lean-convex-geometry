@@ -1,4 +1,6 @@
-import Lean
+module
+
+public import Lean
 
 /-!
 # Environment-Wide Axiom & Module Audit (`convexgeom-audit`)
@@ -208,7 +210,7 @@ private def formatJsonReport
 end ConvexGeomAudit
 
 open ConvexGeomAudit in
-def main (args : List String) : IO UInt32 := do
+public def main (args : List String) : IO UInt32 := do
   let cfg ← parseArgs args
   Lean.initSearchPath (← Lean.findSysroot)
   -- Load the full transitive environment at `.private` level (all public + private constants,
